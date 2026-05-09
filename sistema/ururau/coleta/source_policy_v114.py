@@ -9,8 +9,6 @@ Objetivo:
 - colocar em quarentena fontes que retornaram 0 entradas nos ciclos analisados;
 - reduzir ruido editorial evidente sem bloquear pauta local/politica relevante;
 - impedir variantes mobile falsas como m.www.* e m.girorj.com.br.
-
-O modulo e propositalmente simples e sem rede: ele so orienta o motor.
 """
 from __future__ import annotations
 
@@ -18,65 +16,31 @@ from urllib.parse import urlparse
 import re
 from typing import Any, Dict, Iterable, List, Tuple
 
-# Fontes que retornaram entradas/pautas nos logs enviados.
 FONTES_PRODUTIVAS = {
-    "j3 news",
-    "portal viu",
-    "sf notícias", "sf noticias",
-    "o debate",
-    "clique diário", "clique diario",
-    "o parahybano",
-    "rj news notícias", "rj news noticias",
-    "jornal de sábado", "jornal de sabado",
-    "prensa de babel",
-    "agenda do poder",
-    "diário do rio", "diario do rio",
-    "giro rj",
-    "agência brasil geral", "agencia brasil geral", "agência brasil", "agencia brasil",
-    "g1 rio de janeiro",
-    "g1 política", "g1 politica",
-    "g1 economia",
-    "g1 mundo",
-    "cnn brasil",
+    "j3 news", "portal viu", "sf notícias", "sf noticias", "o debate",
+    "clique diário", "clique diario", "o parahybano", "rj news notícias", "rj news noticias",
+    "jornal de sábado", "jornal de sabado", "prensa de babel", "agenda do poder",
+    "diário do rio", "diario do rio", "giro rj", "agência brasil geral", "agencia brasil geral",
+    "agência brasil", "agencia brasil", "g1 rio de janeiro", "g1 política", "g1 politica",
+    "g1 economia", "g1 mundo", "cnn brasil",
 }
 
-# Fontes que apareceram com 0 entradas nos logs analisados.
-# Nao e exclusao definitiva; a v111.4 tira do ciclo rapido e deixa para auditoria/alternativas.
 FONTES_QUARENTENA = {
-    "folha 1",
-    "campos 24 horas",
-    "manchete rj",
-    "g1 norte fluminense",
-    "vnotícia", "vnoticia",
-    "nf notícias", "nf noticias",
-    "portal ozk",
-    "macaé news", "macae news",
-    "jornal o diário", "jornal o diario",
-    "portal da cidade campos",
-    "portal da cidade macaé", "portal da cidade macae",
-    "quissamã notícias", "quissama noticias",
-    "paulo noel",
-    "tribuna nf",
-    "destaque diário", "destaque diario",
-    "cidades do rio",
-    "notícias de macaé", "noticias de macae",
-    "portal g6",
-    "conexão noroeste", "conexao noroeste",
-    "jornal zona norte",
-    "o dia — informe do dia", "o dia - informe do dia",
+    "folha 1", "campos 24 horas", "manchete rj", "g1 norte fluminense",
+    "vnotícia", "vnoticia", "nf notícias", "nf noticias", "portal ozk",
+    "macaé news", "macae news", "jornal o diário", "jornal o diario",
+    "portal da cidade campos", "portal da cidade macaé", "portal da cidade macae",
+    "quissamã notícias", "quissama noticias", "paulo noel", "tribuna nf",
+    "destaque diário", "destaque diario", "cidades do rio", "notícias de macaé",
+    "noticias de macae", "portal g6", "conexão noroeste", "conexao noroeste",
+    "jornal zona norte", "o dia — informe do dia", "o dia - informe do dia",
 }
 
-# Dominios com variante mobile inexistente observada nos logs.
 MOBILE_INVALID_DOMAINS = {
-    "j3news.com",
-    "portalviu.com.br",
-    "www.portalviu.com.br",
-    "sfnoticias.com.br",
-    "girorj.com.br",
-    "prensadebabel.com.br",
+    "j3news.com", "portalviu.com.br", "www.portalviu.com.br", "sfnoticias.com.br",
+    "girorj.com.br", "prensadebabel.com.br",
 }
 
-# Termos negativos de ruido. A pauta so e bloqueada se tambem nao tiver sinal positivo.
 TERMOS_NEGATIVOS = {
     "bbb", "fofoca", "horóscopo", "horoscopo", "signo", "novela",
     "receita", "cupom", "promoção", "promocao", "treonina", "mudas na água",
@@ -101,7 +65,6 @@ TERMOS_POSITIVOS = {
     "goytacaz", "goytacaz futebol clube", "goitacaz", "goitacaz futebol clube",
 }
 
-# Fontes nacionais/alta escala: boas, mas devem entrar depois das locais.
 FONTES_NACIONAIS = {
     "g1 política", "g1 politica", "g1 economia", "g1 mundo", "cnn brasil",
     "folha poder", "folha mercado", "uol esportes", "metrópoles", "metropoles",
@@ -111,6 +74,10 @@ FONTES_NACIONAIS = {
 
 def _norm(texto: str) -> str:
     return re.sub(r"\s+", " ", str(texto or "").strip().lower())
+
+
+def _as_dict(fonte: Any) -> Dict[str, Any]:
+    return fonte if isinstance(fonte, dict) else {}
 
 
 def dominio(url: str) -> str:
@@ -130,15 +97,15 @@ def mobile_variant_allowed(url: str) -> bool:
     d = dominio(url)
     if not d or d in MOBILE_INVALID_DOMAINS or d.startswith("m."):
         return False
-    # Por segurança, apenas dominios explicitamente liberados devem testar m.*
     return d in set()
 
 
-def fonte_nome(fonte: Dict[str, Any]) -> str:
-    return _norm(fonte.get("nome") or fonte.get("fonte_nome") or fonte.get("url") or "")
+def fonte_nome(fonte: Dict[str, Any] | Any) -> str:
+    f = _as_dict(fonte)
+    return _norm(f.get("nome") or f.get("fonte_nome") or f.get("url") or "")
 
 
-def status_fonte_por_log(fonte: Dict[str, Any]) -> str:
+def status_fonte_por_log(fonte: Dict[str, Any] | Any) -> str:
     nome = fonte_nome(fonte)
     if nome in FONTES_PRODUTIVAS:
         return "produtiva"
@@ -147,10 +114,14 @@ def status_fonte_por_log(fonte: Dict[str, Any]) -> str:
     return "desconhecida"
 
 
-def prioridade_fonte(fonte: Dict[str, Any]) -> int:
-    nome = fonte_nome(fonte)
-    escopo = _norm(fonte.get("escopo") or fonte.get("regiao") or fonte.get("canal_forcado") or "")
-    peso = int(fonte.get("peso") or fonte.get("peso_fonte") or fonte.get("prioridade") or 0)
+def prioridade_fonte(fonte: Dict[str, Any] | Any) -> int:
+    f = _as_dict(fonte)
+    nome = fonte_nome(f)
+    escopo = _norm(f.get("escopo") or f.get("regiao") or f.get("canal_forcado") or "")
+    try:
+        peso = int(f.get("peso") or f.get("peso_fonte") or f.get("prioridade") or 0)
+    except Exception:
+        peso = 0
     score = 50 + min(30, max(0, peso))
     if nome in FONTES_PRODUTIVAS:
         score += 100
@@ -165,7 +136,7 @@ def prioridade_fonte(fonte: Dict[str, Any]) -> int:
 
 def ordenar_fontes(fontes: Iterable[Dict[str, Any]], incluir_quarentena: bool = False) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
-    for f in fontes:
+    for f in fontes or []:
         if not isinstance(f, dict):
             continue
         if f.get("ativo", True) is False:
@@ -184,10 +155,6 @@ def deve_ignorar_pauta(titulo: str, resumo: str = "", url: str = "", fonte: str 
     if not texto:
         return True, "sem_texto"
 
-    # v129: termos de Config > Termos e lista política/regional ampliada também
-    # viram filtro positivo. Assim uma pauta buscada por "Rodrigo Bacellar",
-    # "Campos dos Goytacazes", "STF", "TSE", "Senado", deputado da Alerj etc.
-    # não é tratada como ruído por conter termo negativo genérico.
     tem_pos = any(t in texto for t in TERMOS_POSITIVOS)
     try:
         from ururau.coleta.linha_editorial_v129 import analisar_texto_linha_editorial_v129
@@ -195,7 +162,7 @@ def deve_ignorar_pauta(titulo: str, resumo: str = "", url: str = "", fonte: str 
         if analise_v129.get("termos"):
             tem_pos = True
     except Exception:
-        analise_v129 = {}
+        pass
 
     negs = [t for t in TERMOS_NEGATIVOS if t in texto]
     if negs and not tem_pos:
@@ -205,20 +172,9 @@ def deve_ignorar_pauta(titulo: str, resumo: str = "", url: str = "", fonte: str 
 
 def termos_simples_padrao() -> List[str]:
     termos = [
-        "Campos dos Goytacazes",
-        "Norte Fluminense",
-        "Porto do Açu",
-        "São João da Barra",
-        "Alerj",
-        "Douglas Ruas",
-        "Wladimir Garotinho",
-        "Rodrigo Bacellar",
-        "Eduardo Paes",
-        "Cláudio Castro",
-        "TCE-RJ",
-        "MPRJ",
-        "Campos 24 Horas",
-        "Folha 1 Campos",
+        "Campos dos Goytacazes", "Norte Fluminense", "Porto do Açu", "São João da Barra",
+        "Alerj", "Douglas Ruas", "Wladimir Garotinho", "Rodrigo Bacellar", "Eduardo Paes",
+        "Cláudio Castro", "TCE-RJ", "MPRJ", "Campos 24 Horas", "Folha 1 Campos",
     ]
     try:
         from ururau.coleta.linha_editorial_v129 import termos_padrao_config_v129
