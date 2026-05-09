@@ -10,6 +10,7 @@ from ururau_ai_auditor.regression_tests import rodar_regressao
 from ururau_ai_auditor.fluxo_registry import listar_fluxos
 from ururau_ai_auditor.agent_registry import listar_agentes
 from ururau_ai_auditor.issue_classifier import classificar_lista
+from ururau_ai_auditor.memory_store import salvar_snapshot_auditoria
 from ururau_ai_auditor.report_writer import salvar_relatorio
 
 
@@ -31,6 +32,7 @@ def main() -> int:
             "compilacao": classificar_lista(falhas_compilacao),
         },
     }
+    dados["memoria"] = salvar_snapshot_auditoria(dados, str(root))
     rel = salvar_relatorio(dados, str(root))
     print("Relatorio salvo em:", rel)
     print(json.dumps({
@@ -38,6 +40,7 @@ def main() -> int:
         "python_falhas": len(falhas_compilacao),
         "logs_achados": len(achados_logs),
         "logs_classificados": len(dados["classificacao"]["logs"]),
+        "memoria": dados.get("memoria", {}),
         "relatorio": rel,
     }, ensure_ascii=False, indent=2))
     return 0 if dados["regressao"]["compilacao"].get("ok") else 1
