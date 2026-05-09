@@ -21,7 +21,15 @@ def main() -> int:
     falhas_compilacao = regressao.get("compilacao", {}).get("falhas", [])
     achados_logs = logs.get("achados", [])
     baseline_status = logs.get("baseline_status", {}) or {}
-    logs_novos = baseline_status.get("novos", []) or achados_logs
+
+    # Importante: lista vazia de novos achados é um resultado válido.
+    # A versão anterior usava "or achados_logs", fazendo logs_novos voltar a 98
+    # mesmo quando todos os achados estavam no baseline.
+    if "novos" in baseline_status:
+        logs_novos = baseline_status.get("novos") or []
+    else:
+        logs_novos = achados_logs
+
     dados = {
         "root": str(root),
         "fluxos": listar_fluxos(),
@@ -44,6 +52,7 @@ def main() -> int:
         "logs_achados": len(achados_logs),
         "logs_novos": len(logs_novos),
         "logs_conhecidos": baseline_status.get("total_conhecidos", 0),
+        "baseline_total": (baseline_status.get("baseline") or {}).get("total", 0),
         "logs_classificados": len(dados["classificacao"]["logs"]),
         "memoria": dados.get("memoria", {}),
         "relatorio": rel,
