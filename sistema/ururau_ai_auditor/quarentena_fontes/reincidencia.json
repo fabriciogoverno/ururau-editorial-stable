@@ -1,4 +1,6 @@
 {
-  "dominios": {},
-  "ultima_atualizacao": null
+  "dominios": {
+    "dominio-teste.com": 3
+  },
+  "ultima_atualizacao": "2026-05-09T23:56:40.391023"
 }

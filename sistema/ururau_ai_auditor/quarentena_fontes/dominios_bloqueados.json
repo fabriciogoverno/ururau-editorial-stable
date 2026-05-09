@@ -1,4 +1,6 @@
 {
-  "bloqueados": [],
-  "ultima_atualizacao": null
+  "bloqueados": [
+    "dominio-teste.com"
+  ],
+  "ultima_atualizacao": "2026-05-09T23:56:40.391837"
 }
