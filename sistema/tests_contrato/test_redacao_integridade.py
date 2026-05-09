@@ -15,7 +15,16 @@ class TestRedacaoIntegridade(unittest.TestCase):
     def test_aprova_fonte_correta_bolao(self):
         from ururau.editorial.integridade_fonte_v47_26 import validar_fonte_estrita
         pauta = {"titulo_origem": "Bolao de Sao Fidelis fatura mais de R$ 140 mil na Mega-Sena"}
-        texto = "Um bolao de Sao Fidelis acertou dezenas da Mega-Sena e ganhou mais de R$ 140 mil. A aposta premiada saiu em concurso da loteria e o valor sera dividido entre participantes do bolao."
+        texto = """
+        Um bolao registrado em Sao Fidelis, no Norte Fluminense, acertou cinco dezenas
+        da Mega-Sena e garantiu premio superior a R$ 140 mil. A aposta foi feita em
+        loterica do municipio e saiu premiada no concurso da loteria federal. Segundo
+        informacoes do resultado oficial, o grupo acertou parte das dezenas sorteadas
+        e agora deve dividir o valor entre os participantes do bolao. A noticia trata
+        do premio, da cidade de Sao Fidelis, do concurso da Mega-Sena e da aposta
+        coletiva feita por moradores da regiao. O caso gerou repercussao local por
+        envolver uma premiacao expressiva para apostadores do municipio.
+        """
         ok, motivo = validar_fonte_estrita(pauta, texto)
         self.assertTrue(ok, motivo)
 
