@@ -33,13 +33,30 @@ def run(cmd: list[str], cwd: Path) -> dict:
     }
 
 
+def _path_from_status_line(linha: str) -> str:
+    """Extrai caminho de `git status --short` preservando XY status.
+
+    Exemplos:
+    - ' M sistema/config/a.json' -> 'sistema/config/a.json'
+    - 'M  sistema/x.py' -> 'sistema/x.py'
+    - '?? sistema/log.txt' -> 'sistema/log.txt'
+    - 'R  antigo -> novo' -> 'novo'
+    """
+    raw = linha.rstrip("\n")
+    if " -> " in raw:
+        raw = raw.split(" -> ", 1)[1]
+    if len(raw) >= 3:
+        return raw[3:].strip()
+    return raw.strip()
+
+
 def git_status(root: Path) -> dict:
     r = run(["git", "status", "--short"], root)
-    linhas = [x.strip() for x in (r["stdout"] or "").splitlines() if x.strip()]
+    linhas = [x.rstrip("\n") for x in (r["stdout"] or "").splitlines() if x.strip()]
     dirty_relevante = []
     dirty_ignorado = []
     for linha in linhas:
-        path = linha[3:].strip() if len(linha) > 3 else linha
+        path = _path_from_status_line(linha)
         if path in IGNORAR_DIRTY or path.startswith("sistema/relatorios_auditoria/") or path.startswith("sistema/ururau_ai_auditor/memoria/"):
             dirty_ignorado.append(linha)
         else:
