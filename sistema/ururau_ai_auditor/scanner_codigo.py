@@ -5,6 +5,21 @@ import ast
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+IGNORAR_PARTES = {
+    "__pycache__",
+    ".venv",
+    "venv",
+    "env",
+    "ENV",
+    ".git",
+    "hotfixes_legacy",
+    "relatorios_auditoria",
+}
+
+IGNORAR_ARQUIVOS = {
+    "auditoria_saida.txt",
+}
+
 
 @dataclass
 class ArquivoAnalise:
@@ -14,6 +29,15 @@ class ArquivoAnalise:
     funcoes: list[str]
     classes: list[str]
     erros: list[str]
+
+
+def deve_ignorar(path: Path) -> bool:
+    partes = set(path.parts)
+    if partes & IGNORAR_PARTES:
+        return True
+    if path.name in IGNORAR_ARQUIVOS:
+        return True
+    return False
 
 
 def analisar_arquivo(path: Path, root: Path) -> ArquivoAnalise:
@@ -53,8 +77,7 @@ def escanear(root: str = ".") -> list[dict]:
     raiz = Path(root).resolve()
     resultados = []
     for path in raiz.rglob("*.py"):
-        partes = set(path.parts)
-        if "__pycache__" in partes or ".venv" in partes or "venv" in partes:
+        if deve_ignorar(path):
             continue
         resultados.append(asdict(analisar_arquivo(path, raiz)))
     return resultados
