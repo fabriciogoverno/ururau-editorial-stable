@@ -1,4 +1,4 @@
-﻿.env
+.env
 *.env
 **/.env
 **/.env.local
@@ -35,5 +35,11 @@ test-results/
 sistema/data/imagens/
 sistema/data/prints/
 ghostwriter_images/
+
+# Auditor IA - artefatos gerados localmente
+sistema/relatorios_auditoria/
+sistema/ururau_ai_auditor/memoria/
+sistema/auditoria_saida.txt
+
 Thumbs.db
 desktop.ini
