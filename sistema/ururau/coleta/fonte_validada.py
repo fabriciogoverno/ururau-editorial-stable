@@ -22,6 +22,8 @@ VALIDATED_STATUS = {
     "fonte_validada",
 }
 
+INVALID_STATUS = {"erro", "falhou", "erro_extracao", "bloqueada", "failed"}
+
 
 def _norm(texto: str) -> str:
     texto = (texto or "").lower()
@@ -44,6 +46,14 @@ def metodo_parece_snippet(metodo: str) -> bool:
     return any(s in m for s in SNIPPET_METHODS)
 
 
+def _politica_para_url(url: str):
+    try:
+        from ururau.coleta.source_domain_policy_v47_30 import politica_para_url
+        return politica_para_url(url)
+    except Exception:
+        return None
+
+
 @dataclass
 class FonteValidada:
     uid_pauta: str
@@ -57,6 +67,8 @@ class FonteValidada:
     chars_uteis: int = 0
     validada: bool = False
     motivo: str = ""
+    dominio_policy: str = ""
+    min_chars_exigido: int = 900
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -68,6 +80,9 @@ def construir_fonte_validada(pauta: dict, texto: str, metodo: str = "", status: 
     link = str(pauta.get("link_origem") or "")
     chars = texto_util_chars(texto)
     hv = hash_texto(texto)
+    pol = _politica_para_url(link)
+    min_chars = int(getattr(pol, "min_chars_redacao", 900) or 900) if pol else 900
+    dominio_policy = str(getattr(pol, "dominio", "") or "") if pol else ""
     fonte = FonteValidada(
         uid_pauta=uid,
         link_origem=link,
@@ -78,18 +93,24 @@ def construir_fonte_validada(pauta: dict, texto: str, metodo: str = "", status: 
         score=int(score or 0),
         hash_fonte=hv,
         chars_uteis=chars,
+        dominio_policy=dominio_policy,
+        min_chars_exigido=min_chars,
     )
     fonte.validada, fonte.motivo = validar_fonte_para_redacao(fonte)
     return fonte
 
 
-def validar_fonte_para_redacao(fonte: FonteValidada, min_chars: int = 900) -> tuple[bool, str]:
-    if not fonte.texto or fonte.chars_uteis < min_chars:
-        return False, f"texto insuficiente: {fonte.chars_uteis} chars uteis; minimo {min_chars}"
-    if metodo_parece_snippet(fonte.metodo) and fonte.status not in VALIDATED_STATUS:
-        return False, f"metodo {fonte.metodo} exige validacao estrita antes da redacao"
-    if fonte.status in {"erro", "falhou", "erro_extracao", "bloqueada"}:
+def validar_fonte_para_redacao(fonte: FonteValidada, min_chars: int | None = None) -> tuple[bool, str]:
+    pol = _politica_para_url(fonte.link_origem)
+    min_exigido = int(min_chars or getattr(fonte, "min_chars_exigido", 0) or getattr(pol, "min_chars_redacao", 900) or 900)
+    aceita_snippet = bool(getattr(pol, "aceita_rss_fallback_sem_integridade", False)) if pol else False
+
+    if not fonte.texto or fonte.chars_uteis < min_exigido:
+        return False, f"texto insuficiente: {fonte.chars_uteis} chars uteis; minimo {min_exigido}"
+    if fonte.status in INVALID_STATUS:
         return False, f"status de fonte invalido: {fonte.status}"
+    if metodo_parece_snippet(fonte.metodo) and fonte.status not in VALIDATED_STATUS and not aceita_snippet:
+        return False, f"metodo {fonte.metodo} exige validacao estrita antes da redacao"
     return True, "fonte validada para redacao"
 
 
@@ -102,4 +123,6 @@ def aplicar_fonte_validada_na_pauta(pauta: dict, fonte: FonteValidada) -> dict:
     pauta["uid_fonte_validada"] = fonte.uid_pauta
     pauta["extraction_method"] = fonte.metodo
     pauta["extraction_status"] = fonte.status
+    pauta["source_domain_policy"] = fonte.dominio_policy
+    pauta["source_min_chars_exigido"] = fonte.min_chars_exigido
     return pauta
