@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -39,12 +41,16 @@ def resumir_por_agente(classificados: list[dict]) -> dict[str, int]:
     return dict(sorted(resumo.items(), key=lambda x: x[1], reverse=True))
 
 
+def formatar_kv(d: dict) -> str:
+    return "\n".join(f"{k}: {v}" for k, v in d.items())
+
+
 class PainelAuditoriaIA(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Ururau Auditor IA")
-        self.geometry("1100x720")
-        self.minsize(900, 600)
+        self.geometry("1220x760")
+        self.minsize(980, 640)
         self.relatorio_path: Path | None = None
         self.relatorio: dict = {}
         self.memoria: dict = {}
@@ -54,20 +60,32 @@ class PainelAuditoriaIA(tk.Tk):
     def _montar_ui(self):
         topo = ttk.Frame(self, padding=10)
         topo.pack(fill="x")
-        ttk.Label(topo, text="Ururau Auditor IA", font=("Segoe UI", 16, "bold")).pack(side="left")
-        ttk.Button(topo, text="Atualizar", command=self.carregar).pack(side="right")
+        ttk.Label(topo, text="Ururau Auditor IA", font=("Segoe UI", 17, "bold")).pack(side="left")
+        ttk.Button(topo, text="Rodar auditoria", command=self.rodar_auditoria).pack(side="right", padx=4)
+        ttk.Button(topo, text="Atualizar", command=self.carregar).pack(side="right", padx=4)
 
         self.lbl_status = ttk.Label(self, text="Carregando...", padding=(10, 0))
         self.lbl_status.pack(fill="x")
 
+        cards = ttk.Frame(self, padding=(10, 8))
+        cards.pack(fill="x")
+        self.var_python = tk.StringVar(value="Python: --")
+        self.var_logs = tk.StringVar(value="Logs: --")
+        self.var_top_agente = tk.StringVar(value="Top agente: --")
+        self.var_memoria = tk.StringVar(value="Memória: --")
+        for var in [self.var_python, self.var_logs, self.var_top_agente, self.var_memoria]:
+            lbl = ttk.Label(cards, textvariable=var, relief="groove", padding=8, font=("Segoe UI", 10, "bold"))
+            lbl.pack(side="left", padx=4, fill="x", expand=True)
+
         self.nb = ttk.Notebook(self)
         self.nb.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.txt_resumo = self._aba_texto("Resumo")
+        self.txt_resumo = self._aba_texto("Resumo executivo")
         self.txt_agentes = self._aba_texto("Agentes")
         self.txt_logs = self._aba_texto("Logs classificados")
         self.txt_compilacao = self._aba_texto("Compilação")
         self.txt_memoria = self._aba_texto("Memória")
+        self.txt_acoes = self._aba_texto("Próximas ações")
 
     def _aba_texto(self, nome: str) -> tk.Text:
         frame = ttk.Frame(self.nb)
@@ -84,6 +102,24 @@ class PainelAuditoriaIA(tk.Tk):
         txt.delete("1.0", "end")
         txt.insert("1.0", valor)
         txt.configure(state="disabled")
+
+    def rodar_auditoria(self):
+        self.lbl_status.configure(text="Rodando auditoria...")
+        self.update_idletasks()
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "ururau_ai_auditor.run_auditoria"],
+                cwd=str(root_sistema()),
+                text=True,
+                capture_output=True,
+                timeout=420,
+            )
+            if proc.returncode != 0:
+                messagebox.showwarning("Auditoria", "Auditoria terminou com alerta/erro. Veja o relatório e o console interno.")
+            self.carregar()
+        except Exception as e:
+            messagebox.showerror("Auditoria", str(e))
+            self.lbl_status.configure(text="Falha ao rodar auditoria.")
 
     def carregar(self):
         pasta_rel = root_sistema() / "relatorios_auditoria"
@@ -103,13 +139,23 @@ class PainelAuditoriaIA(tk.Tk):
         class_logs = self.relatorio.get("classificacao", {}).get("logs", [])
         class_comp = self.relatorio.get("classificacao", {}).get("compilacao", [])
         memoria_info = self.relatorio.get("memoria", {})
+        logs_por_agente = resumir_por_agente(class_logs)
+        top_agente = next(iter(logs_por_agente.items()), ("--", 0))
 
-        self.lbl_status.configure(text=f"Relatório: {self.relatorio_path} | Python falhas: {len(comp.get('falhas', []))} | Logs: {len(logs)}")
+        python_falhas = len(comp.get("falhas", []))
+        self.var_python.set(f"Python: {comp.get('total', 0)} arquivos | falhas {python_falhas}")
+        self.var_logs.set(f"Logs: {len(logs)} achados | {len(class_logs)} classificados")
+        self.var_top_agente.set(f"Top agente: {top_agente[0]} ({top_agente[1]})")
+        self.var_memoria.set(f"Memória: {len(self.memoria)} erros conhecidos")
 
+        self.lbl_status.configure(text=f"Relatório: {self.relatorio_path}")
+
+        status = "OK" if python_falhas == 0 else "ATENÇÃO"
         resumo = {
+            "status_geral": status,
             "relatorio": str(self.relatorio_path),
             "python_total": comp.get("total"),
-            "python_falhas": len(comp.get("falhas", [])),
+            "python_falhas": python_falhas,
             "logs_achados": len(logs),
             "logs_classificados": len(class_logs),
             "memoria": memoria_info,
@@ -117,7 +163,7 @@ class PainelAuditoriaIA(tk.Tk):
         self._set_text(self.txt_resumo, json.dumps(resumo, ensure_ascii=False, indent=2))
 
         agentes = {
-            "logs_por_agente": resumir_por_agente(class_logs),
+            "logs_por_agente": logs_por_agente,
             "compilacao_por_agente": resumir_por_agente(class_comp),
             "agentes_registrados": self.relatorio.get("agentes", {}),
         }
@@ -128,6 +174,18 @@ class PainelAuditoriaIA(tk.Tk):
 
         top_mem = sorted(self.memoria.items(), key=lambda kv: int((kv[1] or {}).get("ocorrencias", 0)), reverse=True)[:80]
         self._set_text(self.txt_memoria, json.dumps(dict(top_mem), ensure_ascii=False, indent=2))
+
+        acoes = []
+        if python_falhas:
+            acoes.append("1. Corrigir falhas de compilação antes de qualquer nova alteração.")
+        else:
+            acoes.append("1. Compilação limpa. Manter testes de contrato como gate obrigatório.")
+        if logs_por_agente:
+            agente, qtd = top_agente
+            acoes.append(f"2. Priorizar agente '{agente}', com {qtd} achado(s) nos logs.")
+        acoes.append("3. Próxima evolução: agente corretor gerar plano de patch em sandbox, sem aplicar direto.")
+        acoes.append("4. Próxima evolução: integrar este painel como aba dentro do painel editorial principal.")
+        self._set_text(self.txt_acoes, "\n".join(acoes))
 
 
 def main():
