@@ -20,6 +20,8 @@ def main() -> int:
     regressao = rodar_regressao(str(root))
     falhas_compilacao = regressao.get("compilacao", {}).get("falhas", [])
     achados_logs = logs.get("achados", [])
+    baseline_status = logs.get("baseline_status", {}) or {}
+    logs_novos = baseline_status.get("novos", []) or achados_logs
     dados = {
         "root": str(root),
         "fluxos": listar_fluxos(),
@@ -29,6 +31,7 @@ def main() -> int:
         "regressao": regressao,
         "classificacao": {
             "logs": classificar_lista(achados_logs),
+            "logs_novos": classificar_lista(logs_novos),
             "compilacao": classificar_lista(falhas_compilacao),
         },
     }
@@ -39,6 +42,8 @@ def main() -> int:
         "python_total": dados["regressao"]["compilacao"]["total"],
         "python_falhas": len(falhas_compilacao),
         "logs_achados": len(achados_logs),
+        "logs_novos": len(logs_novos),
+        "logs_conhecidos": baseline_status.get("total_conhecidos", 0),
         "logs_classificados": len(dados["classificacao"]["logs"]),
         "memoria": dados.get("memoria", {}),
         "relatorio": rel,
