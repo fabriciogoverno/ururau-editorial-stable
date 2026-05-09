@@ -64,9 +64,11 @@ def validar_fonte_estrita(pauta: dict, texto: str | None = None) -> tuple[bool, 
         return False, 'fonte contaminada: pauta de loteria recebeu corpo de oficinas/projeto cultural'
     title_nums = nums(titulo)
     if title_nums and any(x in nt for x in ['bolao','mega','sena','premio','fatura']):
-        nbody = set(nums(body))
-        if not any(n in nbody for n in title_nums):
-            return False, 'fonte contaminada: numeros centrais do titulo nao aparecem no corpo'
+        # O numero central pode aparecer no primeiro paragrafo/lead. Como a regra acima ja valida
+        # que o corpo conversa com o titulo, aqui basta o numero aparecer na fonte completa.
+        nfull = set(nums(texto))
+        if not any(n in nfull for n in title_nums):
+            return False, 'fonte contaminada: numeros centrais do titulo nao aparecem na fonte'
     return True, 'fonte pertence à pauta'
 
 def forcar_reextracao_estrita(pauta: dict) -> tuple[bool, str]:
