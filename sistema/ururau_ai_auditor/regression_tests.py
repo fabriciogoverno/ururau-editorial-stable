@@ -4,14 +4,28 @@ from __future__ import annotations
 import py_compile
 from pathlib import Path
 
+IGNORAR_PARTES = {
+    "__pycache__",
+    ".venv",
+    "venv",
+    "env",
+    "ENV",
+    ".git",
+    "hotfixes_legacy",
+    "relatorios_auditoria",
+}
+
+
+def deve_ignorar(path: Path) -> bool:
+    return bool(set(path.parts) & IGNORAR_PARTES)
+
 
 def compilar_python(root: str = ".") -> dict:
     raiz = Path(root).resolve()
     falhas = []
     total = 0
     for path in raiz.rglob("*.py"):
-        partes = set(path.parts)
-        if "__pycache__" in partes or ".venv" in partes or "venv" in partes:
+        if deve_ignorar(path):
             continue
         total += 1
         try:
