@@ -1,0 +1,154 @@
+{
+  "dominio": "nfnoticias.com.br",
+  "nome": "Nfnoticias",
+  "estrategia": "rss",
+  "rss": {},
+  "xml": {
+    "arquivos": [
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\configuracoes\\fontes_xml_sitemap_v120.txt",
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\fontes_xml_sitemap_vfinal.txt"
+    ],
+    "sitemaps": [
+      "https://www.nfnoticias.com.br/sitemap.xml"
+    ]
+  },
+  "avisos": [],
+  "v131": {
+    "perfil": {
+      "id": "424a73dc87f1",
+      "versao": "v132.5",
+      "nome": "Nfnoticias",
+      "dominio": "nfnoticias.com.br",
+      "root": "https://www.nfnoticias.com.br/",
+      "ativo": true,
+      "grupo": "Regionais",
+      "estrategia": "rss_cascata",
+      "parser": "rss_cascata",
+      "feeds": [
+        "https://www.nfnoticias.com.br/rss/"
+      ],
+      "wp_api": "",
+      "sitemaps": [
+        "https://www.nfnoticias.com.br/sitemap.xml"
+      ],
+      "html_fallback": [
+        "https://www.nfnoticias.com.br/",
+        "https://www.nfnoticias.com.br/portal/",
+        "https://www.nfnoticias.com.br/noticias/",
+        "https://www.nfnoticias.com.br/noticia/"
+      ],
+      "playwright": true,
+      "janela_horas": 24,
+      "max_itens": 10,
+      "bypass_score": true,
+      "regional_prioritaria": true,
+      "cota_minima": 2,
+      "criado_em": "2026-05-08T08:20:25",
+      "diagnostico_resumo": {
+        "RSS/Atom raiz": "1 válido(s)",
+        "RSS/Atom /portal/": "0 válido(s)",
+        "RSS por categoria": "0 válido(s)",
+        "WP REST API": "NÃO",
+        "Sitemaps": "1 válido(s) | 46 URLs | 7 notícias",
+        "HTML listagem": "46 artigos encontrados",
+        "JSON-LD": "NÃO/Intermitente",
+        "Playwright": "NECESSÁRIO"
+      },
+      "autoadequacao_v1314": true,
+      "autoadequacao_v1325": true,
+      "aplicar_so_com_teste_ok": true,
+      "origem_perfil": "diagnostico_de_fonte",
+      "modo": "autoadequador_universal_v1325",
+      "estrategias_ativas": {
+        "rss": true,
+        "wp_api": false,
+        "sitemap": true,
+        "html": true,
+        "playwright": true
+      },
+      "solucao_enriquecida_v1314": true,
+      "status_operacional": "funcional_com_pauta_na_janela",
+      "forcar_proxima_coleta_qtd": 10,
+      "diagnostico_prioridade_proxima_coleta": true,
+      "aplicar_na_proxima_coleta_v47_4": true,
+      "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias."
+    },
+    "teste": {
+      "ok": true,
+      "sucesso_tecnico": true,
+      "status_operacional": "funcional_com_pauta_na_janela",
+      "qtd": 5,
+      "primeira": "Homem de 35 anos é executado ao lado de moto em Campos",
+      "stats": {
+        "perfil_id": "424a73dc87f1",
+        "nome": "Nfnoticias",
+        "grupo": "Regionais",
+        "parser": "rss_cascata",
+        "tentativas": [
+          {
+            "url": "https://www.nfnoticias.com.br/rss/",
+            "status": 200,
+            "content_type": "application/rss+xml; charset=utf-8",
+            "ok": true,
+            "parser_usado": "feedparser",
+            "itens": 16,
+            "aceitas": 5,
+            "erro": ""
+          }
+        ],
+        "brutas": 16,
+        "titulo_link": 5,
+        "aceitas": 5,
+        "fora_janela": 0,
+        "sem_titulo_link": 0,
+        "erro": "",
+        "sucesso_tecnico": true,
+        "status_operacional": "funcional_com_pauta_na_janela",
+        "primeira_enviavel": "Homem de 35 anos é executado ao lado de moto em Campos"
+      }
+    },
+    "salvo": {
+      "arquivo": "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\perfis_fontes_v131.json",
+      "substituido": false,
+      "total": 2
+    },
+    "aplicado": true,
+    "avisos": [
+      "Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias."
+    ]
+  },
+  "v131_relatorio": "AUTOADEQUAÇÃO OPERACIONAL DE FONTE v132.5\n========================================================================\nFonte: Nfnoticias | domínio: nfnoticias.com.br\nGrupo/aba: Regionais | estratégia: rss_cascata | parser: rss_cascata\nRegra: o perfil só é salvo se o teste operacional gerar pauta real; se um parser falhar, a cascata tenta RSS XML direto, WP API, sitemap e HTML.\nTeste imediato: OK COM PAUTA | pautas testadas: 5\nPrimeira pauta: Homem de 35 anos é executado ao lado de moto em Campos\nBrutas: 16 | título+link: 5 | aceitas: 5 | fora_janela: 0\n  - feedparser | https://www.nfnoticias.com.br/rss/ | status=200 | itens=16 | aceitas=5 | erro=-\nPerfil salvo em: C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\perfis_fontes_v131.json\nStatus: será usado automaticamente na próxima coleta geral pela fase AutoFontes v132.5.\nAvisos:\n  - Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias.",
+  "v131_abas": {
+    "grupo": "Regionais",
+    "arquivos": [
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\regionais_v1305.json"
+    ]
+  },
+  "v43_fontes_links": {
+    "arquivo": "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\config\\fontes_links.json",
+    "item": {
+      "id": "424a73dc87f1",
+      "nome": "Nfnoticias",
+      "url": "https://www.nfnoticias.com.br/rss/",
+      "dominio": "nfnoticias.com.br",
+      "grupo": "Regionais",
+      "ativo": true,
+      "origem_config": "diagnostico_aplicado_v43",
+      "tipo_coleta": "auto_v43",
+      "perfil_v131_id": "424a73dc87f1",
+      "estrategia": "rss_cascata",
+      "parser": "rss_cascata",
+      "fallbacks": [],
+      "sitemaps": [
+        "https://www.nfnoticias.com.br/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": true,
+      "prioridade": "",
+      "regiao": "",
+      "status": "aplicada",
+      "motivo_status": "Aplicada por Diagnóstico de Fonte; aguardando próxima coleta real.",
+      "atualizado_em": "2026-05-08T08:20:27"
+    }
+  }
+}

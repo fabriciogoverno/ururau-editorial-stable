@@ -1,0 +1,174 @@
+{
+  "dominio": "agenciabrasil.ebc.com.br",
+  "nome": "Agenciabrasil Ebc",
+  "estrategia": "rss",
+  "rss": {},
+  "xml": {
+    "arquivos": [],
+    "sitemaps": [
+      "https://agenciabrasil.ebc.com.br/sitemap.xml"
+    ]
+  },
+  "avisos": [],
+  "v131": {
+    "perfil": {
+      "id": "8b0a0f312f3d",
+      "versao": "v132.5",
+      "nome": "Agenciabrasil Ebc",
+      "dominio": "agenciabrasil.ebc.com.br",
+      "root": "https://agenciabrasil.ebc.com.br/",
+      "ativo": true,
+      "grupo": "RSS",
+      "estrategia": "rss_cascata",
+      "parser": "rss_cascata",
+      "feeds": [
+        "https://agenciabrasil.ebc.com.br/rss.xml"
+      ],
+      "wp_api": "",
+      "sitemaps": [
+        "https://agenciabrasil.ebc.com.br/sitemap.xml"
+      ],
+      "html_fallback": [
+        "https://agenciabrasil.ebc.com.br/",
+        "https://agenciabrasil.ebc.com.br/politica/",
+        "https://agenciabrasil.ebc.com.br/geral/"
+      ],
+      "playwright": false,
+      "janela_horas": 24,
+      "max_itens": 10,
+      "bypass_score": false,
+      "regional_prioritaria": false,
+      "cota_minima": 0,
+      "criado_em": "2026-05-08T05:15:07",
+      "diagnostico_resumo": {
+        "RSS/Atom raiz": "1 válido(s)",
+        "RSS/Atom /portal/": "0 válido(s)",
+        "RSS por categoria": "0 válido(s)",
+        "WP REST API": "NÃO",
+        "Sitemaps": "1 válido(s) | 16 URLs | 0 notícias",
+        "HTML listagem": "56 artigos encontrados",
+        "JSON-LD": "NÃO/Intermitente",
+        "Playwright": "NÃO NECESSÁRIO"
+      },
+      "autoadequacao_v1314": true,
+      "autoadequacao_v1325": true,
+      "aplicar_so_com_teste_ok": true,
+      "origem_perfil": "diagnostico_de_fonte",
+      "modo": "autoadequador_universal_v1325",
+      "estrategias_ativas": {
+        "rss": true,
+        "wp_api": false,
+        "sitemap": true,
+        "html": true,
+        "playwright": false
+      },
+      "solucao_enriquecida_v1314": true,
+      "status_operacional": "funcional_com_pauta_na_janela",
+      "forcar_proxima_coleta_qtd": 10,
+      "diagnostico_prioridade_proxima_coleta": true,
+      "aplicar_na_proxima_coleta_v47_4": true,
+      "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias.",
+      "atualizado_em": "2026-05-08T05:15:08"
+    },
+    "teste": {
+      "ok": true,
+      "sucesso_tecnico": true,
+      "status_operacional": "funcional_com_pauta_na_janela",
+      "qtd": 5,
+      "primeira": "Lula e Trump orientam ministros a resolverem tarifas em 30 dias",
+      "stats": {
+        "perfil_id": "8b0a0f312f3d",
+        "nome": "Agenciabrasil Ebc",
+        "grupo": "RSS",
+        "parser": "rss_cascata",
+        "tentativas": [
+          {
+            "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+            "status": 200,
+            "content_type": "application/rss+xml; charset=utf-8",
+            "ok": true,
+            "parser_usado": "feedparser",
+            "itens": 10,
+            "aceitas": 0,
+            "erro": ""
+          },
+          {
+            "url": "https://agenciabrasil.ebc.com.br/sitemap.xml",
+            "status": 200,
+            "content_type": "text/xml; charset=utf-8",
+            "ok": true,
+            "parser_usado": "sitemap_html_meta",
+            "itens": 0,
+            "aceitas": 0,
+            "erro": ""
+          },
+          {
+            "url": "https://agenciabrasil.ebc.com.br/",
+            "status": 200,
+            "content_type": "text/html; charset=utf-8",
+            "ok": true,
+            "parser_usado": "html_listagem",
+            "itens": 31,
+            "aceitas": 5,
+            "erro": "",
+            "datas_extraidas_html": 5
+          }
+        ],
+        "brutas": 41,
+        "titulo_link": 15,
+        "aceitas": 5,
+        "fora_janela": 10,
+        "sem_titulo_link": 0,
+        "erro": "",
+        "sucesso_tecnico": true,
+        "status_operacional": "funcional_com_pauta_na_janela",
+        "primeira_enviavel": "Lula e Trump orientam ministros a resolverem tarifas em 30 dias"
+      }
+    },
+    "salvo": {
+      "arquivo": "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\perfis_fontes_v131.json",
+      "substituido": true,
+      "total": 1
+    },
+    "aplicado": true,
+    "avisos": [
+      "Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias."
+    ]
+  },
+  "v131_relatorio": "AUTOADEQUAÇÃO OPERACIONAL DE FONTE v132.5\n========================================================================\nFonte: Agenciabrasil Ebc | domínio: agenciabrasil.ebc.com.br\nGrupo/aba: RSS | estratégia: rss_cascata | parser: rss_cascata\nRegra: o perfil só é salvo se o teste operacional gerar pauta real; se um parser falhar, a cascata tenta RSS XML direto, WP API, sitemap e HTML.\nTeste imediato: OK COM PAUTA | pautas testadas: 5\nPrimeira pauta: Lula e Trump orientam ministros a resolverem tarifas em 30 dias\nBrutas: 41 | título+link: 15 | aceitas: 5 | fora_janela: 10\n  - feedparser | https://agenciabrasil.ebc.com.br/rss.xml | status=200 | itens=10 | aceitas=0 | erro=-\n  - sitemap_html_meta | https://agenciabrasil.ebc.com.br/sitemap.xml | status=200 | itens=0 | aceitas=0 | erro=-\n  - html_listagem | https://agenciabrasil.ebc.com.br/ | status=200 | itens=31 | aceitas=5 | erro=-\nPerfil salvo em: C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\perfis_fontes_v131.json\nStatus: será usado automaticamente na próxima coleta geral pela fase AutoFontes v132.5.\nAvisos:\n  - Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias.",
+  "v131_abas": {
+    "grupo": "RSS",
+    "arquivos": [
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\config\\fontes_rss.json",
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\configuracoes\\fontes_rss.json",
+      "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\fontes_rss.json"
+    ]
+  },
+  "v43_fontes_links": {
+    "arquivo": "C:\\Users\\fabri\\Downloads\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\\sistema\\config\\fontes_links.json",
+    "item": {
+      "id": "8b0a0f312f3d",
+      "nome": "Agenciabrasil Ebc",
+      "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+      "dominio": "agenciabrasil.ebc.com.br",
+      "grupo": "RSS",
+      "ativo": true,
+      "origem_config": "diagnostico_aplicado_v43",
+      "tipo_coleta": "auto_v43",
+      "perfil_v131_id": "8b0a0f312f3d",
+      "estrategia": "rss_cascata",
+      "parser": "rss_cascata",
+      "fallbacks": [],
+      "sitemaps": [
+        "https://agenciabrasil.ebc.com.br/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": false,
+      "prioridade": "",
+      "regiao": "",
+      "status": "aplicada",
+      "motivo_status": "Aplicada por Diagnóstico de Fonte; aguardando próxima coleta real.",
+      "atualizado_em": "2026-05-08T05:15:08"
+    }
+  }
+}

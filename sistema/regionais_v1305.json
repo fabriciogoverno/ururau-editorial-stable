@@ -1,0 +1,111 @@
+[
+  {
+    "nome": "Campos 24 Horas",
+    "url": "https://campos24horas.com.br/portal/feed/",
+    "ativo": true,
+    "regiao": "Campos/Norte Fluminense",
+    "prioridade": "maxima",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "Nfnoticias",
+    "url": "https://www.nfnoticias.com.br/rss/",
+    "ativo": true,
+    "regiao": "Campos/Norte Fluminense",
+    "prioridade": "alta",
+    "tipo": "auto_v131",
+    "tipo_coleta": "auto_v131",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2,
+    "perfil_v131_id": "424a73dc87f1"
+  },
+  {
+    "nome": "J3 News",
+    "url": "https://j3news.com/feed/",
+    "ativo": true,
+    "regiao": "Campos/Norte Fluminense",
+    "prioridade": "alta",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "Portal Viu",
+    "url": "https://www.portalviu.com.br/feed",
+    "ativo": true,
+    "regiao": "Campos/Norte Fluminense",
+    "prioridade": "alta",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "SF Notícias",
+    "url": "https://sfnoticias.com.br/feed",
+    "ativo": true,
+    "regiao": "Norte Fluminense",
+    "prioridade": "alta",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "O Debate",
+    "url": "https://odebateon.com.br/feed/",
+    "ativo": true,
+    "regiao": "Norte Fluminense",
+    "prioridade": "media",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "O Parahybano",
+    "url": "https://parahybano.com.br/feed/",
+    "ativo": true,
+    "regiao": "São João da Barra",
+    "prioridade": "media",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "Prefeitura de Campos",
+    "url": "https://campos.rj.gov.br/rss",
+    "ativo": true,
+    "regiao": "Campos",
+    "prioridade": "alta",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  },
+  {
+    "nome": "Tribuna NF",
+    "url": "https://www.tribunanf.com.br/feed/",
+    "ativo": true,
+    "regiao": "Campos/Norte Fluminense",
+    "prioridade": "alta",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "min_por_fonte": 2
+  }
+]

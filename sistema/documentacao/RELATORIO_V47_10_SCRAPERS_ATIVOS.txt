@@ -1,0 +1,11 @@
+PURAL Editorial V47.10 — Scrapers Ativos
+
+Correção aplicada:
+- Todos os coletores públicos ficam ativos por padrão: RSS, AutoFontes/Diagnóstico, Google News v111, ciclo combinado, hidratação, fallback v110, fallback RSS v108, Source Hunter e fila do painel.
+- Todos os extratores públicos ficam ativos por padrão: v104, v86, requests/canonical/variantes, JSON-LD/articleBody, NEXT_DATA/scripts JSON, AMP/mobile, WordPress REST, Kimi v110, trafilatura/readability v108, pipeline v90/adaptadores e Playwright público quando necessário.
+- O v104 agora também chama o pipeline v90 como fallback adicional antes do Playwright.
+- A aba Fonte/painel/copydesk/workflow também aplica a matriz de scrapers, não apenas o monitor.
+- Texto curto ou snippet de RSS continua bloqueado; isso não reduz capacidade, aumenta segurança editorial.
+
+Validador: VALIDAR_SCRAPERS_ATIVOS_V47_10.py
+BAT: 08_VALIDAR_SCRAPERS_ATIVOS.bat

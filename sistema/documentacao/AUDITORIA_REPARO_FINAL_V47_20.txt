@@ -1,0 +1,12 @@
+=== AUDITORIA V47.20 ===
+1) Redação: erro atual é acesso por atributo em resultado dict: .bloqueante e antes .score.
+2) Monitor: Google/Kimi continuam aparecendo porque patch do painel e scraper_defaults ainda forçam variáveis antigas.
+3) Log mostrou RSS/fila funcionando; o bloqueio operacional está em Google/Kimi 429 e integração v111 com argumento janela.
+4) A correção segura é: Redigir aceita dict/objeto; Monitor do painel usa RSS+AutoFontes+fila e NÃO religa Google/Kimi.
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\ui\painel.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\editorial\redacao.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\editorial\engine.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\publisher\workflow.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\editorial\quality_gate_v103.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\editorial\auditoria_v78c.py
+[REDAÇÃO] Compat dict/obj aplicado em sistema\ururau\editorial\copydesk.py

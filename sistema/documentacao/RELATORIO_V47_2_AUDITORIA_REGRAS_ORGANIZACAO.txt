@@ -1,0 +1,36 @@
+PURAL/URURAU Editorial v47.2 — organização e auditoria de regras
+
+Data: 2026-05-08 03:58:23
+
+Organização aplicada
+- Raiz: apenas atalhos .bat.
+- sistema/config/: configuração oficial, incluindo regras_editoriais.json.
+- sistema/configuracoes/: listas operacionais de fontes, watchlists e buscas.
+- sistema/credenciais/: arquivos de ambiente do operador.
+- sistema/data/: dados locais e cache operacional.
+- sistema/documentacao/: relatórios e specs.
+- sistema/ferramentas/reparos/: scripts de correção.
+- sistema/ferramentas/validadores/: validadores e auditorias.
+- sistema/recursos/icones/: ícones e recursos visuais.
+- sistema/ururau/: código-fonte principal.
+
+Correções editoriais aplicadas
+1. Matriz única de regras: sistema/config/regras_editoriais.json.
+2. field_limits.py agora lê os limites dessa matriz.
+3. house_style.py preserva compatibilidade, mas carrega briefing/termos da matriz.
+4. politica_editorial.py recebe overrides da matriz.
+5. agente_editorial_ururau.py adiciona a matriz ao system prompt.
+6. editorial_policy.py injeta a matriz no prompt usado pelo engine.
+7. engine.py aplica validação determinística de termos de IA após a geração.
+8. quality_gates.py deixa de checar só três expressões e passa a usar a blocklist unificada.
+9. auditoria_v78c.py transforma termo de IA em bloqueador editorial.
+10. producao_v77.py passa a usar a blocklist unificada no gate de publicação real.
+11. painel.py deixa de editar house_style.py por regex e salva em config/regras_editoriais.json.
+12. Status de publicação normalizado para publicar_direto, salvar_rascunho, bloquear e bloqueio_total.
+
+Como validar
+- Na raiz: AUDITAR_REGRAS_EDITORIAIS.bat
+- Dentro de sistema/: VALIDAR_REGRAS_EDITORIAIS.bat
+
+Observação
+Alguns JSONs operacionais antigos foram mantidos no sistema/ quando havia risco de coletor legado ainda buscar caminho direto. A raiz externa ficou limpa, apenas com BATs.

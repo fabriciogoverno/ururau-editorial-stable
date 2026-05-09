@@ -1,0 +1,54 @@
+{
+  "_versao": "v111.4",
+  "_descricao": "Fontes locais estratégicas que não devem depender apenas do RSS. O Source Hunter testa feeds alternativos e homepage.",
+  "fontes": [
+    {
+      "url": "https://www.folha1.com.br/",
+      "nome": "Folha 1",
+      "canal_forcado": "Estado RJ",
+      "ativo": true,
+      "regiao": "campos_norte_fluminense",
+      "tema": "local_regional",
+      "tier": 1,
+      "peso_fonte": 10,
+      "prioridade_editorial": "maxima",
+      "tipo_coleta": "source_hunter_homepage_e_feeds",
+      "escopo": "local",
+      "confianca_base": 85,
+      "observacao": "Principal jornal digital de Campos dos Goytacazes. URL canônica atualizada (era /rss).",
+      "forcar_source_hunter": true,
+      "observacao_v111_4": "Fonte local estratégica. RSS retornou 0 nos logs; sai do RSS rápido e entra no Source Hunter com endpoints alternativos e homepage.",
+      "feed_candidates": [
+        "https://www.folha1.com.br/_contents/rss/rss.xml",
+        "https://www.folha1.com.br/rss",
+        "https://www.folha1.com.br/feed/",
+        "https://www.folha1.com.br/noticias/rss"
+      ]
+    },
+    {
+      "url": "https://campos24horas.com.br/",
+      "nome": "Campos 24 Horas",
+      "canal_forcado": "Estado RJ",
+      "ativo": true,
+      "regiao": "campos_norte_fluminense",
+      "tema": "local_regional",
+      "tier": 1,
+      "peso_fonte": 10,
+      "prioridade_editorial": "maxima",
+      "tipo_coleta": "source_hunter_homepage_e_feeds",
+      "escopo": "local",
+      "confianca_base": 85,
+      "observacao": "Portal de notícias local de Campos. URL canônica atualizada (era /feed sem barra).",
+      "forcar_source_hunter": true,
+      "observacao_v111_4": "Fonte local estratégica. RSS retornou 0 nos logs; sai do RSS rápido e entra no Source Hunter com endpoints alternativos e homepage.",
+      "feed_candidates": [
+        "https://campos24horas.com.br/feed/",
+        "https://campos24horas.com.br/feed",
+        "https://campos24horas.com.br/rss",
+        "https://campos24horas.com.br/rss.xml",
+        "https://campos24horas.com.br/noticias/rss",
+        "https://campos24horas.com.br/?feed=rss2"
+      ]
+    }
+  ]
+}

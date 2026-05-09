@@ -1,0 +1,37 @@
+COMO APLICAR A V46.8 FINAL
+
+Opção recomendada: usar o patch.
+
+1. Feche o painel.
+2. Faça backup da pasta atual.
+3. Extraia o ZIP PATCH_PURAL_EDITORIAL_V46_8_AUDITORIA_IA_FINAL.zip dentro da pasta sistema do projeto, substituindo os arquivos.
+4. Não apague seu .env.
+5. Rode VALIDAR_SEM_CHAMAR_OPENAI.bat.
+6. Para testar a chave/modelo real da OpenAI, rode TESTAR_IA_DIAGNOSTICO.bat.
+7. Abra o painel normalmente.
+
+Arquivos de log importantes:
+
+logs\ia_diagnostico.log
+logs\ia_diagnostico.jsonl
+logs\painel_inicializacao.log
+
+Como interpretar:
+
+modo_geracao=openai_gpt4mini
+Texto veio de chamada real OpenAI bem-sucedida.
+
+modo_geracao=fallback_sem_ia
+Texto veio de fallback local. Não é GPT.
+
+ia_status=openai_invalid_api_key
+A chave OpenAI falhou. O fallback local pode ter gerado texto, mas a IA não funcionou.
+
+ia_status=openai_quota_or_rate_limit
+Cota ou limite de uso da OpenAI atingido.
+
+ia_status=openai_timeout
+A OpenAI não respondeu no prazo.
+
+ia_status=openai_json_invalid
+A OpenAI respondeu, mas em formato inválido para o sistema.

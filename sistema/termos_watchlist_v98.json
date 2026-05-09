@@ -1,0 +1,1494 @@
+{
+  "_versao": "v98",
+  "_descricao": "Termos configuráveis pela aba Config > Termos. Usados para busca, watchlist e aumento de score editorial.",
+  "termos": [
+    {
+      "termo": "royalties",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "licitação",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "operação",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "investigação",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "prisão",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "fraude",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "orçamento",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "eleição",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "cassação",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Alerj",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Palácio Guanabara",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Governo RJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Governo do Rio",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "STF",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "STJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "TSE",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "TRE-RJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "TJRJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "MPRJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "TCE-RJ",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Senado",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Câmara dos Deputados",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Gov.br",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Receita Federal",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Polícia Federal",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Ministério Público",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Defensoria RJ",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Defensoria Pública",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Campos dos Goytacazes",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "São João da Barra",
+      "peso": 28,
+      "canal": "Cidades",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "São Francisco de Itabapoana",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Cardoso Moreira",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "São Fidélis",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Macaé",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Quissamã",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carapebus",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Conceição de Macabu",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Norte Fluminense",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Porto do Açu",
+      "peso": 28,
+      "canal": "Economia",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Baixada Campista",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Guarus",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Farol de São Thomé",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rio de Janeiro",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Niterói",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "São Gonçalo",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Duque de Caxias",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Nova Iguaçu",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Belford Roxo",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "São João de Meriti",
+      "peso": 28,
+      "canal": "Cidades",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Nilópolis",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Mesquita",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Queimados",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Japeri",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Itaguaí",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Seropédica",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Magé",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Guapimirim",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Itaboraí",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Tanguá",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Maricá",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rio Bonito",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Cachoeiras de Macacu",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Baixada Fluminense",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Grande Rio",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Região Metropolitana",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Alan Lopes",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Andrezinho Ceciliano",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Arezas",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Átila Nunes",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Bebeto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Brazão",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Bruno Dauaire",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carlinhos BNH",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carla Machado",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carlos Macedo",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carlos Minc",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Célia Jordão",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Chico Machado",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Claudio Caiado",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dani Balbi",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dani Monteiro",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Danniel Librelon",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dionísio Lins",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Douglas Ruas",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dr. Deodalto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dr. Pedro Ricardo",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dr. Serginho",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Elika Takimoto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Elias Jabor",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Felippe Poubel",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Filippe Soares",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Flávio Serafini",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Fred Pacheco",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Giovani Ratinho",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Giselle Monteiro",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Guilherme Delaroli",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Guilherme Schleder",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Gustavo Tutuca",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Índia Armelau",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Jair Bittencourt",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Jari Oliveira",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Jorge Felippe Neto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Julio Rocha",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Léo Vieira",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Lucinha",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Luiz Paulo",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Marcelo Dino",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Márcio Canella",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Marcio Gualberto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Marina do MST",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Martha Rocha",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Munir Neto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Otoni de Paula Pai",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rafael Nobre",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Renata Souza",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Renato Machado",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Renato Miranda",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Resende",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Ricardo Abrão",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Ricardo Abraão",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rodrigo Amorim",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rodrigo Bacellar",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rosenverg Reis",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Samuel Malafaia",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Tande Vieira",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Thiago Gagliasso",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Thiago Rangel",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Tia Ju",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Val Ceasa",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Valdecy da Saúde",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Verônica Lima",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Vinícius Cozzolino",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Vitor Junior",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Yuri",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Zeidan",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Anthony Garotinho",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rosinha Garotinho",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Wladimir Garotinho",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Cláudio Castro",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Eduardo Paes",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Flávio Bolsonaro",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Romário",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Carlos Portinho",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Rodrigo Neves",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Capitão Nelson",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Netinho Reis",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Dudu Reina",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Hingo Hammes",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Neto",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Renato Cozzolino",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Marcelo Delaroli",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Ferreti",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Leonardo Vasconcellos",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Welberth Rezende",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Caio Vianna",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Washington Reis",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Sérgio Cabral",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "André Ceciliano",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Alexandre Ramagem",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Lindbergh Farias",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Benedita da Silva",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Jandira Feghali",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Clarissa Garotinho",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Garotinho",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Paes",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Bacellar",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Castro",
+      "peso": 28,
+      "canal": "Política",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Coutinho",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Doutor Luizinho",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Altineu Côrtes",
+      "peso": 28,
+      "canal": "",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Flamengo",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Clube de Regatas do Flamengo",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Vasco",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Vasco da Gama",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "CR Vasco da Gama",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Botafogo",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Botafogo de Futebol e Regatas",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Fluminense",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Fluminense Football Club",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Americano de Campos",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Americano Futebol Clube",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Americano FC",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Goytacaz",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Goytacaz Futebol Clube",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Goitacaz",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    },
+    {
+      "termo": "Goitacaz Futebol Clube",
+      "peso": 28,
+      "canal": "Esportes",
+      "buscar": true,
+      "ativo": true,
+      "observacao": "termo simples v111.4"
+    }
+  ]
+}

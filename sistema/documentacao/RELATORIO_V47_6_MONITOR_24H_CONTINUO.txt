@@ -1,0 +1,23 @@
+RELATÓRIO V47.6 — MONITOR 24H CONTÍNUO E MODO RASCUNHO CORRIGIDO
+
+Problema identificado no log enviado:
+1. O painel exibia "modo_cms=rascunho", mas iniciava o MonitorRobo com publicar_no_cms=False quando o checkbox "Publicar diretamente no CMS" estava desmarcado. Resultado: o robô aparecia como LOCAL/BANCO e não enviava rascunho real ao CMS.
+2. O campo do painel podia mostrar intervalo 60s, mas o robô antigo ainda podia estar rodando com 900s. Ao tentar iniciar outro, o lock global rejeitava a segunda instância e o log ficava confuso.
+3. O intervalo sem pauta ficava preso no padrão 900s, sem obedecer ao intervalo configurado no painel.
+4. O log "Nenhuma pauta relevante... aguardando" parecia encerramento, embora fosse espera normal. A mensagem foi reescrita para informar que o monitor continua ativo.
+
+Correções aplicadas:
+- Painel agora inicia o monitor em RASCUNHO CMS por padrão.
+- Checkbox agora significa autorização de AO VIVO; desmarcado = rascunho CMS, não local.
+- Modo local fica reservado ao BAT/CLI, não ao clique normal do painel.
+- Intervalo sem pauta passa a seguir o intervalo configurado no painel/config.
+- Configuração oficial: sistema/config/monitor_24h.json.
+- Bloqueio contra duas instâncias: o painel consulta monitor_global_ativo() e não promete "iniciado" quando outro ciclo ainda está ativo.
+- Botão parar agora informa "parada solicitada" e aguarda o ciclo atual terminar.
+- Mensagem do ciclo sem pauta agora diz: "Monitor CONTINUA ATIVO; próxima busca...".
+- Loader de fontes RSS do monitor agora procura em raiz, sistema/config e sistema/configuracoes, evitando coletar fallback por caminho errado.
+
+Uso correto:
+- Pelo painel: deixe o checkbox de ao vivo desmarcado. Isso salva rascunho CMS.
+- Para ao vivo: marque o checkbox, mas ainda será necessário passar pelas travas do .env e pelos gates editoriais.
+- Para monitor sem CMS/local: use o BAT/CLI de modo local, não o painel normal.

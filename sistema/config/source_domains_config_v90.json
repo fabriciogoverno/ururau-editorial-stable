@@ -1,0 +1,210 @@
+{
+  "sources": [
+    {
+      "enabled": true,
+      "name": "G1",
+      "domain": "g1.globo.com",
+      "type": "globo",
+      "priority": 90,
+      "homepages": [
+        "https://g1.globo.com/"
+      ],
+      "sections": [
+        "https://g1.globo.com/rio-de-janeiro/",
+        "https://g1.globo.com/rj/norte-fluminense/"
+      ],
+      "rss": [
+        "https://g1.globo.com/rss/g1/"
+      ],
+      "sitemaps": [
+        "https://g1.globo.com/sitemap.xml"
+      ],
+      "terms": [
+        "Rio de Janeiro",
+        "Campos dos Goytacazes",
+        "Norte Fluminense"
+      ],
+      "watchlist_weight": 20
+    },
+    {
+      "enabled": true,
+      "name": "UOL",
+      "domain": "uol.com.br",
+      "type": "uol",
+      "priority": 85,
+      "homepages": [
+        "https://noticias.uol.com.br/"
+      ],
+      "sections": [
+        "https://noticias.uol.com.br/cotidiano/",
+        "https://noticias.uol.com.br/politica/"
+      ],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Rio de Janeiro",
+        "Campos dos Goytacazes",
+        "FGTS"
+      ],
+      "watchlist_weight": 15
+    },
+    {
+      "enabled": true,
+      "name": "Folha",
+      "domain": "folha.uol.com.br",
+      "type": "folha",
+      "priority": 80,
+      "homepages": [
+        "https://www.folha.uol.com.br/"
+      ],
+      "sections": [
+        "https://www1.folha.uol.com.br/poder/"
+      ],
+      "rss": [
+        "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml"
+      ],
+      "sitemaps": [],
+      "terms": [
+        "São Paulo",
+        "Brasil"
+      ],
+      "watchlist_weight": 15
+    },
+    {
+      "enabled": true,
+      "name": "Agência Brasil",
+      "domain": "agenciabrasil.ebc.com.br",
+      "type": "agenciabrasil",
+      "priority": 88,
+      "homepages": [
+        "https://agenciabrasil.ebc.com.br/"
+      ],
+      "sections": [
+        "https://agenciabrasil.ebc.com.br/rio-de-janeiro/",
+        "https://agenciabrasil.ebc.com.br/saude/",
+        "https://agenciabrasil.ebc.com.br/economia/"
+      ],
+      "rss": [
+        "https://agenciabrasil.ebc.com.br/rss.xml"
+      ],
+      "sitemaps": [],
+      "terms": [
+        "Brasil",
+        "Rio de Janeiro",
+        "Saúde",
+        "Economia"
+      ],
+      "watchlist_weight": 18
+    },
+    {
+      "enabled": true,
+      "name": "CNN Brasil",
+      "domain": "cnnbrasil.com.br",
+      "type": "generic",
+      "priority": 82,
+      "homepages": [
+        "https://www.cnnbrasil.com.br/"
+      ],
+      "sections": [
+        "https://www.cnnbrasil.com.br/politica/",
+        "https://www.cnnbrasil.com.br/nacional/"
+      ],
+      "rss": [
+        "https://www.cnnbrasil.com.br/feed/"
+      ],
+      "sitemaps": [],
+      "terms": [
+        "Brasil",
+        "Rio de Janeiro"
+      ],
+      "watchlist_weight": 14
+    },
+    {
+      "enabled": true,
+      "name": "O Dia",
+      "domain": "odia.ig.com.br",
+      "type": "generic",
+      "priority": 78,
+      "homepages": [
+        "https://odia.ig.com.br/"
+      ],
+      "sections": [
+        "https://odia.ig.com.br/rio-de-janeiro/"
+      ],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Rio de Janeiro"
+      ],
+      "watchlist_weight": 12
+    },
+    {
+      "enabled": true,
+      "name": "Diário do Rio",
+      "domain": "diariodorio.com",
+      "type": "local",
+      "priority": 75,
+      "homepages": [
+        "https://diariodorio.com/"
+      ],
+      "sections": [],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Rio de Janeiro"
+      ],
+      "watchlist_weight": 10
+    },
+    {
+      "enabled": true,
+      "name": "J3 News",
+      "domain": "j3news.com.br",
+      "type": "local",
+      "priority": 72,
+      "homepages": [
+        "https://j3news.com.br/"
+      ],
+      "sections": [],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Campos dos Goytacazes"
+      ],
+      "watchlist_weight": 10
+    },
+    {
+      "enabled": true,
+      "name": "Parahybano",
+      "domain": "parahybano.com.br",
+      "type": "local",
+      "priority": 70,
+      "homepages": [
+        "https://parahybano.com.br/"
+      ],
+      "sections": [],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Paraíba"
+      ],
+      "watchlist_weight": 8
+    },
+    {
+      "enabled": true,
+      "name": "RJ News Notícias",
+      "domain": "rjnews.com.br",
+      "type": "local",
+      "priority": 70,
+      "homepages": [
+        "https://rjnews.com.br/"
+      ],
+      "sections": [],
+      "rss": [],
+      "sitemaps": [],
+      "terms": [
+        "Rio de Janeiro"
+      ],
+      "watchlist_weight": 8
+    }
+  ]
+}

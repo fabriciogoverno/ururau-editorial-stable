@@ -1,0 +1,120 @@
+[
+  {
+    "id": "8b0a0f312f3d",
+    "versao": "v132.5",
+    "nome": "Agenciabrasil Ebc",
+    "dominio": "agenciabrasil.ebc.com.br",
+    "root": "https://agenciabrasil.ebc.com.br/",
+    "ativo": true,
+    "grupo": "RSS",
+    "estrategia": "rss_cascata",
+    "parser": "rss_cascata",
+    "feeds": [
+      "https://agenciabrasil.ebc.com.br/rss.xml"
+    ],
+    "wp_api": "",
+    "sitemaps": [
+      "https://agenciabrasil.ebc.com.br/sitemap.xml"
+    ],
+    "html_fallback": [
+      "https://agenciabrasil.ebc.com.br/",
+      "https://agenciabrasil.ebc.com.br/politica/",
+      "https://agenciabrasil.ebc.com.br/geral/"
+    ],
+    "playwright": false,
+    "janela_horas": 24,
+    "max_itens": 10,
+    "bypass_score": false,
+    "regional_prioritaria": false,
+    "cota_minima": 0,
+    "criado_em": "2026-05-08T05:15:07",
+    "diagnostico_resumo": {
+      "RSS/Atom raiz": "1 válido(s)",
+      "RSS/Atom /portal/": "0 válido(s)",
+      "RSS por categoria": "0 válido(s)",
+      "WP REST API": "NÃO",
+      "Sitemaps": "1 válido(s) | 16 URLs | 0 notícias",
+      "HTML listagem": "56 artigos encontrados",
+      "JSON-LD": "NÃO/Intermitente",
+      "Playwright": "NÃO NECESSÁRIO"
+    },
+    "autoadequacao_v1314": true,
+    "autoadequacao_v1325": true,
+    "aplicar_so_com_teste_ok": true,
+    "origem_perfil": "diagnostico_de_fonte",
+    "modo": "autoadequador_universal_v1325",
+    "estrategias_ativas": {
+      "rss": true,
+      "wp_api": false,
+      "sitemap": true,
+      "html": true,
+      "playwright": false
+    },
+    "solucao_enriquecida_v1314": true,
+    "status_operacional": "funcional_com_pauta_na_janela",
+    "forcar_proxima_coleta_qtd": 10,
+    "diagnostico_prioridade_proxima_coleta": true,
+    "aplicar_na_proxima_coleta_v47_4": true,
+    "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias.",
+    "atualizado_em": "2026-05-08T05:15:08"
+  },
+  {
+    "id": "424a73dc87f1",
+    "versao": "v132.5",
+    "nome": "Nfnoticias",
+    "dominio": "nfnoticias.com.br",
+    "root": "https://www.nfnoticias.com.br/",
+    "ativo": true,
+    "grupo": "Regionais",
+    "estrategia": "rss_cascata",
+    "parser": "rss_cascata",
+    "feeds": [
+      "https://www.nfnoticias.com.br/rss/"
+    ],
+    "wp_api": "",
+    "sitemaps": [
+      "https://www.nfnoticias.com.br/sitemap.xml"
+    ],
+    "html_fallback": [
+      "https://www.nfnoticias.com.br/",
+      "https://www.nfnoticias.com.br/portal/",
+      "https://www.nfnoticias.com.br/noticias/",
+      "https://www.nfnoticias.com.br/noticia/"
+    ],
+    "playwright": true,
+    "janela_horas": 24,
+    "max_itens": 10,
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "cota_minima": 2,
+    "criado_em": "2026-05-08T08:20:25",
+    "diagnostico_resumo": {
+      "RSS/Atom raiz": "1 válido(s)",
+      "RSS/Atom /portal/": "0 válido(s)",
+      "RSS por categoria": "0 válido(s)",
+      "WP REST API": "NÃO",
+      "Sitemaps": "1 válido(s) | 46 URLs | 7 notícias",
+      "HTML listagem": "46 artigos encontrados",
+      "JSON-LD": "NÃO/Intermitente",
+      "Playwright": "NECESSÁRIO"
+    },
+    "autoadequacao_v1314": true,
+    "autoadequacao_v1325": true,
+    "aplicar_so_com_teste_ok": true,
+    "origem_perfil": "diagnostico_de_fonte",
+    "modo": "autoadequador_universal_v1325",
+    "estrategias_ativas": {
+      "rss": true,
+      "wp_api": false,
+      "sitemap": true,
+      "html": true,
+      "playwright": true
+    },
+    "solucao_enriquecida_v1314": true,
+    "status_operacional": "funcional_com_pauta_na_janela",
+    "forcar_proxima_coleta_qtd": 10,
+    "diagnostico_prioridade_proxima_coleta": true,
+    "aplicar_na_proxima_coleta_v47_4": true,
+    "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias."
+  }
+]

@@ -1,0 +1,91 @@
+RELATÓRIO V47.7 — INTEGRAÇÕES, CAPACIDADE E MONITOR 24H
+
+Objetivo
+- Auditar o projeto inteiro em busca de quebras reais de integração.
+- Corrigir sem reduzir capacidade de coleta, extração, imagem, monitor, painel e validação.
+- Manter compatibilidade com a estrutura de BATs numerados da raiz.
+
+Correções críticas aplicadas
+
+1. Monitor 24h — classe restaurada
+- Corrigida quebra estrutural em ururau/publisher/monitor.py causada por função duplicada que deixava métodos do MonitorRobo inacessíveis.
+- Restaurados como métodos reais da classe: iniciar, parar, _executar_ciclo, _processar_pauta, _vagas_na_hora.
+- Validação confirma que o monitor pode iniciar, parar e executar ciclo sem erro de método ausente.
+
+2. Monitor 24h — capacidade aditiva
+- O monitor passou a somar fontes de RSS, Diagnóstico de Fonte/AutoFontes v131, Google News v111, fallback legado Google News e Source Hunter.
+- Nada substitui o que já existia; os coletores foram integrados em modo aditivo.
+- config/monitor_24h.json agora possui bloco "coleta" com os coletores habilitados por padrão.
+
+3. Google News v111
+- ururau_monitor.py agora aplica defaults operacionais do monitor ao ambiente sem sobrescrever .env real.
+- URURAU_V111_GNEWS_INTEGRADO fica ativo por padrão quando config/monitor_24h.json permitir.
+- Se o v111 não trouxer pautas, o fallback legado v110 pode complementar automaticamente.
+
+4. Fontes RSS unificadas
+- Criado ururau/coleta/config_unificada.py.
+- O sistema agora lê e unifica fontes de vários arquivos legados/configurados sem apagar os arquivos originais.
+- URLs são deduplicadas por normalização.
+- Validação local carregou 47 fontes RSS.
+
+5. Diagnóstico de Fonte no monitor
+- Perfis aplicados pelo Diagnóstico de Fonte/AutoFontes v131 agora entram também no monitor 24h.
+- A fonte diagnosticada continua priorizada na próxima coleta e pode trazer até 10 pautas, conforme regra já aplicada.
+
+6. Extração persistente
+- Falhas de extração não ficam presas por cache longo.
+- fonte_extractor_v104.py passou a usar URURAU_V104_FAIL_CACHE_TTL_SEG, padrão 180s, para falhas.
+- leitura_fonte.py também passou a usar TTL curto para falhas, preservando TTL normal para sucessos.
+
+7. Imagem depois do texto, com mais tentativas
+- workflow.py preserva imagem detectada na extração textual.
+- busca.py lista múltiplas candidatas: imagem preferencial, og:image, twitter:image, imagens no corpo, Google Images e Bing fallback quando disponíveis.
+- processamento.py tenta múltiplas candidatas antes de declarar falha, em vez de parar na primeira URL quebrada.
+
+8. Painel
+- O painel usa a configuração unificada de RSS quando disponível.
+- Mantém F5/Atualizar como recarga real da fila e das fontes aplicadas.
+- Não reduz as formas de coleta existentes.
+
+9. BATs
+- Corrigido 06_VALIDAR_TUDO.bat, que tinha caracteres de controle invisíveis em caminhos.
+- O BAT geral agora inclui VALIDAR_INTEGRACOES_V47_7.py.
+- Raiz preservada apenas com BATs numerados operacionais.
+
+Arquivos principais alterados
+- ururau/publisher/monitor.py
+- ururau/publisher/monitor_v111_patch.py
+- ururau_monitor.py
+- ururau/ui/painel.py
+- ururau/coleta/config_unificada.py
+- ururau/coleta/fonte_extractor_v104.py
+- ururau/coleta/leitura_fonte.py
+- ururau/imaging/busca.py
+- ururau/imaging/processamento.py
+- ururau/publisher/workflow.py
+- config/monitor_24h.json
+- VALIDAR_INTEGRACOES_V47_7.py
+- 06_VALIDAR_TUDO.bat
+
+Validações executadas localmente
+- python -m compileall -q .
+- python VALIDAR_INTEGRACOES_V47_7.py
+- python VALIDAR_MONITOR_CONTINUO_V47_6.py
+- python VALIDAR_MONITOR_24H.py
+- python VALIDAR_V47_4_OPERACIONAL.py
+- python VALIDAR_AUDITORIA_IA_V46_8.py
+- python VALIDAR_ENV.py
+
+Resultado
+- Validações locais: OK.
+- MonitorRobo com métodos restaurados: OK.
+- Fontes RSS unificadas carregadas: 47.
+- Google News v111 configurado por padrão: OK.
+- AutoFontes/Diagnóstico de Fonte preservado no monitor: OK.
+- Imagem com múltiplas candidatas: OK.
+- 06_VALIDAR_TUDO.bat sem caracteres inválidos: OK.
+
+Limites do teste
+- Não foi feita publicação real no CMS.
+- Não foi feita chamada real à OpenAI.
+- A validação foi local, estática e funcional dentro do projeto.

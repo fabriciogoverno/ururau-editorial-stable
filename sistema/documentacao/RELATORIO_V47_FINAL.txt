@@ -1,0 +1,35 @@
+PURAL Editorial v47 Final
+
+Correções aplicadas:
+
+1. Credenciais persistentes
+- Corrigida a ordem de leitura dos arquivos de ambiente.
+- .env.exemplo agora funciona apenas como default e não sobrescreve dados reais.
+- sistema/credenciais/env_principal.env e sistema/.env têm prioridade sobre o exemplo.
+- O painel salva nos dois arquivos reais: sistema/.env e sistema/credenciais/env_principal.env.
+- O botão Salvar e Aplicar atualiza também o ambiente do processo em execução.
+- Caminhos agora são absolutos com base na pasta sistema, evitando leitura/gravação no .env errado quando o .bat é aberto por outro diretório.
+
+2. Banco SQLite mais tolerante
+- timeout=60.
+- PRAGMA busy_timeout=60000.
+- journal_mode=WAL não derruba o painel caso o banco esteja ocupado.
+- Retry na inicialização do banco.
+- Corrigido bug de migração que lia row[0] em vez de row["dados_json"].
+
+3. Auditoria de IA preservada da v46.8
+- modo_geracao.
+- ia_provider.
+- ia_modelo.
+- ia_status.
+- ia_chamada_ok.
+- ia_fallback_motivo.
+- logs/ia_diagnostico.log e logs/ia_diagnostico.jsonl.
+
+Como usar:
+1. Extraia em uma pasta nova.
+2. Abra a pasta sistema.
+3. Rode INICIAR_COM_BANCO_SEGURO.bat.
+4. Entre em Config > Credenciais.
+5. Preencha e clique em Salvar e Aplicar.
+6. Feche e abra de novo. Os campos devem continuar preenchidos.

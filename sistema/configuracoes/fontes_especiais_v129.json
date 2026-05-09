@@ -1,0 +1,91 @@
+{
+  "_versao": "v130.3",
+  "_descricao": "Fontes especiais: coletadas em fase própria, livres do corte de score baixo; mantêm deduplicação, janela, links inválidos e assets.",
+  "fontes": [
+    {
+      "nome": "STF",
+      "url": "https://noticias.stf.jus.br/feed/",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "TSE",
+      "url": "https://www.tse.jus.br/rss",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Gov.br",
+      "url": "https://www.gov.br/rss.xml",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Senado",
+      "url": "https://www12.senado.leg.br/noticias/rss.xml",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Câmara",
+      "url": "https://www.camara.leg.br/rss/noticias.xml",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "STJ",
+      "url": "https://res.stj.jus.br/hrestp-c-portalp/RSS.xml",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Alerj",
+      "url": "https://www.alerj.rj.gov.br/Noticias/rss",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "MPRJ",
+      "url": "https://www.mprj.mp.br/rss",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "TRE-RJ",
+      "url": "https://www.tre-rj.jus.br/comunicacao/noticias/RSS",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "TJRJ",
+      "url": "https://www.tjrj.jus.br/web/guest/home/-/noticias/rss",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Governo RJ",
+      "url": "https://www.rj.gov.br/noticias/rss",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    },
+    {
+      "nome": "Defensoria RJ",
+      "url": "https://defensoria.rj.def.br/rss/noticias",
+      "tipo": "rss",
+      "bypass_score": true,
+      "ativo": true
+    }
+  ],
+  "_observacao_v1304_nf": "NF Notícias saiu de Fontes Especiais genéricas e virou RSS regional prioritário para usar o parser RSS comum com bypass de score."
+}

@@ -1,0 +1,33 @@
+PURAL Editorial v47.1 Final - correção do envio ao CMS
+
+Problema corrigido:
+- O painel salvava as credenciais em Config > Credenciais, mas o botão Enviar ao CMS fazia a pré-checagem usando caminhos relativos: .env e credenciais/env_principal.env.
+- Quando o sistema era aberto por atalho, .bat ou .vbs com diretório atual diferente da pasta sistema, a tela Config podia salvar corretamente, mas o Preview não encontrava URURAU_LOGIN e URURAU_SENHA.
+- Resultado: a janela informava que as credenciais do CMS não foram encontradas, mesmo depois de preenchidas.
+
+Correção aplicada:
+- ururau/ui/painel.py agora lê sistema/.env e sistema/credenciais/env_principal.env por caminho absoluto calculado a partir do próprio arquivo painel.py.
+- .env.exemplo continua sendo apenas default e não sobrescreve credenciais reais.
+- A ordem de prioridade ficou: credenciais/.env.exemplo -> credenciais/env_principal.env -> .env -> os.environ.
+- os.environ fica por último para o botão Salvar e Aplicar funcionar sem reiniciar o painel.
+
+Validação:
+- python -m compileall -q ururau ururau_painel.py: OK.
+- Teste de leitura das credenciais com o diretório atual fora da pasta sistema: OK.
+
+Correções preservadas da v47:
+- Credenciais persistentes.
+- Banco SQLite com timeout, busy_timeout e retry.
+- Auditoria da IA e identificação de fallback.
+- Classificação editorial e retranca de uma palavra.
+
+Como usar:
+1. Extraia em uma pasta nova.
+2. Abra a pasta sistema.
+3. Rode INICIAR_COM_BANCO_SEGURO.bat.
+4. Entre em Config > Credenciais.
+5. Preencha URURAU_LOGIN, URURAU_SENHA, URLs e chave OpenAI se necessário.
+6. Clique em Salvar e Aplicar.
+7. Gere a matéria no Preview e clique em Enviar ao CMS.
+
+Este ZIP não inclui chaves nem senhas reais.

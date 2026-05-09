@@ -1,0 +1,13 @@
+{
+  "version": "V43 Premium",
+  "panelSizes": {
+    "queue": 32,
+    "detail": 68
+  },
+  "console": {
+    "state": "hidden",
+    "height": 22,
+    "autoScroll": true
+  },
+  "analysisCompact": true
+}

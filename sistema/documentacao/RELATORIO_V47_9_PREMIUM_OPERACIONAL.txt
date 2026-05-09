@@ -1,0 +1,17 @@
+PURAL Editorial v47.9 Premium Operacional
+
+Correções aplicadas:
+1. O score circular da fila só aparece quando há texto útil extraído. Antes disso mostra --/TXT.
+2. O monitor 24h aplica a configuração oficial de coleta também quando iniciado pelo painel.
+3. Google News v111, fallback legado, AutoFontes e Source Hunter ficam ativos pelo JSON do monitor.
+4. O monitor também usa pautas já existentes na fila do painel.
+5. A mensagem de “aprovada para direta” virou pré-aprovação, porque a aprovação final depende de texto completo, imagem, copydesk, risco, termos de IA e CMS.
+6. Falha técnica de extração agenda diagnóstico automático de fonte para melhorar a próxima coleta.
+7. Falha técnica de extração não bloqueia permanentemente o link por padrão.
+8. v110_kimi_article_extractor e v108_readability passam a ser aceitos como extratores reais quando entregam texto suficiente.
+9. Mensagem do monitor ao parar foi ajustada para parada/reinício em ponto seguro.
+
+Validador: VALIDAR_V47_9_PREMIUM_OPERACIONAL.bat
+
+
+Complemento V47.9: risco detalhado em tempo real restaurado. Quando não houver texto suficiente, a UI mostra --, não 0% falso.

@@ -1,0 +1,40 @@
+GUIA DE BATs OPERACIONAIS - V47.5
+
+Use somente os BATs numerados na raiz do projeto.
+Os BATs dentro da pasta sistema existem como alvos internos, validadores ou suporte tecnico.
+
+01_INSTALAR.bat
+- Usar uma vez, ou quando trocar de maquina/ambiente.
+- Cria .venv, instala dependencias, normaliza .env e compila entradas principais.
+
+02_ABRIR_PAINEL.bat
+- Uso diario recomendado.
+- Abre o painel em modo limpo, sem console externo.
+
+03_ABRIR_PAINEL_COM_LOG_VISIVEL.bat
+- Uso de diagnostico.
+- Abre instalacao/validacao com janela visivel, util quando o painel nao abre.
+
+04_MONITOR_24H_RASCUNHO.bat
+- Uso recomendado para o robo 24h.
+- Envia para o CMS como rascunho quando aprovado, sem publicar ao vivo.
+
+05_MONITOR_24H_AO_VIVO_CUIDADO.bat
+- Uso restrito.
+- Tenta publicar ao vivo apenas se o .env tambem liberar publicacao direta.
+- Mantem confirmacao manual antes de iniciar.
+
+06_VALIDAR_TUDO.bat
+- Validador geral.
+- Checa ambiente, regras editoriais, monitor 24h e operacional/F5/extracao.
+
+07_AUDITAR_REGRAS_EDITORIAIS.bat
+- Auditoria especifica da matriz editorial e termos proibidos.
+
+BATs antigos removidos da raiz:
+- INICIAR.bat: substituido por 02_ABRIR_PAINEL.bat.
+- RODAR_TUDO.bat: redundante para operacao diaria.
+- RODAR_TUDO_VISIVEL.bat: substituido por 03_ABRIR_PAINEL_COM_LOG_VISIVEL.bat.
+- VALIDAR.bat: validava apenas ambiente; substituido por 06_VALIDAR_TUDO.bat.
+- VALIDAR_MONITOR_24H.bat e VALIDAR_V47_4_OPERACIONAL.bat: incorporados ao 06_VALIDAR_TUDO.bat, mas mantidos internamente na pasta sistema.
+- CORRIGIR_ERRO_ENV_V46_2.bat: mantido internamente como suporte tecnico, nao como atalho principal.

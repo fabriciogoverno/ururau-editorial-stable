@@ -1,0 +1,18 @@
+{
+  "versao": "v47.4",
+  "texto_prioridade": true,
+  "imagem_depois_texto": true,
+  "min_texto_util_chars_padrao": 900,
+  "max_tentativas_texto_normais": 12,
+  "hard_cap_tentativas_texto": 48,
+  "retry_longo_texto_segundos": 1800,
+  "max_tentativas_imagem_normais": 8,
+  "hard_cap_tentativas_imagem": 32,
+  "retry_imagem_segundos": 900,
+  "diagnostico_fonte_max_itens_proxima_coleta": 10,
+  "f5_forca_recarregamento": true,
+  "fila_ordem": "data_publicacao_fonte_desc; fallback captada_em/atualizada_em",
+  "publicacao_manual_permitida": true,
+  "bloquear_publicacao_sem_texto_minimo": true,
+  "observacao": "100% literal não é garantível contra paywall, CAPTCHA, bloqueio antirobô ou página removida; o sistema persiste e bloqueia publicação direta quando texto mínimo não chega."
+}

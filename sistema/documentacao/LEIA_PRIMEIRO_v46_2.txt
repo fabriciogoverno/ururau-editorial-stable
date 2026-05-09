@@ -1,0 +1,15 @@
+URURAU ROBÔ EDITORIAL v46.2 - REPARO REAL DE INSTALAÇÃO
+
+1. Extraia em uma pasta NOVA, por exemplo:
+   C:\Projetos\ururau_v46_2
+
+2. Execute INSTALAR.bat.
+
+3. Execute RODAR_TUDO_VISIVEL.bat.
+
+Esta versão corrige o erro:
+[ERRO] Variaveis ausentes: URURAU_MONITOR_RASCUNHO_SE_NAO_APROVAR, URURAU_SCORE_MINIMO_RASCUNHO, URURAU_AUDITORIA_FACTUAL_V81
+
+O validador agora adiciona essas variáveis automaticamente e não bloqueia a instalação por OPENAI_API_KEY, login ou senha vazios.
+
+Se você extrair por cima de pasta antiga e o erro voltar, rode CORRIGIR_ERRO_ENV_V46_2.bat.

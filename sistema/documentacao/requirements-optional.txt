@@ -1,0 +1,5 @@
+# Dependências avançadas de extração. Falha aqui não deve impedir o painel de abrir.
+trafilatura>=1.12.0
+readability-lxml>=0.8.1
+lxml>=5.0.0
+lxml_html_clean>=0.4.0

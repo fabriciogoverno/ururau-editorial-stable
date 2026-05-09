@@ -1,0 +1,22 @@
+URURAU v46.3 — patch aplicado
+
+Principais correções deste pacote:
+1. Envio ao CMS:
+   - o sistema agora procura credenciais em sistema/.env e também em sistema/credenciais/env_principal.env
+   - ao tentar publicar sem credenciais, o painel abre aviso claro e direciona para Config > Credenciais
+   - salvar em Config agora grava nas duas localizações para evitar perda de configuração
+
+2. Toolbar principal:
+   - novos botões principais com aparência premium para Coletar, Redigir, Copydesk, Preview, Publicar, Descartar e Exportar
+   - criação de barra de progresso do fluxo editorial abaixo da toolbar principal
+
+3. Preview e edição:
+   - painel de metadados ajustado para ocupar corretamente a largura disponível
+   - pesos do layout ampliados para o bloco de metadados, reduzindo o espaço vazio
+
+4. Abas de detalhe:
+   - tabs do notebook com fonte maior, padding maior e visual mais legível
+
+Observação importante:
+- Este ZIP continua sem credenciais reais por segurança.
+- Preencha as credenciais em Config > Credenciais ou no arquivo sistema/credenciais/env_principal.env.

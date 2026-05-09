@@ -1,0 +1,585 @@
+{
+  "name": "nfnoticias.com.br",
+  "root": "https://www.nfnoticias.com.br/",
+  "timestamp": "2026-05-08T08:19:47.894735",
+  "tests": {
+    "rss_root": {
+      "description": "RSS/Atom na raiz",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/rss/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=utf-8",
+          "feed_util": {
+            "itens": 16,
+            "com_titulo_link": 16,
+            "com_data": 16,
+            "dentro_janela": 14,
+            "primeiros_titulos": [
+              "Homem de 35 anos é executado ao lado de moto em Campos",
+              "Flávio Dino pede vista e STF suspende julgamento sobre royalties do petróleo",
+              "Identificado homem assassinado em Guarus; polícia aponta ligação com facção criminosa",
+              "Homem é morto a tiros em carro de aplicativo após sair do fórum; motorista fica ferido",
+              "Felipe Melo convoca torcida do Americano para jogo contra o Olaria"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Homem de 35 anos é executado ao lado de moto em Campos",
+              "link": "https://nfnoticias.com.br/noticia-54827/homem-de-35-anos-e-executado-ao-lado-de-moto-em-campos",
+              "date": "Fri, 08 May 2026 07:50:21 -0300"
+            }
+          }
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/atom.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/feed.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/rss.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 1,
+      "valid_urls": [
+        "https://www.nfnoticias.com.br/rss/"
+      ]
+    },
+    "rss_portal": {
+      "description": "RSS/Atom em /portal/",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/portal/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/portal/rss/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/portal/atom.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/portal/feed.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 0,
+      "valid_urls": []
+    },
+    "rss_categorias": {
+      "description": "RSS por categoria",
+      "results": [
+        {
+          "categoria": "policia",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/policia/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "politica",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/politica/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "regiao",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/regiao/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "geral",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/geral/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "cidade",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/cidade/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "esporte",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/esporte/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "categoria": "economia",
+          "url": "https://www.nfnoticias.com.br/portal/categoria/economia/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 0,
+      "valid_urls": []
+    },
+    "wp_api": {
+      "description": "WordPress REST API",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/wp-json/wp/v2/posts?per_page=10",
+          "status": 200,
+          "ok": true,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/wp-json/wp/v2/posts",
+          "status": 200,
+          "ok": true,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/portal/wp-json/wp/v2/posts?per_page=10",
+          "status": 200,
+          "ok": true,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/wp-json/",
+          "status": 200,
+          "ok": true,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": ""
+        }
+      ],
+      "valid": false
+    },
+    "sitemap": {
+      "description": "Sitemap XML",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "SITEMAP_XML",
+          "valid": true,
+          "urls_count": 46,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/sitemap_index.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/wp-sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/noticia/sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/post-sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/news-sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/sitemap-news.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/google-news-sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": ""
+        }
+      ],
+      "valid_count": 1,
+      "valid_urls": [
+        "https://www.nfnoticias.com.br/sitemap.xml"
+      ],
+      "total_urls": 46,
+      "news_urls": [
+        "https://www.nfnoticias.com.br/post/572/sergioalexandresa/os-desafios-da-maternidade-no-combate-ao-abuso-sexual-infantil",
+        "https://www.nfnoticias.com.br/post/660/pedrozanon/parlamentar-pode-adentrar-espaco-interno-de-reparticao-publica-sem-autorizacao-com-intuito-de-praticar-ato-de-fiscalizacao?-",
+        "https://www.nfnoticias.com.br/post/692/opiniaodosjornalistas/o-jogo-de-empurra-na-saude-de-campos;-enquanto-discutem-a-populacao-sofre",
+        "https://www.nfnoticias.com.br/post/774/alexandrebuchaul/feliz-ano-novo!",
+        "https://www.nfnoticias.com.br/post/816/paulonascimentofilho/receber-dividendos-e-otimo;-reinvestir-e-ainda-melhor",
+        "https://www.nfnoticias.com.br/post/834/cleytonlacerda/os-novos-rumos-do-governo-frederico-e-a-ameaca-que-vem-do-stf",
+        "https://www.nfnoticias.com.br/post/835/leandromazzini/austeridade-eleitoral"
+      ]
+    },
+    "html_listagem": {
+      "description": "HTML listagem",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 7,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://www.nfnoticias.com.br/post/572/sergioalexandresa/os-desafios-da-maternidade-no-combate-ao-abuso-sexual-infantil",
+            "https://www.nfnoticias.com.br/post/660/pedrozanon/parlamentar-pode-adentrar-espaco-interno-de-reparticao-publica-sem-autorizacao-com-intuito-de-praticar-ato-de-fiscalizacao?-",
+            "https://www.nfnoticias.com.br/post/692/opiniaodosjornalistas/o-jogo-de-empurra-na-saude-de-campos;-enquanto-discutem-a-populacao-sofre",
+            "https://www.nfnoticias.com.br/post/774/alexandrebuchaul/feliz-ano-novo!",
+            "https://www.nfnoticias.com.br/post/816/paulonascimentofilho/receber-dividendos-e-otimo;-reinvestir-e-ainda-melhor"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/portal/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://www.nfnoticias.com.br/portal/site.webmanifest"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/noticias/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 37,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://api.whatsapp.com/send?1=pt_BR&phone=5522998067141&text=Olá! Gostaria de obter informações sobre: https://www.nfnoticias.com.br/noticias/",
+            "https://www.nfnoticias.com.br/noticias/anuncie",
+            "https://www.nfnoticias.com.br/noticias/classiguianf",
+            "https://www.nfnoticias.com.br/noticias/editoria-1/geral",
+            "https://www.nfnoticias.com.br/noticias/editoria-2/politica"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/noticia/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://www.nfnoticias.com.br/noticia/site.webmanifest"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/politica/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/policia/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/regiao/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": ""
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/geral/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": ""
+        }
+      ],
+      "total_articles": 46,
+      "sample_articles": [
+        "https://api.whatsapp.com/send?1=pt_BR&phone=5522998067141&text=Olá! Gostaria de obter informações sobre: https://www.nfnoticias.com.br/noticias/",
+        "https://www.nfnoticias.com.br/noticia/site.webmanifest",
+        "https://www.nfnoticias.com.br/noticias/anuncie",
+        "https://www.nfnoticias.com.br/noticias/classiguianf",
+        "https://www.nfnoticias.com.br/noticias/editoria-1/geral",
+        "https://www.nfnoticias.com.br/noticias/editoria-2/politica",
+        "https://www.nfnoticias.com.br/noticias/editoria-3/esportes",
+        "https://www.nfnoticias.com.br/noticias/editoria-4/brasil",
+        "https://www.nfnoticias.com.br/noticias/editoria-6/cidades",
+        "https://www.nfnoticias.com.br/noticias/editoria-9/oportunidades-e-empregos",
+        "https://www.nfnoticias.com.br/noticias/eventos",
+        "https://www.nfnoticias.com.br/noticias/nfpodcast",
+        "https://www.nfnoticias.com.br/noticias/nfradio",
+        "https://www.nfnoticias.com.br/noticias/nftv",
+        "https://www.nfnoticias.com.br/noticias/noticia-54815/policia-investiga-morte-de-bebe-de-um-mes-em-campos-",
+        "https://www.nfnoticias.com.br/noticias/noticia-54816/aeroporto-bartolomeu-lisandro-e-heliporto-renovam-certificacao-ambiental-por-uso-de-energia-renovavel",
+        "https://www.nfnoticias.com.br/noticias/noticia-54818/municipio-de-sao-francisco-tera-nova-ubs-com-recursos-do-ministerio-da-saude",
+        "https://www.nfnoticias.com.br/noticias/noticia-54819/tenente-coronel-thiago-pinho-assume-o-comando-do-80-batalhao-",
+        "https://www.nfnoticias.com.br/noticias/noticia-54820/policia-prende-condenado-por-lesao-corporal-gravissima-no-heliporto-de-campos",
+        "https://www.nfnoticias.com.br/noticias/noticia-54821/entenda-o-que-esta-em-discussao-no-julgamento-sobre-distribuicao-dos-royalties",
+        "https://www.nfnoticias.com.br/noticias/noticia-54822/stf-tem-maioria-para-manter-prisao-do-deputado-thiago-rangel",
+        "https://www.nfnoticias.com.br/noticias/noticia-54823/felipe-melo-convoca-torcida-do-americano-para-jogo-contra-o-olaria-",
+        "https://www.nfnoticias.com.br/noticias/noticia-54824/homem-e-morto-a-tiros-em-carro-de-aplicativo-apos-sair-do-forum;-motorista-fica-ferido-",
+        "https://www.nfnoticias.com.br/noticias/noticia-54825/identificado-homem-assassinado-em-guarus;-policia-aponta-ligacao-com-faccao-criminosa",
+        "https://www.nfnoticias.com.br/noticias/noticia-54826/flavio-dino-pede-vista-e-stf-suspende-julgamento-sobre-royalties-do-petroleo",
+        "https://www.nfnoticias.com.br/noticias/noticia-54827/homem-de-35-anos-e-executado-ao-lado-de-moto-em-campos",
+        "https://www.nfnoticias.com.br/noticias/post/572/sergioalexandresa/os-desafios-da-maternidade-no-combate-ao-abuso-sexual-infantil",
+        "https://www.nfnoticias.com.br/noticias/post/660/pedrozanon/parlamentar-pode-adentrar-espaco-interno-de-reparticao-publica-sem-autorizacao-com-intuito-de-praticar-ato-de-fiscalizacao?-",
+        "https://www.nfnoticias.com.br/noticias/post/692/opiniaodosjornalistas/o-jogo-de-empurra-na-saude-de-campos;-enquanto-discutem-a-populacao-sofre",
+        "https://www.nfnoticias.com.br/noticias/post/774/alexandrebuchaul/feliz-ano-novo!"
+      ]
+    },
+    "jsonld": {
+      "description": "JSON-LD/Open Graph",
+      "results": [
+        {
+          "url": "https://www.nfnoticias.com.br/noticia/site.webmanifest",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:url",
+            "og:image",
+            "og:image:type",
+            "og:image:width",
+            "og:image:height"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/noticias/anuncie",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:url",
+            "og:image",
+            "og:image:type",
+            "og:image:width",
+            "og:image:height"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://www.nfnoticias.com.br/",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:url",
+            "og:image",
+            "og:image:type",
+            "og:image:width",
+            "og:image:height"
+          ],
+          "valid": true
+        }
+      ],
+      "valid": false
+    },
+    "playwright": {
+      "description": "Avaliação Playwright",
+      "needs_playwright": true,
+      "reason": "POSSIVELMENTE NECESSARIO — não foi possível validar artigo estático."
+    }
+  },
+  "summary": {
+    "RSS/Atom raiz": "1 válido(s)",
+    "RSS/Atom /portal/": "0 válido(s)",
+    "RSS por categoria": "0 válido(s)",
+    "WP REST API": "NÃO",
+    "Sitemaps": "1 válido(s) | 46 URLs | 7 notícias",
+    "HTML listagem": "46 artigos encontrados",
+    "JSON-LD": "NÃO/Intermitente",
+    "Playwright": "NECESSÁRIO"
+  },
+  "recommendation": [
+    "[OK] Usar RSS na raiz como principal.",
+    "[OK] Playwright: necessário/avaliar"
+  ],
+  "solucao": {
+    "estrategia_principal": "rss",
+    "feeds": [
+      "https://www.nfnoticias.com.br/rss/"
+    ],
+    "sitemaps": [
+      "https://www.nfnoticias.com.br/sitemap.xml"
+    ],
+    "wp_api": "",
+    "html_fallback": [
+      "https://www.nfnoticias.com.br/",
+      "https://www.nfnoticias.com.br/portal/",
+      "https://www.nfnoticias.com.br/noticias/",
+      "https://www.nfnoticias.com.br/noticia/"
+    ],
+    "playwright": true,
+    "config_sugerido": {
+      "nome": "nfnoticias.com.br",
+      "ativo": true,
+      "tipo": "rss",
+      "feeds": [
+        "https://www.nfnoticias.com.br/rss/"
+      ],
+      "sitemaps": [
+        "https://www.nfnoticias.com.br/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": true,
+      "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+    }
+  }
+}

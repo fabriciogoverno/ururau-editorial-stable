@@ -1,0 +1,81 @@
+RESULTADO DO APLICAR E TESTAR PERFIL v131.4
+========================================================================
+Fonte: Agenciabrasil Ebc
+Domínio: agenciabrasil.ebc.com.br
+Grupo/aba: RSS
+Estratégia: rss_cascata
+Parser operacional: rss_cascata
+Regra operacional: diagnóstico gera perfil; perfil é testado; salva quando gera pauta real ou comprova extração técnica funcional sem pauta na janela.
+
+STATUS FINAL
+------------------------------------------------------------------------
+APLICADO E FUNCIONAL: SIM
+Status: funcional com pauta dentro da janela
+Será usada na próxima coleta geral: SIM, pela fase AutoFontes v131.4
+
+TESTE IMEDIATO
+------------------------------------------------------------------------
+Teste executado: SIM
+Pautas de teste geradas: 5
+Primeira pauta: Lula e Trump orientam ministros a resolverem tarifas em 30 dias
+Itens brutos lidos: 41
+Itens com título/link: 15
+Itens aceitos pela janela/perfil: 5
+Itens fora da janela: 10
+
+TENTATIVAS DO COLETOR
+------------------------------------------------------------------------
+feedparser | status=200 | itens=10 | aceitas=0 | https://agenciabrasil.ebc.com.br/rss.xml
+sitemap_html_meta | status=200 | itens=0 | aceitas=0 | https://agenciabrasil.ebc.com.br/sitemap.xml
+html_listagem | status=200 | itens=31 | aceitas=5 | https://agenciabrasil.ebc.com.br/
+
+ARQUIVOS / PERSISTÊNCIA
+------------------------------------------------------------------------
+Perfil salvo: SIM
+Arquivo do perfil: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\perfis_fontes_v131.json
+Aba sincronizada: RSS
+Arquivo de aba atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\config\fontes_rss.json
+Arquivo de aba atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\configuracoes\fontes_rss.json
+Arquivo de aba atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\fontes_rss.json
+Arquivo XML/Sitemap atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\configuracoes\fontes_xml_sitemap_v120.txt
+Arquivo XML/Sitemap atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\fontes_xml_sitemap_vfinal.txt
+
+AVISOS
+------------------------------------------------------------------------
+- Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias.
+
+APLICAÇÃO SEGURA DO DIAGNÓSTICO v130
+======================================================================
+Fonte: Agenciabrasil Ebc | domínio: agenciabrasil.ebc.com.br
+Estratégia: rss
+
+AUTOADEQUAÇÃO OPERACIONAL DE FONTE v132.5
+========================================================================
+Fonte: Agenciabrasil Ebc | domínio: agenciabrasil.ebc.com.br
+Grupo/aba: RSS | estratégia: rss_cascata | parser: rss_cascata
+Regra: o perfil só é salvo se o teste operacional gerar pauta real; se um parser falhar, a cascata tenta RSS XML direto, WP API, sitemap e HTML.
+Teste imediato: OK COM PAUTA | pautas testadas: 5
+Primeira pauta: Lula e Trump orientam ministros a resolverem tarifas em 30 dias
+Brutas: 41 | título+link: 15 | aceitas: 5 | fora_janela: 10
+  - feedparser | https://agenciabrasil.ebc.com.br/rss.xml | status=200 | itens=10 | aceitas=0 | erro=-
+  - sitemap_html_meta | https://agenciabrasil.ebc.com.br/sitemap.xml | status=200 | itens=0 | aceitas=0 | erro=-
+  - html_listagem | https://agenciabrasil.ebc.com.br/ | status=200 | itens=31 | aceitas=5 | erro=-
+Perfil salvo em: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\perfis_fontes_v131.json
+Status: será usado automaticamente na próxima coleta geral pela fase AutoFontes v132.5.
+Avisos:
+  - Fonte aplicada: próxima coleta prioriza este domínio e tenta trazer até 10 matérias.
+
+Aba sincronizada:
+  Grupo: RSS
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\config\fontes_rss.json
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\configuracoes\fontes_rss.json
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\fontes_rss.json
+
+Fonte única V43:
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\config\fontes_links.json
+  Grupo: RSS | URL operacional: https://agenciabrasil.ebc.com.br/rss.xml
+
+XML/Sitemap:
+  Sitemap: https://agenciabrasil.ebc.com.br/sitemap.xml
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\configuracoes\fontes_xml_sitemap_v120.txt
+  Arquivo atualizado: C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema\fontes_xml_sitemap_vfinal.txt

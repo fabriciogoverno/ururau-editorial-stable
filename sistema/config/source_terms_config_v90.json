@@ -1,0 +1,29 @@
+{
+  "termos_regionais": [
+    "Rio de Janeiro",
+    "Campos dos Goytacazes",
+    "Norte Fluminense",
+    "Macaé",
+    "Nova Friburgo",
+    "Petrópolis",
+    "Teresópolis",
+    "Angra dos Reis",
+    "Volta Redonda",
+    "Resende"
+  ],
+  "termos_nacionais": [
+    "Brasil",
+    "São Paulo",
+    "FGTS",
+    "Anvisa",
+    "INSS",
+    "Bolsa Família"
+  ],
+  "termos_trends": [
+    "economia",
+    "saúde",
+    "educação",
+    "segurança",
+    "política"
+  ]
+}

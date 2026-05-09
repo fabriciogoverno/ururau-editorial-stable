@@ -1,0 +1,11 @@
+PURAL Editorial v47.4 — Operação, F5, extração persistente e diagnóstico de fonte
+
+- Texto completo: prioridade absoluta; 12 tentativas normais e rechecagens longas configuráveis até limite duro.
+- Imagem: roda depois do texto; falha vira pendente_retry antes de encerrar.
+- F5/Atualizar: botão restaurado e tecla F5 vinculada; recarrega configurações/fontes, limpa caches e força fila.
+- Fila: ordem cronológica por data de publicação na fonte, mais novo primeiro, com fallback por captura/atualização.
+- Painel de inteligência: remove números decorativos; usa dados reais existentes ou mostra --.
+- Diagnóstico de Fonte: fonte aplicada fica prioritária na próxima coleta e tenta trazer até 10 matérias do domínio.
+- Publicação manual: permitida, mas ao vivo exige aprovação humana e gates.
+
+Observação: 100% absoluto de extração não pode ser garantido contra paywall, CAPTCHA, login obrigatório, bloqueio antirobô ou página removida.

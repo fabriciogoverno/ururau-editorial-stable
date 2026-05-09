@@ -1,0 +1,47 @@
+RELATÓRIO V47.3 — AUDITORIA E ORGANIZAÇÃO DO MONITOR 24H
+
+Objetivo
+- Corrigir a ambiguidade do robô 24h entre processamento local, rascunho no CMS e publicação ao vivo.
+- Garantir que publicação ao vivo só ocorra com modo explícito e aprovação completa dos gates.
+- Garantir que termos de IA bloqueiem publicação direta.
+
+Correções aplicadas
+1. Modos explícitos do monitor
+   - local: processa e salva apenas local/banco.
+   - rascunho: envia ao CMS como rascunho, com checkbox de rascunho marcado.
+   - direto: permite publicação ao vivo apenas com confirmação forte no .env e gates editoriais.
+
+2. ururau_monitor.py
+   - Novo argumento: --modo-cms local|rascunho|direto.
+   - Novo atalho: --rascunho-cms.
+   - Compatibilidade: --publicar continua existindo, mas vira alias de --modo-cms direto.
+   - Rascunho CMS não exige confirmação de publicação ao vivo; exige apenas credenciais do CMS.
+   - Publicação ao vivo exige URURAU_PUBLICACAO_REAL_CONFIRMADA=SIM e URURAU_PUBLICAR_DIRETO=1 ou URURAU_CMS_PUBLICACAO_DIRETA=1.
+
+3. MonitorRobo
+   - Separado o conceito de usar CMS do conceito de permitir publicação ao vivo.
+   - Mesmo que o .env antigo esteja liberando publicação direta, o modo rascunho converte qualquer decisão para rascunho.
+   - Logs agora diferenciam: LOCAL/BANCO, RASCUNHO CMS e PUBLICAÇÃO AO VIVO.
+
+4. decision_v82
+   - Agora respeita contexto permitir_publicacao_direta=False.
+   - Termo de IA encontrado derruba publicação direta e força rascunho/bloqueio.
+
+5. workflow.can_publish
+   - Valida a blocklist de IA antes de autorizar publicação direta.
+   - No monitor, falha ao validar blocklist fecha a porta: não publica ao vivo.
+
+6. quality_gates.py
+   - Corrigido safe_can_publish para repassar o modo correto ao can_publish.
+
+7. Arquivos novos
+   - sistema/config/monitor_24h.json
+   - sistema/VALIDAR_MONITOR_24H.py
+   - VALIDAR_MONITOR_24H.bat
+   - RODAR_MONITOR_24H_RASCUNHO.bat
+   - RODAR_MONITOR_24H_AO_VIVO.bat
+
+Política recomendada
+- Operação normal do monitor: RODAR_MONITOR_24H_RASCUNHO.bat.
+- Publicação ao vivo: só usar RODAR_MONITOR_24H_AO_VIVO.bat quando houver confiança total no robô e flags de produção ativas no env.
+- Em caso de dúvida, manter URURAU_PUBLICAR_DIRETO=0 e URURAU_PUBLICACAO_REAL_CONFIRMADA=NAO.

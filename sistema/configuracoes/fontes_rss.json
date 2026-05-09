@@ -1,0 +1,175 @@
+[
+  {
+    "url": "https://cliquediario.com.br/feed",
+    "nome": "Clique Diário",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 1
+  },
+  {
+    "url": "https://rjnewsnoticias.com.br/feed/",
+    "nome": "RJ News Notícias",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 2
+  },
+  {
+    "url": "https://www.jornaldesabado.com.br/feed/",
+    "nome": "Jornal de Sábado",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 3
+  },
+  {
+    "url": "https://prensadebabel.com.br/feed/",
+    "nome": "Prensa de Babel",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 4
+  },
+  {
+    "url": "https://agendadopoder.com.br/feed/",
+    "nome": "Agenda do Poder",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 5
+  },
+  {
+    "url": "https://diariodorio.com/feed/",
+    "nome": "Diário do Rio",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 6
+  },
+  {
+    "url": "https://girorj.com.br/feed/",
+    "nome": "Giro RJ",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 7
+  },
+  {
+    "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+    "nome": "Agenciabrasil Ebc",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "auto_v131",
+    "max_por_link": 5,
+    "ordem": 8,
+    "perfil_v131_id": "8b0a0f312f3d",
+    "diagnostico_v131": true
+  },
+  {
+    "url": "https://g1.globo.com/rss/g1/politica/",
+    "nome": "G1 Política",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 9
+  },
+  {
+    "url": "https://admin.cnnbrasil.com.br/feed/",
+    "nome": "CNN Brasil",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 10
+  },
+  {
+    "url": "https://feeds.folha.uol.com.br/poder/rss091.xml",
+    "nome": "Folha Poder",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 11
+  },
+  {
+    "url": "https://www.uol.com.br/vueland/api/?loadComponent=XmlFeedRss",
+    "nome": "UOL",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 12
+  },
+  {
+    "url": "https://www.poder360.com.br/feed/",
+    "nome": "Poder360",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 13
+  },
+  {
+    "url": "https://odia.ig.com.br/rss.xml",
+    "nome": "O Dia",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 14
+  },
+  {
+    "url": "https://rss.bs.vibra.digital/feed.xml?site=portal&size=10",
+    "nome": "Band",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 15
+  },
+  {
+    "url": "https://www.metropoles.com/feed",
+    "nome": "Metrópoles",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 16
+  },
+  {
+    "url": "https://mancheterio.com.br/feed/",
+    "nome": "Manchete Rio",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 17
+  },
+  {
+    "url": "https://mancheterj.com/portal/feed/",
+    "nome": "Manchete RJ",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 18
+  },
+  {
+    "url": "https://www.portodoacu.com.br/",
+    "nome": "Portodoacu",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 19
+  }
+]

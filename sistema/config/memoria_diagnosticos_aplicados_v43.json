@@ -1,0 +1,29 @@
+{
+  "version": "V43 Premium",
+  "items": [
+    {
+      "quando": "2026-05-08T05:10:17",
+      "nome": "Agenciabrasil Ebc",
+      "dominio": "agenciabrasil.ebc.com.br",
+      "grupo": "RSS",
+      "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+      "resultado": "funcional_com_pauta_na_janela"
+    },
+    {
+      "quando": "2026-05-08T05:15:08",
+      "nome": "Agenciabrasil Ebc",
+      "dominio": "agenciabrasil.ebc.com.br",
+      "grupo": "RSS",
+      "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+      "resultado": "funcional_com_pauta_na_janela"
+    },
+    {
+      "quando": "2026-05-08T08:20:27",
+      "nome": "Nfnoticias",
+      "dominio": "nfnoticias.com.br",
+      "grupo": "Regionais",
+      "url": "https://www.nfnoticias.com.br/rss/",
+      "resultado": "funcional_com_pauta_na_janela"
+    }
+  ]
+}

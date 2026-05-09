@@ -1,0 +1,121 @@
+RELATÓRIO DE DIAGNÓSTICO DE FONTE JORNALÍSTICA — URURAU v130
+==========================================================================================
+Gerado em: 08/05/2026 08:20:27
+Site: nfnoticias.com.br
+Raiz: https://www.nfnoticias.com.br/
+==========================================================================================
+
+RESUMO EXECUTIVO
+------------------------------------------------------------------------------------------
+  RSS/Atom raiz: 1 válido(s)
+  RSS/Atom /portal/: 0 válido(s)
+  RSS por categoria: 0 válido(s)
+  WP REST API: NÃO
+  Sitemaps: 1 válido(s) | 46 URLs | 7 notícias
+  HTML listagem: 46 artigos encontrados
+  JSON-LD: NÃO/Intermitente
+  Playwright: NECESSÁRIO
+
+RECOMENDAÇÃO
+------------------------------------------------------------------------------------------
+  [OK] Usar RSS na raiz como principal.
+  [OK] Playwright: necessário/avaliar
+
+SOLUÇÃO SUGERIDA PARA O URURAU
+------------------------------------------------------------------------------------------
+  Estratégia principal: rss
+  Feeds sugeridos:
+    - https://www.nfnoticias.com.br/rss/
+  Sitemaps sugeridos:
+    - https://www.nfnoticias.com.br/sitemap.xml
+  HTML fallback:
+    - https://www.nfnoticias.com.br/
+    - https://www.nfnoticias.com.br/portal/
+    - https://www.nfnoticias.com.br/noticias/
+    - https://www.nfnoticias.com.br/noticia/
+  Playwright: SIM
+
+TESTE: RSS_ROOT
+------------------------------------------------------------------------------------------
+  [X] https://www.nfnoticias.com.br/feed/ | status=200 | kind=HTML | erro=-
+  [OK] https://www.nfnoticias.com.br/rss/ | status=200 | kind=FEED_RSS_ATOM | itens=16 | titulo_link=16 | janela=14 | erro=-
+  [X] https://www.nfnoticias.com.br/atom.xml | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/feed.xml | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/rss.xml | status=200 | kind=HTML | erro=-
+
+TESTE: RSS_PORTAL
+------------------------------------------------------------------------------------------
+  [X] https://www.nfnoticias.com.br/portal/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/rss/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/atom.xml | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/feed.xml | status=200 | kind=HTML | erro=-
+
+TESTE: RSS_CATEGORIAS
+------------------------------------------------------------------------------------------
+  [X] https://www.nfnoticias.com.br/portal/categoria/policia/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/politica/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/regiao/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/geral/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/cidade/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/esporte/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://www.nfnoticias.com.br/portal/categoria/economia/feed/ | status=200 | kind=HTML | erro=-
+
+TESTE: WP_API
+------------------------------------------------------------------------------------------
+  [OK] https://www.nfnoticias.com.br/wp-json/wp/v2/posts?per_page=10 | status=200 | kind= | erro=-
+  [OK] https://www.nfnoticias.com.br/wp-json/wp/v2/posts | status=200 | kind= | erro=-
+  [OK] https://www.nfnoticias.com.br/portal/wp-json/wp/v2/posts?per_page=10 | status=200 | kind= | erro=-
+  [OK] https://www.nfnoticias.com.br/wp-json/ | status=200 | kind= | erro=-
+
+TESTE: SITEMAP
+------------------------------------------------------------------------------------------
+  [OK] https://www.nfnoticias.com.br/sitemap.xml | status=200 | kind=SITEMAP_XML | urls=46 | erro=-
+  [X] https://www.nfnoticias.com.br/sitemap_index.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/wp-sitemap.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/noticia/sitemap.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/post-sitemap.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/news-sitemap.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/sitemap-news.xml | status=200 | kind=HTML | urls=0 | erro=-
+  [X] https://www.nfnoticias.com.br/google-news-sitemap.xml | status=200 | kind=HTML | urls=0 | erro=-
+
+TESTE: HTML_LISTAGEM
+------------------------------------------------------------------------------------------
+  [OK] https://www.nfnoticias.com.br/ | status=200 | kind= | artigos=7 | erro=-
+  [OK] https://www.nfnoticias.com.br/portal/ | status=200 | kind= | artigos=1 | erro=-
+  [OK] https://www.nfnoticias.com.br/noticias/ | status=200 | kind= | artigos=37 | erro=-
+  [OK] https://www.nfnoticias.com.br/noticia/ | status=200 | kind= | artigos=1 | erro=-
+  [OK] https://www.nfnoticias.com.br/politica/ | status=200 | kind= | artigos=0 | erro=-
+  [OK] https://www.nfnoticias.com.br/policia/ | status=200 | kind= | artigos=0 | erro=-
+  [OK] https://www.nfnoticias.com.br/regiao/ | status=200 | kind= | artigos=0 | erro=-
+  [OK] https://www.nfnoticias.com.br/geral/ | status=200 | kind= | artigos=0 | erro=-
+
+TESTE: JSONLD
+------------------------------------------------------------------------------------------
+  [OK] https://www.nfnoticias.com.br/noticia/site.webmanifest | status= | kind= | erro=-
+  [OK] https://www.nfnoticias.com.br/noticias/anuncie | status= | kind= | erro=-
+  [OK] https://www.nfnoticias.com.br/ | status= | kind= | erro=-
+
+TESTE: PLAYWRIGHT
+------------------------------------------------------------------------------------------
+{
+  "description": "Avaliação Playwright",
+  "needs_playwright": true,
+  "reason": "POSSIVELMENTE NECESSARIO — não foi possível validar artigo estático."
+}
+
+CONFIG SUGERIDO (JSON)
+------------------------------------------------------------------------------------------
+{
+  "nome": "nfnoticias.com.br",
+  "ativo": true,
+  "tipo": "rss",
+  "feeds": [
+    "https://www.nfnoticias.com.br/rss/"
+  ],
+  "sitemaps": [
+    "https://www.nfnoticias.com.br/sitemap.xml"
+  ],
+  "wp_api": "",
+  "playwright": true,
+  "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+}

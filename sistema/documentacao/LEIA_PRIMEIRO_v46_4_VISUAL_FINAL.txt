@@ -1,0 +1,31 @@
+URURAU v46.4 — painel visual corrigido
+
+Correções aplicadas conforme prints/anexos:
+
+1. Botões principais do topo
+   - Coletar, Redigir, Copydesk, Preview, Publicar, Descartar e Exportar foram refeitos com padrão visual mais premium.
+   - Botões maiores, com ícones, borda, hover e melhor presença gráfica.
+   - Exportar passou a seguir o mesmo padrão de tamanho dos botões principais.
+
+2. Barra de progresso do fluxo editorial
+   - A barra grande solta foi removida.
+   - A nova barra fica imediatamente abaixo dos botões principais.
+   - A largura acompanha o bloco dos botões principais, não a tela inteira.
+   - O texto de status fica junto da barra e muda conforme o fluxo: coleta, redação, copydesk, preview, CMS e conclusão.
+
+3. Preview e edição
+   - O painel de metadados editáveis foi corrigido para ocupar toda a largura útil da coluna esquerda.
+   - Os campos de título, título de capa, subtítulo, legenda, retranca, slug, tags, chamada social e canal usam melhor o espaço lateral.
+   - O layout do preview usa proporção maior para a coluna de metadados.
+
+4. Abas do detalhe da pauta
+   - As abas Info, Checagem, Risco, Matéria, Auditoria, Fonte, Monitor, Preview e Config receberam fonte maior e padding maior.
+   - A leitura ficou mais confortável e ocupa melhor o espaço horizontal disponível.
+
+5. CMS
+   - Mantida a correção da v46.3: credenciais podem ficar em sistema/.env ou sistema/credenciais/env_principal.env.
+   - Ao faltar login/senha, o painel mostra aviso claro e direciona para Config > Credenciais.
+
+Segurança:
+- O ZIP não inclui credenciais reais.
+- Preencha URURAU_LOGIN e URURAU_SENHA no painel Config > Credenciais ou no arquivo sistema/credenciais/env_principal.env.

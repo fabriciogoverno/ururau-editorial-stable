@@ -1,0 +1,13 @@
+{
+  "limite_por_fonte": 30,
+  "janela_horas": 4,
+  "timeout_request": 20,
+  "max_tentativas_extracao": 8,
+  "cooldown_429_segundos": 300,
+  "habilitar_google_news": true,
+  "habilitar_rss": true,
+  "habilitar_sitemap": true,
+  "habilitar_homepage": true,
+  "habilitar_wordpress_json": true,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}

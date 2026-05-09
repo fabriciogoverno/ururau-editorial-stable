@@ -1,0 +1,121 @@
+RELATÓRIO DE DIAGNÓSTICO DE FONTE JORNALÍSTICA — URURAU v130
+==========================================================================================
+Gerado em: 08/05/2026 05:10:17
+Site: agenciabrasil.ebc.com.br
+Raiz: https://agenciabrasil.ebc.com.br/
+==========================================================================================
+
+RESUMO EXECUTIVO
+------------------------------------------------------------------------------------------
+  RSS/Atom raiz: 1 válido(s)
+  RSS/Atom /portal/: 0 válido(s)
+  RSS por categoria: 0 válido(s)
+  WP REST API: NÃO
+  Sitemaps: 1 válido(s) | 16 URLs | 0 notícias
+  HTML listagem: 56 artigos encontrados
+  JSON-LD: NÃO/Intermitente
+  Playwright: NÃO NECESSÁRIO
+
+RECOMENDAÇÃO
+------------------------------------------------------------------------------------------
+  [OK] Usar RSS na raiz como principal.
+  [OK] Playwright: não necessário
+
+SOLUÇÃO SUGERIDA PARA O URURAU
+------------------------------------------------------------------------------------------
+  Estratégia principal: rss
+  Feeds sugeridos:
+    - https://agenciabrasil.ebc.com.br/rss.xml
+  Sitemaps sugeridos:
+    - https://agenciabrasil.ebc.com.br/sitemap.xml
+  HTML fallback:
+    - https://agenciabrasil.ebc.com.br/
+    - https://agenciabrasil.ebc.com.br/politica/
+    - https://agenciabrasil.ebc.com.br/geral/
+  Playwright: NÃO
+
+TESTE: RSS_ROOT
+------------------------------------------------------------------------------------------
+  [X] https://agenciabrasil.ebc.com.br/feed/ | status=200 | kind=HTML | erro=-
+  [X] https://agenciabrasil.ebc.com.br/rss/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/atom.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/feed.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [OK] https://agenciabrasil.ebc.com.br/rss.xml | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=0 | erro=-
+
+TESTE: RSS_PORTAL
+------------------------------------------------------------------------------------------
+  [X] https://agenciabrasil.ebc.com.br/portal/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/rss/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/atom.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/feed.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+
+TESTE: RSS_CATEGORIAS
+------------------------------------------------------------------------------------------
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/policia/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/politica/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/regiao/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/geral/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/cidade/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/esporte/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/categoria/economia/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+
+TESTE: WP_API
+------------------------------------------------------------------------------------------
+  [X] https://agenciabrasil.ebc.com.br/wp-json/wp/v2/posts?per_page=10 | status=404 | kind= | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/wp-json/wp/v2/posts | status=404 | kind= | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/portal/wp-json/wp/v2/posts?per_page=10 | status=404 | kind= | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/wp-json/ | status=404 | kind= | erro=HTTP Error 404: Not Found
+
+TESTE: SITEMAP
+------------------------------------------------------------------------------------------
+  [OK] https://agenciabrasil.ebc.com.br/sitemap.xml | status=200 | kind=SITEMAP_XML | urls=16 | erro=-
+  [X] https://agenciabrasil.ebc.com.br/sitemap_index.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/wp-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/noticia/sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/post-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/news-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/sitemap-news.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/google-news-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+
+TESTE: HTML_LISTAGEM
+------------------------------------------------------------------------------------------
+  [OK] https://agenciabrasil.ebc.com.br/ | status=200 | kind= | artigos=31 | erro=-
+  [X] https://agenciabrasil.ebc.com.br/portal/ | status=404 | kind= | artigos=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/noticias/ | status=404 | kind= | artigos=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/noticia/ | status=404 | kind= | artigos=0 | erro=HTTP Error 404: Not Found
+  [OK] https://agenciabrasil.ebc.com.br/politica/ | status=200 | kind= | artigos=14 | erro=-
+  [X] https://agenciabrasil.ebc.com.br/policia/ | status=404 | kind= | artigos=0 | erro=HTTP Error 404: Not Found
+  [X] https://agenciabrasil.ebc.com.br/regiao/ | status=404 | kind= | artigos=0 | erro=HTTP Error 404: Not Found
+  [OK] https://agenciabrasil.ebc.com.br/geral/ | status=200 | kind= | artigos=14 | erro=-
+
+TESTE: JSONLD
+------------------------------------------------------------------------------------------
+  [OK] https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/balanca-comercial-tem-superavit-recorde-para-meses-de-abril | status= | kind= | erro=-
+  [OK] https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/bolsa-cai-mais-de-2-e-atinge-menor-nivel-desde-o-fim-de-marco | status= | kind= | erro=-
+  [OK] https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/com-tarifas-exportacoes-para-estados-unidos-caem-113-em-abril | status= | kind= | erro=-
+  [OK] https://agenciabrasil.ebc.com.br/ | status= | kind= | erro=-
+
+TESTE: PLAYWRIGHT
+------------------------------------------------------------------------------------------
+{
+  "description": "Avaliação Playwright",
+  "needs_playwright": false,
+  "reason": "NAO NECESSARIO — artigo testado tem 29104 chars de texto puro no HTML."
+}
+
+CONFIG SUGERIDO (JSON)
+------------------------------------------------------------------------------------------
+{
+  "nome": "agenciabrasil.ebc.com.br",
+  "ativo": true,
+  "tipo": "rss",
+  "feeds": [
+    "https://agenciabrasil.ebc.com.br/rss.xml"
+  ],
+  "sitemaps": [
+    "https://agenciabrasil.ebc.com.br/sitemap.xml"
+  ],
+  "wp_api": "",
+  "playwright": false,
+  "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+}

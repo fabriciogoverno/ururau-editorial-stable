@@ -1,0 +1,587 @@
+{
+  "name": "agenciabrasil.ebc.com.br",
+  "root": "https://agenciabrasil.ebc.com.br/",
+  "timestamp": "2026-05-08T05:10:12.369332",
+  "tests": {
+    "rss_root": {
+      "description": "RSS/Atom na raiz",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "HTML",
+          "valid": false,
+          "error": "",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/rss/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/atom.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/feed.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=utf-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 0,
+            "primeiros_titulos": [
+              "Não Se Engane #01: desmentimos fakes sobre vacinas e ameaça a cristãos",
+              "Congresso aprova R$ 71 bi para o novo Bolsa Família",
+              "Rompimentos de barragens afetam 4 milhões de pessoas no Brasil",
+              "Festas Juninas são reconhecidas como manifestação da cultura nacional",
+              "Brasil queimou mais de 185 milhões de hectares de biomas em 38 anos"
+            ],
+            "primeiro_valido_janela": null
+          }
+        }
+      ],
+      "valid_count": 1,
+      "valid_urls": [
+        "https://agenciabrasil.ebc.com.br/rss.xml"
+      ]
+    },
+    "rss_portal": {
+      "description": "RSS/Atom em /portal/",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/rss/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/atom.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/feed.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 0,
+      "valid_urls": []
+    },
+    "rss_categorias": {
+      "description": "RSS por categoria",
+      "results": [
+        {
+          "categoria": "policia",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/policia/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "politica",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/politica/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "regiao",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/regiao/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "geral",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/geral/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "cidade",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/cidade/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "esporte",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/esporte/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        },
+        {
+          "categoria": "economia",
+          "url": "https://agenciabrasil.ebc.com.br/portal/categoria/economia/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=utf-8",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 0,
+      "valid_urls": []
+    },
+    "wp_api": {
+      "description": "WordPress REST API",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/wp-json/wp/v2/posts?per_page=10",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/wp-json/wp/v2/posts",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/wp-json/wp/v2/posts?per_page=10",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/wp-json/",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "valid": false
+    },
+    "sitemap": {
+      "description": "Sitemap XML",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "SITEMAP_XML",
+          "valid": true,
+          "urls_count": 16,
+          "error": ""
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/sitemap_index.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/wp-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/noticia/sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/post-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/news-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/sitemap-news.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/google-news-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "valid_count": 1,
+      "valid_urls": [
+        "https://agenciabrasil.ebc.com.br/sitemap.xml"
+      ],
+      "total_urls": 16,
+      "news_urls": []
+    },
+    "html_listagem": {
+      "description": "HTML listagem",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 31,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/balanca-comercial-tem-superavit-recorde-para-meses-de-abril",
+            "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/bolsa-cai-mais-de-2-e-atinge-menor-nivel-desde-o-fim-de-marco",
+            "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/com-tarifas-exportacoes-para-estados-unidos-caem-113-em-abril",
+            "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/credito-para-meis-do-turismo-atendera-inscritos-no-cadunico",
+            "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/desenrola-e-liberado-e-renegociacao-de-divida-pode-ser-feita"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/portal/",
+          "status": 404,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/noticias/",
+          "status": 404,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/noticia/",
+          "status": 404,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/politica/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 14,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://agenciabrasil.ebc.com.br/politica/noticia/2026-05/alckmin-espera-dialogo-e-boa-quimica-em-encontro-entre-lula-e-trump",
+            "https://agenciabrasil.ebc.com.br/politica/noticia/2026-05/bolsonaro-tem-alta-hospitalar-apos-passar-por-cirurgia-no-ombro",
+            "https://agenciabrasil.ebc.com.br/politica/noticia/2026-05/brasil-tem-vazio-estrategico-em-minerais-criticos-diz-especialista",
+            "https://agenciabrasil.ebc.com.br/politica/noticia/2026-05/camara-aprova-aumento-de-penas-para-estupro-e-assedio-sexual",
+            "https://agenciabrasil.ebc.com.br/politica/noticia/2026-05/camara-aprova-fundo-de-ate-r-5-bilhoes-para-minerais-criticos"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/policia/",
+          "status": 404,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/regiao/",
+          "status": 404,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/geral/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 14,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/adolescente-invade-escola-e-mata-duas-funcionarias-tiros-no-acre",
+            "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/assinatura-digital-do-govbr-alcanca-marco-de-500-milhoes-de-usos",
+            "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/aviao-de-bimotor-cai-e-bate-em-predio-em-belo-horizonte",
+            "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/cnu-2025-prazo-para-escolher-local-de-lotacao-termina-nesta-terca",
+            "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/governo-lanca-plataforma-para-facilitar-obtencao-da-cnh"
+          ],
+          "error": ""
+        }
+      ],
+      "total_articles": 56,
+      "sample_articles": [
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/balanca-comercial-tem-superavit-recorde-para-meses-de-abril",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/bolsa-cai-mais-de-2-e-atinge-menor-nivel-desde-o-fim-de-marco",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/com-tarifas-exportacoes-para-estados-unidos-caem-113-em-abril",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/credito-para-meis-do-turismo-atendera-inscritos-no-cadunico",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/desenrola-e-liberado-e-renegociacao-de-divida-pode-ser-feita",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/governo-federal-repassou-94-do-auxilio-reconstrucao-para-o-rs",
+        "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/produtividade-permite-reduzir-jornada-sem-cortar-salario-diz-durigan",
+        "https://agenciabrasil.ebc.com.br/educacao/noticia/2026-05/desenrola-fies-preve-desconto-de-ate-99-das-dividas-confira-regras",
+        "https://agenciabrasil.ebc.com.br/educacao/noticia/2026-05/estudo-revela-que-53-das-familias-raramente-leem-para-crianca",
+        "https://agenciabrasil.ebc.com.br/educacao/noticia/2026-05/fies-2026-mec-divulga-resultado-de-vagas-remanescentes",
+        "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-05/federacao-iraniana-se-reunira-com-fifa-para-buscar-garantias-na-copa",
+        "https://agenciabrasil.ebc.com.br/esportes/noticia/2026-05/jogo-do-flamengo-na-libertadores-e-cancelado-por-atos-de-vandalismo",
+        "https://agenciabrasil.ebc.com.br/foto/2026-05/camara-aprova-renovacao-automatica-da-cnh-1778165812-1",
+        "https://agenciabrasil.ebc.com.br/foto/2026-05/nova-funcionalidade-do-aplicativo-cnh-do-brasil-1778075291",
+        "https://agenciabrasil.ebc.com.br/foto/2026-05/presidente-lula-durante-reuniao-com-donald-trump-1778179640-3",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/adolescente-invade-escola-e-mata-duas-funcionarias-tiros-no-acre",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/assinatura-digital-do-govbr-alcanca-marco-de-500-milhoes-de-usos",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/aviao-de-bimotor-cai-e-bate-em-predio-em-belo-horizonte",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/cnu-2025-prazo-para-escolher-local-de-lotacao-termina-nesta-terca",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/governo-lanca-plataforma-para-facilitar-obtencao-da-cnh",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/governo-reconhece-situacao-de-emergencia-em-mais-22-municipios-de-pe",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/mega-sena-acumula-e-premio-principal-vai-para-r-45-milhoes",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/mega-sena-sorteia-premio-acumulado-em-r-36-milhoes-nesta-quinta-feira",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/mega-sena-sorteia-premio-acumulado-em-r-8-milhoes-nesta-terca-feira",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/pm-apreende-16-fuzis-e-uma-metralhadora-em-operacao-no-rio",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/prefeitura-do-rio-fecha-ciclovia-tim-maia-apos-ondas-de-2-metros",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/prf-intensifica-acoes-do-maio-amarelo-para-reduzir-mortes-nas-rodovias",
+        "https://agenciabrasil.ebc.com.br/geral/noticia/2026-05/rj-deputado-estadual-thiago-rangel-e-preso-na-operacao-unha-e-carne",
+        "https://agenciabrasil.ebc.com.br/internacional/noticia/2026-05/conheca-outros-paises-da-america-latina-reduziram-jornada-de-trabalho",
+        "https://agenciabrasil.ebc.com.br/internacional/noticia/2026-05/corte-de-comercio-dos-eua-se-pronuncia-contra-tarifas-globais-de-trump"
+      ]
+    },
+    "jsonld": {
+      "description": "JSON-LD/Open Graph",
+      "results": [
+        {
+          "url": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/balanca-comercial-tem-superavit-recorde-para-meses-de-abril",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:site_name",
+            "og:type",
+            "og:title",
+            "og:url",
+            "og:description",
+            "og:image",
+            "og:image:url",
+            "og:image:secure_url"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/bolsa-cai-mais-de-2-e-atinge-menor-nivel-desde-o-fim-de-marco",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:site_name",
+            "og:type",
+            "og:title",
+            "og:url",
+            "og:description",
+            "og:image",
+            "og:image:url",
+            "og:image:secure_url"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/economia/noticia/2026-05/com-tarifas-exportacoes-para-estados-unidos-caem-113-em-abril",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:site_name",
+            "og:type",
+            "og:title",
+            "og:url",
+            "og:description",
+            "og:image",
+            "og:image:url",
+            "og:image:secure_url"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://agenciabrasil.ebc.com.br/",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [
+            "og:site_name",
+            "og:type",
+            "og:url",
+            "og:title",
+            "og:description"
+          ],
+          "valid": true
+        }
+      ],
+      "valid": false
+    },
+    "playwright": {
+      "description": "Avaliação Playwright",
+      "needs_playwright": false,
+      "reason": "NAO NECESSARIO — artigo testado tem 29104 chars de texto puro no HTML."
+    }
+  },
+  "summary": {
+    "RSS/Atom raiz": "1 válido(s)",
+    "RSS/Atom /portal/": "0 válido(s)",
+    "RSS por categoria": "0 válido(s)",
+    "WP REST API": "NÃO",
+    "Sitemaps": "1 válido(s) | 16 URLs | 0 notícias",
+    "HTML listagem": "56 artigos encontrados",
+    "JSON-LD": "NÃO/Intermitente",
+    "Playwright": "NÃO NECESSÁRIO"
+  },
+  "recommendation": [
+    "[OK] Usar RSS na raiz como principal.",
+    "[OK] Playwright: não necessário"
+  ],
+  "solucao": {
+    "estrategia_principal": "rss",
+    "feeds": [
+      "https://agenciabrasil.ebc.com.br/rss.xml"
+    ],
+    "sitemaps": [
+      "https://agenciabrasil.ebc.com.br/sitemap.xml"
+    ],
+    "wp_api": "",
+    "html_fallback": [
+      "https://agenciabrasil.ebc.com.br/",
+      "https://agenciabrasil.ebc.com.br/politica/",
+      "https://agenciabrasil.ebc.com.br/geral/"
+    ],
+    "playwright": false,
+    "config_sugerido": {
+      "nome": "agenciabrasil.ebc.com.br",
+      "ativo": true,
+      "tipo": "rss",
+      "feeds": [
+        "https://agenciabrasil.ebc.com.br/rss.xml"
+      ],
+      "sitemaps": [
+        "https://agenciabrasil.ebc.com.br/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": false,
+      "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+    }
+  }
+}

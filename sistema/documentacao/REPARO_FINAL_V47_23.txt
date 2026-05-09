@@ -1,0 +1,1 @@
+V47.23 aplicado: canal final, imagem obrigatoria antes do CMS e parada segura do monitor.
