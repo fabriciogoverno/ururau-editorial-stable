@@ -1435,3 +1435,14 @@ class WorkflowPublicacao:
         resultado["status"] = pauta.get("status", 'pronta')
         resultado["status_pipeline"] = "local_sem_cms"
         return resultado
+
+# PATCH_V47_29_FONTE_VALIDADA_WORKFLOW
+try:
+    from ururau.publisher.workflow_fonte_validada_v47_29 import instalar_workflow_fonte_validada_v47_29 as _v4729_install_fonte_validada
+    _v4729_install_fonte_validada(WorkflowPublicacao)
+except Exception as _e_v4729_fonte_validada:
+    try:
+        print(f"[V47.29][FONTE_VALIDADA][AVISO] patch nao aplicado: {_e_v4729_fonte_validada}")
+    except Exception:
+        pass
+
