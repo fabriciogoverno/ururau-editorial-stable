@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, UTC
 
 BASE_DIR = Path(__file__).resolve().parent
 QUARENTENA_DIR = BASE_DIR / "quarentena_fontes"
@@ -54,7 +54,7 @@ def registrar_falha(dominio):
     atual += 1
 
     dominios[dominio] = atual
-    data["ultima_atualizacao"] = datetime.utcnow().isoformat()
+    data["ultima_atualizacao"] = datetime.now(UTC).isoformat()
 
     _save_json(ARQ_REINCIDENCIA, data)
 
@@ -77,7 +77,7 @@ def bloquear_dominio(dominio):
     bloqueados.add(dominio)
 
     data["bloqueados"] = sorted(list(bloqueados))
-    data["ultima_atualizacao"] = datetime.utcnow().isoformat()
+    data["ultima_atualizacao"] = datetime.now(UTC).isoformat()
 
     _save_json(ARQ_BLOQUEADOS, data)
 
