@@ -23,6 +23,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from neural_hooks import nn_registrar_ciclo, nn_registrar_pauta, nn_registrar_erro
 
 # ── Garante que o diretório do projeto esteja no PYTHONPATH ──────────────────
 BASE_DIR = Path(__file__).resolve().parent

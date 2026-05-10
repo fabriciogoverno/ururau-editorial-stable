@@ -22,6 +22,7 @@ import sys
 import traceback
 from pathlib import Path
 from datetime import datetime
+from neural_hooks import nn_start, nn_stop, nn_status
 
 # Garante que o diretorio do projeto esteja no PYTHONPATH
 BASE_DIR = Path(__file__).resolve().parent
@@ -215,6 +216,31 @@ def main():
         )
         sys.exit(6)
 
+
+
+    def _toggle_neural(self):
+        s = nn_status()
+        if s.get("running"):
+            nn_stop()
+            self._neural_btn.config(text="Iniciar Neural Engine", bg="#2196F3")
+        else:
+            nn_start()
+            self._neural_btn.config(text="Parar Neural Engine", bg="#F44336")
+        self._atualizar_neural_status()
+
+    def _atualizar_neural_status(self):
+        try:
+            s = nn_status()
+            if s.get("running"):
+                txt = "NEURAL: ON | Ciclos: " + str(s["stats"].get("ciclos", 0))
+                txt += " | Patches: " + str(s["stats"].get("patches", 0))
+                txt += " | Score: " + str(s.get("score_threshold", 65))
+                self._neural_status_label.config(text=txt, fg="#4CAF50")
+            else:
+                self._neural_status_label.config(text="NEURAL: OFF", fg="#9E9E9E")
+        except Exception:
+            self._neural_status_label.config(text="NEURAL: ERRO", fg="#F44336")
+        self.after(5000, self._atualizar_neural_status)
 
 if __name__ == "__main__":
     try:
