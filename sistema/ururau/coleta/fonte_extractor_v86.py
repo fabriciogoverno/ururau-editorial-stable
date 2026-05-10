@@ -575,3 +575,22 @@ __all__ = [
     "extrair_artigo_v86",
     "resolver_url_publica_v86",
 ]
+
+# PATCH_V47_31_RESULTADO_FONTE_SEGURO_V86
+try:
+    _v4731_v86_original = extrair_artigo_v86
+    def extrair_artigo_v86(url: str, texto_existente: str = '', forcar_refresh: bool = False):
+        try:
+            res = _v4731_v86_original(url, texto_existente=texto_existente, forcar_refresh=forcar_refresh)
+            if res is None:
+                return ResultadoExtracaoV86(ok=False, url_original=url, url_final=url, texto='', metodo='v86_resultado_none_v47_31', status='failed', erro='extrator retornou None')
+            erro = getattr(res, 'erro', '') or ''
+            if 'NoneType' in erro and 'get' in erro:
+                res.erro = 'entrada invalida normalizada pelo resultado seguro v47.31'
+            return res
+        except Exception as e:
+            texto = limpar_texto_fonte_v81(texto_existente or '')
+            util = texto_util_chars(texto)
+            return ResultadoExtracaoV86(ok=False, url_original=url, url_final=url, texto=texto[:8000], metodo='v86_exception_safe_v47_31', status='failed', score=0, chars=len(texto), util_chars=util, erro=f'{type(e).__name__}: {e}')
+except Exception:
+    pass

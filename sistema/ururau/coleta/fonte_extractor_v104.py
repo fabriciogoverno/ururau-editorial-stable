@@ -883,3 +883,22 @@ def resultado_v104_para_dossie(res: ResultadoExtracaoV104, url: str = "", texto_
 
 
 __all__ = ["ResultadoExtracaoV104", "extrair_artigo_v104", "resultado_v104_para_dossie"]
+
+# PATCH_V47_31_RESULTADO_FONTE_SEGURO_V104
+try:
+    _v4731_v104_original = extrair_artigo_v104
+    def extrair_artigo_v104(url: str, texto_existente: str = '', titulo: str = '', forcar_refresh: bool = False):
+        try:
+            res = _v4731_v104_original(url, texto_existente=texto_existente, titulo=titulo, forcar_refresh=forcar_refresh)
+            if res is None:
+                return ResultadoExtracaoV104(ok=False, url_original=url, url_final=url, texto='', metodo='v104_resultado_none_v47_31', status='failed', erro='extrator retornou None')
+            erro = getattr(res, 'erro', '') or ''
+            if 'NoneType' in erro and 'get' in erro:
+                res.erro = 'entrada invalida normalizada pelo resultado seguro v47.31'
+            return res
+        except Exception as e:
+            texto = limpar_texto_fonte_v81(texto_existente or '')
+            util = texto_util_chars(texto)
+            return ResultadoExtracaoV104(ok=False, url_original=url, url_final=url, texto=texto[:8000], metodo='v104_exception_safe_v47_31', status='failed', score=0, chars=len(texto), util_chars=util, erro=f'{type(e).__name__}: {e}')
+except Exception:
+    pass

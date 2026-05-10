@@ -1,0 +1,5 @@
+{
+  "quarentena_ativa": true,
+  "auto_bloqueio_reincidencia": true,
+  "limite_reincidencia": 3
+}
