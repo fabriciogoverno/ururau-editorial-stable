@@ -1,0 +1,13 @@
+{
+  "tipo": "anomaly_ciclo",
+  "features": [
+    "fontes_coletadas",
+    "materias_geradas",
+    "erros",
+    "duracao_segundos",
+    "hora_dia",
+    "dia_semana",
+    "taxa_sucesso",
+    "erro_rate"
+  ]
+}

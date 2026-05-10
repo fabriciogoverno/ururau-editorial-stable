@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Orquestrador da Fase 1 Neural.
-Treina modelos, gera relatório e salva artefatos.
+Orquestrador de treinamento Fase 1 — CORRIGIDO para data/ururau.db
 """
 from __future__ import annotations
 
@@ -20,54 +19,69 @@ from ururau_ai_auditor.nn_engine.vectorizer import LogVectorizer
 
 def main() -> int:
     root = BASE_DIR
-    db_path = root / "sistema" / "ururau.db"
-    modelos_dir = root / "modelos_ml"
-    modelos_dir.mkdir(parents=True, exist_ok=True)
+    db = root / "sistema" / "data" / "ururau.db"  # BANCO REAL AQUI
+    mdir = root / "modelos_ml"
+    mdir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 60)
-    print("URURAU NEURAL ENGINE — FASE 1: TREINAMENTO")
+    print("URURAU NEURAL ENGINE — TREINAMENTO FASE 1 (v1.1)")
     print("=" * 60)
 
-    # 1. Feature Store
-    fs = FeatureStore(db_path)
-    df_ciclos = fs.extrair_ciclos(limit=1000)
-    df_fontes = fs.extrair_fontes(limit=2000)
+    if not db.exists():
+        print(f"[ERRO] Banco nao encontrado: {db}")
+        return 1
 
-    if not df_ciclos.empty:
-        fs.salvar(df_ciclos, "ciclos_features", root)
-        print(f"[OK] Features de ciclos: {len(df_ciclos)} registros")
+    fs = FeatureStore(db)
+
+    # Ciclos sintéticos
+    df_c = fs.extrair_ciclos(1000)
+    if not df_c.empty:
+        fs.salvar(df_c, "ciclos_features", root)
+        print(f"[OK] Ciclos sinteticos: {len(df_c)} janelas")
     else:
-        print("[AVISO] Nenhum dado de ciclo encontrado. Modelo de anomalia não será treinado.")
+        print("[AVISO] Sem dados de pauta para ciclos.")
 
-    if not df_fontes.empty:
-        fs.salvar(df_fontes, "fontes_features", root)
-        print(f"[OK] Features de fontes: {len(df_fontes)} registros")
+    # Fontes
+    df_f = fs.extrair_fontes(2000)
+    if not df_f.empty:
+        fs.salvar(df_f, "fontes_features", root)
+        print(f"[OK] Fontes: {len(df_f)} fontes distintas")
     else:
-        print("[AVISO] Nenhum dado de fonte encontrado.")
+        print("[AVISO] Sem dados de fonte.")
 
-    # 2. Anomaly Detector
-    if len(df_ciclos) >= 10:
-        detector = AnomalyCicloDetector()
+    # Publicações
+    df_p = fs.extrair_publicacoes(1000)
+    if not df_p.empty:
+        fs.salvar(df_p, "publicacoes_features", root)
+        print(f"[OK] Publicacoes: {len(df_p)} registros")
+
+    # Auditoria
+    df_a = fs.extrair_auditoria(1000)
+    if not df_a.empty:
+        fs.salvar(df_a, "auditoria_features", root)
+        print(f"[OK] Auditoria: {len(df_a)} registros")
+
+    # Anomaly Detector
+    if len(df_c) >= 10:
+        det = AnomalyCicloDetector()
         try:
-            detector.fit(df_ciclos)
-            detector.save(modelos_dir / "anomaly_ciclo_v1.pkl")
-            print("[OK] AnomalyCicloDetector treinado e salvo.")
+            det.fit(df_c)
+            det.save(mdir / "anomaly_ciclo_v1.pkl")
+            print("[OK] Anomaly detector treinado.")
         except Exception as e:
-            print(f"[ERRO] Falha no treino do anomaly detector: {e}")
+            print(f"[ERRO] Anomaly: {e}")
     else:
-        print("[PULAR] AnomalyCicloDetector precisa de >= 10 ciclos.")
+        print(f"[PULAR] Anomaly precisa de >=10 ciclos (tem {len(df_c)}).")
 
-    # 3. VectorDB (inicializa vazia, pronta para receber logs)
-    vdb = LogVectorDB(root, collection_name="ururau_logs")
-    print("[OK] VectorDB inicializado.")
-
-    # 4. Vectorizer
+    # VectorDB + Vectorizer
+    LogVectorDB(root, "ururau_logs")
+    print("[OK] VectorDB OK.")
     vec = LogVectorizer()
-    vec.save(modelos_dir / "vectorizer_v1")
-    print("[OK] Vectorizer inicializado e salvo.")
+    vec.save(mdir / "vectorizer_v1")
+    print("[OK] Vectorizer OK.")
 
     print("=" * 60)
-    print("TREINAMENTO CONCLUÍDO. Artefatos em: modelos_ml/")
+    print("CONCLUIDO. Artefatos em modelos_ml/ e dados_ml/")
     print("=" * 60)
     return 0
 
