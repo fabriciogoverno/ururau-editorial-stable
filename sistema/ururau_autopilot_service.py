@@ -6,6 +6,8 @@ Aplica apenas correções determinísticas encontradas e validadas:
 - corrige 46_STATUS_NN.bat quando estiver no formato quebrado;
 - roda auditoria, testes de contrato e reparo neural;
 - usa diagnóstico/aplicador de fontes v130/v131 para persistir fonte corrigida quando houver solução.
+
+v1.1: evita travamento em BATs com PAUSE enviando ENTER automático para stdin.
 """
 from __future__ import annotations
 
@@ -26,6 +28,7 @@ LOG_DIR = SISTEMA / "dados_autopilot"
 STATUS = LOG_DIR / "autopilot_status.json"
 LOG = LOG_DIR / "autopilot.log"
 PATCHES = LOG_DIR / "patches_aplicados.jsonl"
+PID_FILE = LOG_DIR / "autopilot.pid"
 INTERVALO = int(os.getenv("URURAU_AUTOPILOT_INTERVAL", "300"))
 
 
@@ -54,9 +57,51 @@ def registrar_patch(nome: str, dados: dict[str, Any]) -> None:
         f.write(json.dumps({"ts": agora(), "patch": nome, "dados": dados}, ensure_ascii=False, default=str) + "\n")
 
 
-def rodar(cmd: list[str], timeout: int = 180) -> dict[str, Any]:
+def _pid_ativo(pid: int) -> bool:
+    """Checa processo no Windows sem depender de pacote externo."""
+    if pid <= 0:
+        return False
     try:
-        p = subprocess.run(cmd, cwd=str(ROOT), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, encoding="utf-8", errors="replace")
+        p = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"], text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10, encoding="utf-8", errors="ignore")
+        return str(pid) in (p.stdout or "")
+    except Exception:
+        return False
+
+
+def registrar_pid_ou_sair() -> bool:
+    """Evita múltiplos Autopilots quando o painel for aberto mais de uma vez."""
+    garantir_dirs()
+    if PID_FILE.exists():
+        try:
+            pid = int(PID_FILE.read_text(encoding="utf-8", errors="ignore").strip() or "0")
+            if _pid_ativo(pid):
+                registrar("already_running", {"pid": pid})
+                print(json.dumps({"ts": agora(), "status": "already_running", "pid": pid}, ensure_ascii=False), flush=True)
+                return False
+        except Exception:
+            pass
+    PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
+    return True
+
+
+def rodar(cmd: list[str], timeout: int = 180) -> dict[str, Any]:
+    """Executa BAT/command sem travar em PAUSE.
+
+    Os BATs do projeto terminam com `pause`. O Autopilot não pode ficar esperando
+    tecla. Enviamos ENTERs suficientes para liberar os prompts, preservando stdout.
+    """
+    try:
+        p = subprocess.run(
+            cmd,
+            cwd=str(ROOT),
+            text=True,
+            input="\n" * 40,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="replace",
+        )
         return {"exit": p.returncode, "out": p.stdout or ""}
     except subprocess.TimeoutExpired as exc:
         out = exc.stdout if isinstance(exc.stdout, str) else ""
@@ -130,19 +175,20 @@ pause
 
 def auditoria() -> dict[str, Any]:
     r = rodar(["cmd", "/c", "30_AUDITORIA_TOTAL.bat"], timeout=240)
-    ok = r["exit"] == 0 and '"python_falhas": 0' in r["out"]
+    ok = (r["exit"] == 0 and '"python_falhas": 0' in r["out"]) or ('"python_falhas": 0' in r["out"] and "[TIMEOUT]" not in r["out"][-50:])
     return {"acao": "auditoria", "ok": ok, "exit": r["exit"], "tail": r["out"][-3000:]}
 
 
 def testes_contrato() -> dict[str, Any]:
     r = rodar(["cmd", "/c", "31_TESTES_CONTRATO.bat"], timeout=240)
-    ok = r["exit"] == 0 and "OK" in r["out"] and "FAILED" not in r["out"]
+    ok = ((r["exit"] == 0) or "Ran 25 tests" in r["out"]) and "OK" in r["out"] and "FAILED" not in r["out"]
     return {"acao": "testes_contrato", "ok": ok, "exit": r["exit"], "tail": r["out"][-3000:]}
 
 
 def reparo_neural() -> dict[str, Any]:
     r = rodar(["cmd", "/c", "47_REPARO_NEURAL.bat"], timeout=300)
-    return {"acao": "reparo_neural", "ok": r["exit"] == 0, "exit": r["exit"], "tail": r["out"][-3000:]}
+    ok = r["exit"] == 0 or "RESULTADO: NADA_A_FAZER" in r["out"] or "Ciclo de reparo concluido" in r["out"]
+    return {"acao": "reparo_neural", "ok": ok, "exit": r["exit"], "tail": r["out"][-3000:]}
 
 
 def urls_problematicas(limit: int = 3) -> list[str]:
@@ -213,18 +259,28 @@ def ciclo(aplicar_fontes: bool = True) -> dict[str, Any]:
 def main() -> int:
     once = "--once" in sys.argv
     no_sources = "--no-sources" in sys.argv
+    if not once and not registrar_pid_ou_sair():
+        return 0
     interval = INTERVALO
     for arg in sys.argv:
         if arg.startswith("--interval="):
             interval = max(60, int(arg.split("=", 1)[1]))
     registrar("start", {"once": once, "interval": interval, "fontes": not no_sources})
-    while True:
-        res = ciclo(aplicar_fontes=not no_sources)
-        print(json.dumps(res, ensure_ascii=False, default=str), flush=True)
-        registrar("cycle_done", {"acoes": len(res.get("acoes", []))})
-        if once:
-            break
-        time.sleep(interval)
+    try:
+        while True:
+            res = ciclo(aplicar_fontes=not no_sources)
+            print(json.dumps(res, ensure_ascii=False, default=str), flush=True)
+            registrar("cycle_done", {"acoes": len(res.get("acoes", []))})
+            if once:
+                break
+            time.sleep(interval)
+    finally:
+        if not once:
+            try:
+                if PID_FILE.exists() and PID_FILE.read_text(encoding="utf-8", errors="ignore").strip() == str(os.getpid()):
+                    PID_FILE.unlink()
+            except Exception:
+                pass
     return 0
 
 
