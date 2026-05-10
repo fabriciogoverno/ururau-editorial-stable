@@ -8258,3 +8258,11 @@ try:
     aplicar_patch_v47_27(globals())
 except Exception as _e_v47_27:
     print(f'[v47.27] patch preview contaminado nao aplicado: {_e_v47_27}')
+
+# v47.32 — aba Auditor IA integrada ao painel principal
+try:
+    from ururau.ui.patch_auditor_ia_tab_v47_32 import aplicar_patch_auditor_ia_tab_v47_32
+    aplicar_patch_auditor_ia_tab_v47_32(globals())
+except Exception as _e_v47_32:
+    print(f'[v47.32] patch Auditor IA nao aplicado: {_e_v47_32}')
+

@@ -1,1 +1,3 @@
 https://www.nfnoticias.com.br/sitemap.xml
+https://campos24horas.com.br/sitemap.xml
+https://campos24horas.com.br/noticia/sitemap.xml

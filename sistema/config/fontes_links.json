@@ -1,6 +1,6 @@
 {
   "version": "V43 Premium",
-  "updated_at": "2026-05-08T23:38:08",
+  "updated_at": "2026-05-10T00:35:22",
   "items": [
     {
       "id": "cliquediario.com.br",
@@ -22,7 +22,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -47,7 +47,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 6,
       "enviadas": 0
@@ -72,7 +72,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -97,7 +97,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T09:15:16",
       "encontradas": 2,
       "enviadas": 0
@@ -122,7 +122,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -147,7 +147,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T08:24:55",
       "encontradas": 1,
       "enviadas": 0
@@ -172,7 +172,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -197,7 +197,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -222,7 +222,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 5,
       "enviadas": 0
@@ -247,7 +247,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -272,7 +272,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T10:29:18",
       "encontradas": 2,
       "enviadas": 0
@@ -297,7 +297,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -322,7 +322,7 @@
       "regiao": "",
       "status": "desconhecido",
       "motivo_status": "Aguardando primeira leitura de relatório.",
-      "atualizado_em": "2026-05-08T23:38:08"
+      "atualizado_em": "2026-05-10T00:34:43"
     },
     {
       "id": "odia.ig.com.br",
@@ -344,7 +344,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -369,7 +369,7 @@
       "regiao": "",
       "status": "desconhecido",
       "motivo_status": "Aguardando primeira leitura de relatório.",
-      "atualizado_em": "2026-05-08T23:38:08"
+      "atualizado_em": "2026-05-10T00:34:43"
     },
     {
       "id": "metropoles.com",
@@ -391,7 +391,7 @@
       "regiao": "",
       "status": "desconhecido",
       "motivo_status": "Aguardando primeira leitura de relatório.",
-      "atualizado_em": "2026-05-08T23:38:08"
+      "atualizado_em": "2026-05-10T00:34:43"
     },
     {
       "id": "mancheterio.com.br",
@@ -413,7 +413,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 3,
       "enviadas": 0
@@ -438,7 +438,7 @@
       "regiao": "",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -463,7 +463,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed retornou HTML ou página sem entradas RSS úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -488,7 +488,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -513,7 +513,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -538,7 +538,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -563,7 +563,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -588,7 +588,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -613,7 +613,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -638,7 +638,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -663,7 +663,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 404: Not Found",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -688,7 +688,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -713,7 +713,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop. The last 30x error message was: Found",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -738,7 +738,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 404: Not Found",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -763,7 +763,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 404: Not Found",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -788,7 +788,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 404:",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -813,7 +813,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed retornou HTML ou página sem entradas RSS úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -838,32 +838,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "erro_http: HTTPError: HTTP Error 404: Página não encontrada.",
-      "atualizado_em": "2026-05-08T23:38:08",
-      "ultima_coleta": "2026-05-08T23:25:51",
-      "encontradas": 0,
-      "enviadas": 0
-    },
-    {
-      "id": "campos24horas.com.br",
-      "nome": "Campos 24 Horas",
-      "url": "https://campos24horas.com.br/portal/feed/",
-      "dominio": "campos24horas.com.br",
-      "grupo": "Regionais",
-      "ativo": true,
-      "origem_config": "regionais",
-      "tipo_coleta": "regional_v1305",
-      "perfil_v131_id": "",
-      "estrategia": "",
-      "parser": "",
-      "fallbacks": [],
-      "sitemaps": [],
-      "wp_api": "",
-      "playwright": false,
-      "prioridade": "maxima",
-      "regiao": "Campos/Norte Fluminense",
-      "status": "quarentena",
-      "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -888,7 +863,7 @@
       "regiao": "Campos/Norte Fluminense",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
@@ -913,7 +888,7 @@
       "regiao": "Campos/Norte Fluminense",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 2,
       "enviadas": 0
@@ -938,7 +913,7 @@
       "regiao": "Campos/Norte Fluminense",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -963,7 +938,7 @@
       "regiao": "Norte Fluminense",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -988,7 +963,7 @@
       "regiao": "Norte Fluminense",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 3,
       "enviadas": 0
@@ -1013,7 +988,7 @@
       "regiao": "São João da Barra",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -1038,7 +1013,7 @@
       "regiao": "Campos",
       "status": "erro",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 1,
       "enviadas": 0
@@ -1063,7 +1038,7 @@
       "regiao": "Campos/Norte Fluminense",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 5,
       "enviadas": 0
@@ -1090,7 +1065,7 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "todos ou maioria já estava na fila",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 10,
       "enviadas": 0
@@ -1117,10 +1092,44 @@
       "regiao": "",
       "status": "quarentena",
       "motivo_status": "feed/coletor retornou 0 itens úteis",
-      "atualizado_em": "2026-05-08T23:38:08",
+      "atualizado_em": "2026-05-10T00:34:43",
       "ultima_coleta": "2026-05-08T23:25:51",
       "encontradas": 0,
       "enviadas": 0
+    },
+    {
+      "id": "32d60c998be2",
+      "nome": "Campos24horas",
+      "url": "https://campos24horas.com.br/portal/feed/",
+      "dominio": "campos24horas.com.br",
+      "grupo": "Regionais",
+      "ativo": true,
+      "origem_config": "diagnostico_aplicado_v43",
+      "tipo_coleta": "auto_v43",
+      "perfil_v131_id": "32d60c998be2",
+      "estrategia": "rss_cascata",
+      "parser": "rss_cascata",
+      "fallbacks": [
+        "https://campos24horas.com.br/portal/rss/",
+        "https://campos24horas.com.br/portal/categoria/geral/feed/",
+        "https://campos24horas.com.br/portal/categoria/cidade/feed/",
+        "https://campos24horas.com.br/portal/categoria/regiao/feed/",
+        "https://campos24horas.com.br/portal/categoria/esporte/feed/",
+        "https://campos24horas.com.br/portal/categoria/policia/feed/",
+        "https://campos24horas.com.br/portal/categoria/economia/feed/",
+        "https://campos24horas.com.br/portal/categoria/politica/feed/"
+      ],
+      "sitemaps": [
+        "https://campos24horas.com.br/sitemap.xml",
+        "https://campos24horas.com.br/noticia/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": false,
+      "prioridade": "",
+      "regiao": "",
+      "status": "aplicada",
+      "motivo_status": "Aplicada por Diagnóstico de Fonte; aguardando próxima coleta real.",
+      "atualizado_em": "2026-05-10T00:35:22"
     }
   ],
   "summary": {

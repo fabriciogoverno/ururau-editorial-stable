@@ -24,6 +24,14 @@
       "grupo": "Regionais",
       "url": "https://www.nfnoticias.com.br/rss/",
       "resultado": "funcional_com_pauta_na_janela"
+    },
+    {
+      "quando": "2026-05-10T00:35:22",
+      "nome": "Campos24horas",
+      "dominio": "campos24horas.com.br",
+      "grupo": "Regionais",
+      "url": "https://campos24horas.com.br/portal/feed/",
+      "resultado": "funcional_com_pauta_na_janela"
     }
   ]
 }

@@ -1,8 +1,8 @@
 {
   "version": "V43 Premium",
   "panelSizes": {
-    "queue": 32,
-    "detail": 68
+    "queue": 28,
+    "detail": 72
   },
   "console": {
     "state": "hidden",

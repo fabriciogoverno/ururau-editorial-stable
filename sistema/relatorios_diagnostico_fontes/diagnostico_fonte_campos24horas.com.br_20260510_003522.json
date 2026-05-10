@@ -1,0 +1,858 @@
+{
+  "name": "campos24horas.com.br",
+  "root": "https://campos24horas.com.br/",
+  "timestamp": "2026-05-10T00:34:59.081722",
+  "tests": {
+    "rss_root": {
+      "description": "RSS/Atom na raiz",
+      "results": [
+        {
+          "url": "https://campos24horas.com.br/feed/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=iso-8859-1",
+          "feed_util": {}
+        },
+        {
+          "url": "https://campos24horas.com.br/rss/",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=iso-8859-1",
+          "feed_util": {}
+        },
+        {
+          "url": "https://campos24horas.com.br/atom.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=iso-8859-1",
+          "feed_util": {}
+        },
+        {
+          "url": "https://campos24horas.com.br/feed.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=iso-8859-1",
+          "feed_util": {}
+        },
+        {
+          "url": "https://campos24horas.com.br/rss.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=iso-8859-1",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 0,
+      "valid_urls": []
+    },
+    "rss_portal": {
+      "description": "RSS/Atom em /portal/",
+      "results": [
+        {
+          "url": "https://campos24horas.com.br/portal/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 10,
+            "primeiros_titulos": [
+              "Picanha Grill: Dia das Mães na melhor churrascaria de Campos",
+              "Moraes suspende aplicação da Lei da Dosimetria até STF analisar ações",
+              "Gutemberg oficializa Alberto França como representante político da Família Reis no interior",
+              "Técnico de enfermagem se destaca no cuidado aos pacientes no São José",
+              "Agenda no Noroeste fortalece articulações e coloca Vantoil Martins em evidência no interior do estado"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Picanha Grill: Dia das Mães na melhor churrascaria de Campos",
+              "link": "https://campos24horas.com.br/portal/picanha-grill-dia-das-maes-na-melhor-churrascaria-de-campos/",
+              "date": "Sun, 10 May 2026 03:26:15 +0000"
+            }
+          }
+        },
+        {
+          "url": "https://campos24horas.com.br/portal/rss/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 10,
+            "primeiros_titulos": [
+              "Picanha Grill: Dia das Mães na melhor churrascaria de Campos",
+              "Moraes suspende aplicação da Lei da Dosimetria até STF analisar ações",
+              "Gutemberg oficializa Alberto França como representante político da Família Reis no interior",
+              "Técnico de enfermagem se destaca no cuidado aos pacientes no São José",
+              "Agenda no Noroeste fortalece articulações e coloca Vantoil Martins em evidência no interior do estado"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Picanha Grill: Dia das Mães na melhor churrascaria de Campos",
+              "link": "https://campos24horas.com.br/portal/picanha-grill-dia-das-maes-na-melhor-churrascaria-de-campos/",
+              "date": "Sun, 10 May 2026 03:26:15 +0000"
+            }
+          }
+        },
+        {
+          "url": "https://campos24horas.com.br/portal/atom.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=UTF-8",
+          "feed_util": {}
+        },
+        {
+          "url": "https://campos24horas.com.br/portal/feed.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "error": "HTTP Error 404: Not Found",
+          "content_type": "text/html; charset=UTF-8",
+          "feed_util": {}
+        }
+      ],
+      "valid_count": 2,
+      "valid_urls": [
+        "https://campos24horas.com.br/portal/feed/",
+        "https://campos24horas.com.br/portal/rss/"
+      ]
+    },
+    "rss_categorias": {
+      "description": "RSS por categoria",
+      "results": [
+        {
+          "categoria": "policia",
+          "url": "https://campos24horas.com.br/portal/categoria/policia/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 8,
+            "primeiros_titulos": [
+              "Mulher é presa em flagrante após roubo de caixa de som no Centro de Campos",
+              "Motociclista fica gravemente ferido após colisão com ônibus em Campos",
+              "Tráfico perde mais de R$ 11 mil em drogas após ações policiais em Campos",
+              "Vídeo: 8º BPM intensifica buscas para identificar envolvidos em homicídios em Campos",
+              "Mulher é acusada de agredir ex-companheiro e incendiar apartamento em Campos"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Mulher é presa em flagrante após roubo de caixa de som no Centro de Campos",
+              "link": "https://campos24horas.com.br/portal/mulher-e-presa-em-flagrante-apos-roubo-de-caixa-de-som-no-centro-de-campos/",
+              "date": "Sat, 09 May 2026 17:30:44 +0000"
+            }
+          }
+        },
+        {
+          "categoria": "politica",
+          "url": "https://campos24horas.com.br/portal/categoria/politica/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 5,
+            "primeiros_titulos": [
+              "Moraes suspende aplicação da Lei da Dosimetria até STF analisar ações",
+              "Gutemberg oficializa Alberto França como representante político da Família Reis no interior",
+              "Agenda no Noroeste fortalece articulações e coloca Vantoil Martins em evidência no interior do estado",
+              "Grupo de Wladimir projeta sua eleição a federal e 2 estaduais, mas tem os desafios de pulverização de votos e vereadores pré-candidatos e com concorrentes de fora",
+              "Bolsonaro pede ao STF anulação de condenação por suposta trama golpista"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Moraes suspende aplicação da Lei da Dosimetria até STF analisar ações",
+              "link": "https://campos24horas.com.br/portal/moraes-suspende-aplicacao-da-lei-da-dosimetria-ate-stf-analisar-acoes/",
+              "date": "Sat, 09 May 2026 19:18:24 +0000"
+            }
+          }
+        },
+        {
+          "categoria": "regiao",
+          "url": "https://campos24horas.com.br/portal/categoria/regiao/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 2,
+            "primeiros_titulos": [
+              "SFI: Cuidado com a saúde bucal, leva atendimento às comunidades e as crianças nas escolas",
+              "Guarda Municipal de SFI faz visita técnica à corporação do Espírito Santo",
+              "Secretaria de Educação abre inscrições para o Coral Municipal de SFI",
+              "SFI fortalece Atenção Básica, amplia atendimentos e avança com gestão eficiente",
+              "Prefeitura alerta para baixa procura pela vacina contra a gripe em São Francisco"
+            ],
+            "primeiro_valido_janela": {
+              "title": "SFI: Cuidado com a saúde bucal, leva atendimento às comunidades e as crianças nas escolas",
+              "link": "https://campos24horas.com.br/portal/sfi-cuidado-com-a-saude-bucal-leva-atendimento-as-comunidades-e-as-criancas-nas-escolas/",
+              "date": "Sat, 09 May 2026 12:19:57 +0000"
+            }
+          }
+        },
+        {
+          "categoria": "geral",
+          "url": "https://campos24horas.com.br/portal/categoria/geral/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 10,
+            "primeiros_titulos": [
+              "Técnico de enfermagem se destaca no cuidado aos pacientes no São José",
+              "Pessoas com deficiência têm direito ao passe livre no transporte público",
+              "Codemca intensifica fiscalização e ordenamento em espaços públicos de Campos",
+              "Higienização de travesseiro: cuidados simples ajudam a melhorar o sono",
+              "Vídeo: 8º BPM intensifica buscas para identificar envolvidos em homicídios em Campos"
+            ],
+            "primeiro_valido_janela": {
+              "title": "Técnico de enfermagem se destaca no cuidado aos pacientes no São José",
+              "link": "https://campos24horas.com.br/portal/tecnico-de-enfermagem-se-destaca-no-cuidado-aos-pacientes-no-sao-jose/",
+              "date": "Sat, 09 May 2026 18:07:40 +0000"
+            }
+          }
+        },
+        {
+          "categoria": "cidade",
+          "url": "https://campos24horas.com.br/portal/categoria/cidade/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 0,
+            "com_titulo_link": 0,
+            "com_data": 0,
+            "dentro_janela": 0,
+            "primeiros_titulos": [],
+            "primeiro_valido_janela": null
+          }
+        },
+        {
+          "categoria": "esporte",
+          "url": "https://campos24horas.com.br/portal/categoria/esporte/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 0,
+            "primeiros_titulos": [
+              "Maratona do Rio termina com recorde de inscrições e vitórias inéditas",
+              "Vídeo: Marinha faz resgate aéreo de tripulante com suspeita de infarto em alto-mar",
+              "Medina Revela Sua Casa de Sonho Beira-Mar em Entrevista Exclusiva com Pedro Scooby: Jacuzzi, Surf e a Vista dos Sonhos",
+              "Aston Martin anuncia Fernando Alonso como substituto de Vettel para 2023",
+              "Palmeiras e Corinthians fazem final do Brasileiro Feminino"
+            ],
+            "primeiro_valido_janela": null
+          }
+        },
+        {
+          "categoria": "economia",
+          "url": "https://campos24horas.com.br/portal/categoria/economia/feed/",
+          "status": 200,
+          "ok": true,
+          "kind": "FEED_RSS_ATOM",
+          "valid": true,
+          "error": "",
+          "content_type": "application/rss+xml; charset=UTF-8",
+          "feed_util": {
+            "itens": 10,
+            "com_titulo_link": 10,
+            "com_data": 10,
+            "dentro_janela": 0,
+            "primeiros_titulos": [
+              "Campos fechou o mês de março com saldo de 337 empregos gerados",
+              "Primeiro salário dos servidores de Campos na gestão Frederico Paes é pago em dia",
+              "Prejuízo dos Correios chega a R$ 8,5 bilhões em 2025",
+              "Consumo em supermercados cresce 1,92% no primeiro trimestre",
+              "Agências de risco veem inflação e juros corroendo orçamento das famílias"
+            ],
+            "primeiro_valido_janela": null
+          }
+        }
+      ],
+      "valid_count": 7,
+      "valid_urls": [
+        {
+          "categoria": "policia",
+          "url": "https://campos24horas.com.br/portal/categoria/policia/feed/"
+        },
+        {
+          "categoria": "politica",
+          "url": "https://campos24horas.com.br/portal/categoria/politica/feed/"
+        },
+        {
+          "categoria": "regiao",
+          "url": "https://campos24horas.com.br/portal/categoria/regiao/feed/"
+        },
+        {
+          "categoria": "geral",
+          "url": "https://campos24horas.com.br/portal/categoria/geral/feed/"
+        },
+        {
+          "categoria": "cidade",
+          "url": "https://campos24horas.com.br/portal/categoria/cidade/feed/"
+        },
+        {
+          "categoria": "esporte",
+          "url": "https://campos24horas.com.br/portal/categoria/esporte/feed/"
+        },
+        {
+          "categoria": "economia",
+          "url": "https://campos24horas.com.br/portal/categoria/economia/feed/"
+        }
+      ]
+    },
+    "wp_api": {
+      "description": "WordPress REST API",
+      "results": [
+        {
+          "url": "https://campos24horas.com.br/wp-json/wp/v2/posts?per_page=10",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/wp-json/wp/v2/posts",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/portal/wp-json/wp/v2/posts?per_page=10",
+          "status": 401,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 401: Unauthorized"
+        },
+        {
+          "url": "https://campos24horas.com.br/wp-json/",
+          "status": 404,
+          "ok": false,
+          "is_json": false,
+          "has_posts": false,
+          "posts_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "valid": false
+    },
+    "sitemap": {
+      "description": "Sitemap XML",
+      "results": [
+        {
+          "url": "https://campos24horas.com.br/sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "SITEMAP_XML",
+          "valid": true,
+          "urls_count": 1001,
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/sitemap_index.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/wp-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/noticia/sitemap.xml",
+          "status": 200,
+          "ok": true,
+          "kind": "SITEMAP_XML",
+          "valid": true,
+          "urls_count": 10000,
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/post-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/news-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/sitemap-news.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "url": "https://campos24horas.com.br/google-news-sitemap.xml",
+          "status": 404,
+          "ok": false,
+          "kind": "HTML",
+          "valid": false,
+          "urls_count": 0,
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "valid_count": 2,
+      "valid_urls": [
+        "https://campos24horas.com.br/sitemap.xml",
+        "https://campos24horas.com.br/noticia/sitemap.xml"
+      ],
+      "total_urls": 11001,
+      "news_urls": [
+        "https://campos24horas.com.br/noticia/1-gritinho-de-carnaval-do-turismo-trouxe-muita-animacao-e-folia-no-cais-da-lapa",
+        "https://campos24horas.com.br/noticia/1-milhao-de-familias-deixam-o-bolsa-familia-em-julho-por-aumentar-renda",
+        "https://campos24horas.com.br/noticia/10-nomes-de-bebe-que-quase-ninguem-usa-mas-que-sao-lindos-e-cheios-de-sentido",
+        "https://campos24horas.com.br/noticia/100-brasileiros-saem-da-venezuela-depois-da-acao-militar-dos-eua",
+        "https://campos24horas.com.br/noticia/15-milhoes-em-4-dias-expoagro-move-a-economia-de-sfi",
+        "https://campos24horas.com.br/noticia/19a-edicao-da-marcha-para-jesus-acontece-na-proxima-quinta-feira-em-campos",
+        "https://campos24horas.com.br/noticia/1a-conferencia-dos-direitos-da-mulher-acontece-dia-12-de-agosto-em-sfi",
+        "https://campos24horas.com.br/noticia/1a-feira-qualifica-sao-francisco-abre-portas-para-emprego-e-capacitacao",
+        "https://campos24horas.com.br/noticia/1a-feira-qualifica-sao-francisco-avanca-com-apoio-de-empresarios-da-regiao",
+        "https://campos24horas.com.br/noticia/1a-feira-qualifica-sao-francisco-tem-centenas-de-cursos-de-qualificacao-profissional",
+        "https://campos24horas.com.br/noticia/1a-turma-do-stf-forma-maioria-para-manter-bolsonaro-preso-na-papudinha",
+        "https://campos24horas.com.br/noticia/1a-turma-do-stf-forma-maioria-pela-cassacao-de-zambelli",
+        "https://campos24horas.com.br/noticia/1o-eco-paraiba-une-esporte-e-preservacao-do-meio-ambiente-no-proximo-dia-31",
+        "https://campos24horas.com.br/noticia/1o-encontro-de-canoas-havaianas-codemca-tour-movimenta-o-domingo-em-lagoa-de-cima",
+        "https://campos24horas.com.br/noticia/1o-moto-fest-e-aberto-em-sao-francisco-de-itabapoana",
+        "https://campos24horas.com.br/noticia/1o-moto-fest-promete-agitar-sao-francisco-neste-fim-de-semana",
+        "https://campos24horas.com.br/noticia/1o-sao-francisco-moto-fest-comeca-na-proxima-sexta-feira-7",
+        "https://campos24horas.com.br/noticia/1o-tour-sao-francisco-de-itabapoana-comeca-nesta-sexta-feira-7",
+        "https://campos24horas.com.br/noticia/1o-tour-sao-francisco-de-itabapoana-e-aberto-com-congresso-tecnico",
+        "https://campos24horas.com.br/noticia/1o-tour-sao-francisco-tera-presenca-do-campeao-brasileiro-da-prova-contrarrelogio",
+        "https://campos24horas.com.br/noticia/1o-tour-sfi-termina-com-entrega-de-premios-e-celebracao-do-esporte",
+        "https://campos24horas.com.br/noticia/2026-somente-um-feriado-sera-no-fim-de-semana-confira-datas",
+        "https://campos24horas.com.br/noticia/23a-edicao-do-prefeitura-em-acao-lotou-a-escola-29-de-maio-neste-sabado",
+        "https://campos24horas.com.br/noticia/24-dia-buscas-por-criancas-continuam-no-ma-e-se-concentram-na-mata-e-margem-do-rio",
+        "https://campos24horas.com.br/noticia/2a-feira-de-pescado-e-destaque-entre-moradores-e-comerciantes-em-sfi",
+        "https://campos24horas.com.br/noticia/2a-feira-do-pescado-sfi-cadastro-para-comercializacao-vai-ate-28-de-marco",
+        "https://campos24horas.com.br/noticia/2o-motofest-comeca-na-proxima-sexta-15-05-em-sfi",
+        "https://campos24horas.com.br/noticia/2o-motofest-promete-agitar-sfi-com-rock-motos-e-muita-adrenalina",
+        "https://campos24horas.com.br/noticia/2o-tour-sfi-sera-realizado-em-agosto",
+        "https://campos24horas.com.br/noticia/316a-festa-de-sao-sebastiao-contara-com-apresentacoes-de-artistas-locais-na-baixada",
+        "https://campos24horas.com.br/noticia/373a-festa-do-santissimo-salvador-tera-shows-de-vitinho-e-joanna",
+        "https://campos24horas.com.br/noticia/373a-festa-do-santissimo-salvador-vitinho-sera-a-atracao-desta-terca",
+        "https://campos24horas.com.br/noticia/3i-atlas-nova-imagem-revela-detalhes-do-maior-cometa-interestelar",
+        "https://campos24horas.com.br/noticia/3o-festival-paralimpico-esporte-vida-acontece-neste-domingo-no-sest-senat",
+        "https://campos24horas.com.br/noticia/3o-liraa-mostra-quadro-da-dengue-sob-controle-em-sjb",
+        "https://campos24horas.com.br/noticia/4-em-cada-10-alunos-de-graduacao-ead-desistem-de-estudar-numero-e-o-maior-desde-2014",
+        "https://campos24horas.com.br/noticia/40a-expoagro-sfi-musica-tradicao-e-o-retorno-do-show-gospel-apos-10-anos",
+        "https://campos24horas.com.br/noticia/45-milhoes-de-trabalhadores-deixarao-de-receber-abono-salarial-ate-2030",
+        "https://campos24horas.com.br/noticia/49-desaprovam-e-47-aprovam-lula-diz-quaest",
+        "https://campos24horas.com.br/noticia/492-a-479-desaprovacao-de-lula-supera-aprovacao",
+        "https://campos24horas.com.br/noticia/5-dicas-para-sobreviver-as-festas-de-fim-de-ano-sem-sabotar-sua-dieta",
+        "https://campos24horas.com.br/noticia/5-insetos-comuns-que-transmitem-doencas-graves-e-ate-fatais-aos-pets",
+        "https://campos24horas.com.br/noticia/500-familias-do-mst-ocupam-novamente-a-fazenda-sao-cristovao-em-campos",
+        "https://campos24horas.com.br/noticia/55-dos-brasileiros-nao-confiam-no-stf-diz-real-time-big-data",
+        "https://campos24horas.com.br/noticia/588957-2",
+        "https://campos24horas.com.br/noticia/589255-2",
+        "https://campos24horas.com.br/noticia/589391-2",
+        "https://campos24horas.com.br/noticia/589532-2",
+        "https://campos24horas.com.br/noticia/589891-2",
+        "https://campos24horas.com.br/noticia/590001-2",
+        "https://campos24horas.com.br/noticia/590362-2",
+        "https://campos24horas.com.br/noticia/590381-2",
+        "https://campos24horas.com.br/noticia/590437-2",
+        "https://campos24horas.com.br/noticia/592379-2",
+        "https://campos24horas.com.br/noticia/592575-2",
+        "https://campos24horas.com.br/noticia/594504-2",
+        "https://campos24horas.com.br/noticia/594883-2",
+        "https://campos24horas.com.br/noticia/594897-2",
+        "https://campos24horas.com.br/noticia/595074-2",
+        "https://campos24horas.com.br/noticia/595668-2",
+        "https://campos24horas.com.br/noticia/595946-2",
+        "https://campos24horas.com.br/noticia/596100-2",
+        "https://campos24horas.com.br/noticia/596583-2",
+        "https://campos24horas.com.br/noticia/596979-2",
+        "https://campos24horas.com.br/noticia/598392-2",
+        "https://campos24horas.com.br/noticia/598786-2",
+        "https://campos24horas.com.br/noticia/598953-2",
+        "https://campos24horas.com.br/noticia/599-no-rj-defendem-impeachment-de-ministros-do-stf-diz-pesquisa",
+        "https://campos24horas.com.br/noticia/600-costelas-17-toneladas-de-carne-maior-churrasco-de-fogo-de-chao-do-mundo-e-realizado-no-parana-pelo-dia-do-trabalhador",
+        "https://campos24horas.com.br/noticia/600383-2",
+        "https://campos24horas.com.br/noticia/601210-2",
+        "https://campos24horas.com.br/noticia/601755-2",
+        "https://campos24horas.com.br/noticia/601884-2",
+        "https://campos24horas.com.br/noticia/606008-2",
+        "https://campos24horas.com.br/noticia/606320-2",
+        "https://campos24horas.com.br/noticia/611932-2",
+        "https://campos24horas.com.br/noticia/6o-festival-doces-palavras-marca-reinauguracao-do-palacio-da-cultura",
+        "https://campos24horas.com.br/noticia/70-dos-cariocas-apoiam-operacoes-da-policia",
+        "https://campos24horas.com.br/noticia/8o-bpm-anuncia-reforco-do-policiamento-na-regiao-para-o-feriado-prolongado",
+        "https://campos24horas.com.br/noticia/8o-bpm-divulga-balanco-da-instituicao-no-primeiro-mes-de-atuacao-da-nova-comandante",
+        "https://campos24horas.com.br/noticia/8o-bpm-reforca-policiamento-em-campos-neste-sabado-por-causa-da-final-da-libertadores",
+        "https://campos24horas.com.br/noticia/__trashed-27",
+        "https://campos24horas.com.br/noticia/__trashed-28",
+        "https://campos24horas.com.br/noticia/__trashed-29",
+        "https://campos24horas.com.br/noticia/a-8-meses-da-eleicao-wladimir-define-futuro-thiago-bruno-e-maicon-consolidados-e-expectativa-para-garotinho-e-bacellar",
+        "https://campos24horas.com.br/noticia/a-absoluta-maioria-cedeu-paes-detona-submissao-da-alerj-a-rodrigo-bacellar",
+        "https://campos24horas.com.br/noticia/a-ascensao-de-frederico-paes-e-o-provavel-caminho-de-wladimir-o-que-vem-por-ai",
+        "https://campos24horas.com.br/noticia/a-crianca-pede-dia-nacional-do-estudante-com-acoes-em-escola-de-ponta-da-lama",
+        "https://campos24horas.com.br/noticia/a-crianca-pede-volta-as-atividades-com-palestras-na-escola-amaro-prata-tavares",
+        "https://campos24horas.com.br/noticia/a-despedida-de-wladimir-dia-2-no-trianon-prestacao-de-contas-e-possivel-transmissao-de-cargo-para-frederico",
+        "https://campos24horas.com.br/noticia/a-estranha-mudanca-que-o-cerebro-humano-sofre-depois-da-meia-noite-segundo-a-ciencia",
+        "https://campos24horas.com.br/noticia/a-falta-de-trabalhadores-tambem-afeta-comercio-de-campos",
+        "https://campos24horas.com.br/noticia/a-historia-do-menor-bebe-nascido-vivo-no-brasil-que-virou-youtuber",
+        "https://campos24horas.com.br/noticia/a-lideranca-de-wladimir-e-a-articulacao-para-derrubar-veto-de-lula-a-lei-do-semiarido",
+        "https://campos24horas.com.br/noticia/a-ligacao-entre-belo-e-rodrigo-bacellar-que-pode-complicar-ator-da-globo",
+        "https://campos24horas.com.br/noticia/a-manifestacao-de-nikolas-ferreira-em-boicote-bolsonarista-as-havaianas",
+        "https://campos24horas.com.br/noticia/a-melhor-folia-com-mais-uma-noite-de-casa-cheia-em-sjb",
+        "https://campos24horas.com.br/noticia/a-menos-de-um-mes-do-fim-do-prazo-59-nao-enviaram-declaracao-do-ir",
+        "https://campos24horas.com.br/noticia/a-moraes-michelle-teria-citado-beneficio-dado-a-collor",
+        "https://campos24horas.com.br/noticia/a-nova-cara-da-oposicao-maicon-cruz-se-filia-hoje-ao-pv-para-concorrer-a-deputado-e-mexe-no-tabuleiro-eleitoral-de-campos"
+      ]
+    },
+    "html_listagem": {
+      "description": "HTML listagem",
+      "results": [
+        {
+          "url": "https://campos24horas.com.br/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 39,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticia/8o-bpm-intensifica-buscas-para-identificar-envolvidos-em-homicidios-em-campos",
+            "https://campos24horas.com.br/noticia/acidente-entre-duas-motos-deixa-tres-feridos-no-centro-de-campos",
+            "https://campos24horas.com.br/noticia/agenda-no-noroeste-fortalece-articulacoes-e-coloca-vantoil-martins-em-evidencia-no-interior-do-estado",
+            "https://campos24horas.com.br/noticia/agua-destilada-e-aplicada-no-lugar-de-vacina-contra-gripe-em-mg",
+            "https://campos24horas.com.br/noticia/anvisa-determina-apreensao-de-canetas-emagrecedoras-sem-registro"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/portal/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 28,
+          "has_entry_content": false,
+          "sample_articles": [
+            "http://campos24horas.com.br/portal/anuncie-no-campos24horas/",
+            "https://campos24horas.com.br/portal/",
+            "https://campos24horas.com.br/portal/agenda-no-noroeste-fortalece-articulacoes-e-coloca-vantoil-martins-em-evidencia-no-interior-do-estado/",
+            "https://campos24horas.com.br/portal/author/fabiano2/",
+            "https://campos24horas.com.br/portal/author/kissila/"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/noticias/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 39,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticia/8o-bpm-intensifica-buscas-para-identificar-envolvidos-em-homicidios-em-campos",
+            "https://campos24horas.com.br/noticia/acidente-entre-duas-motos-deixa-tres-feridos-no-centro-de-campos",
+            "https://campos24horas.com.br/noticia/agenda-no-noroeste-fortalece-articulacoes-e-coloca-vantoil-martins-em-evidencia-no-interior-do-estado",
+            "https://campos24horas.com.br/noticia/agua-destilada-e-aplicada-no-lugar-de-vacina-contra-gripe-em-mg",
+            "https://campos24horas.com.br/noticia/anvisa-determina-apreensao-de-canetas-emagrecedoras-sem-registro"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/noticia/",
+          "status": 500,
+          "ok": false,
+          "is_html": false,
+          "articles_found": 0,
+          "has_entry_content": false,
+          "sample_articles": [],
+          "error": "HTTP Error 500: Internal Server Error"
+        },
+        {
+          "url": "https://campos24horas.com.br/politica/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticias/i-home.php"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/policia/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticias/i-home.php"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/regiao/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticias/i-home.php"
+          ],
+          "error": ""
+        },
+        {
+          "url": "https://campos24horas.com.br/geral/",
+          "status": 200,
+          "ok": true,
+          "is_html": true,
+          "articles_found": 1,
+          "has_entry_content": false,
+          "sample_articles": [
+            "https://campos24horas.com.br/noticias/i-home.php"
+          ],
+          "error": ""
+        }
+      ],
+      "total_articles": 68,
+      "sample_articles": [
+        "http://campos24horas.com.br/portal/anuncie-no-campos24horas/",
+        "https://campos24horas.com.br/noticia/8o-bpm-intensifica-buscas-para-identificar-envolvidos-em-homicidios-em-campos",
+        "https://campos24horas.com.br/noticia/acidente-entre-duas-motos-deixa-tres-feridos-no-centro-de-campos",
+        "https://campos24horas.com.br/noticia/agenda-no-noroeste-fortalece-articulacoes-e-coloca-vantoil-martins-em-evidencia-no-interior-do-estado",
+        "https://campos24horas.com.br/noticia/agua-destilada-e-aplicada-no-lugar-de-vacina-contra-gripe-em-mg",
+        "https://campos24horas.com.br/noticia/anvisa-determina-apreensao-de-canetas-emagrecedoras-sem-registro",
+        "https://campos24horas.com.br/noticia/bolsonaro-pede-ao-stf-anulacao-de-condenacao-por-suposta-trama-golpista",
+        "https://campos24horas.com.br/noticia/codemca-intensifica-fiscalizacao-e-ordenamento-em-espacos-publicos-de-campos",
+        "https://campos24horas.com.br/noticia/colisao-frontal-deixa-um-ferido-na-br-101-em-campos",
+        "https://campos24horas.com.br/noticia/endividamento-das-familias-bate-recorde-acima-de-80-em-abril",
+        "https://campos24horas.com.br/noticia/falta-de-elogios-na-infancia-muda-relacao-com-reconhecimento-na-vida-adulta",
+        "https://campos24horas.com.br/noticia/grupo-de-wladimir-projeta-sua-eleicao-a-federal-e-dois-estaduais-mas-enfrenta-os-desafios-de-pulverizacao-de-votos-aliados-pre-candidatos-e-vereadores-com-nomes-de-fora",
+        "https://campos24horas.com.br/noticia/guarda-municipal-de-sfi-faz-visita-tecnica-a-corporacao-do-espirito-santo",
+        "https://campos24horas.com.br/noticia/gutemberg-oficializa-alberto-franca-como-representante-politico-da-familia-reis-no-interior",
+        "https://campos24horas.com.br/noticia/higienizacao-de-travesseiro-cuidados-simples-ajudam-a-melhorar-o-sono",
+        "https://campos24horas.com.br/noticia/imtt-faz-parceria-regional-para-reforcar-destinacao-de-veiculos-removidos",
+        "https://campos24horas.com.br/noticia/maio-amarelo-leva-conscientizacao-e-acoes-de-saude-a-rodoviaria-shopping-estrada",
+        "https://campos24horas.com.br/noticia/mais-sujos-que-a-privada-veja-objetos-comuns-que-acumulam-bacterias",
+        "https://campos24horas.com.br/noticia/moraes-suspende-aplicacao-da-lei-da-dosimetria-ate-stf-analisar-acoes",
+        "https://campos24horas.com.br/noticia/motociclista-fica-gravemente-ferido-apos-colisao-com-onibus-em-campos",
+        "https://campos24horas.com.br/noticia/mulher-e-acusada-de-agredir-ex-companheiro-e-incendiar-apartamento-em-campos",
+        "https://campos24horas.com.br/noticia/mulher-e-presa-em-flagrante-apos-roubo-de-caixa-de-som-no-centro-de-campos",
+        "https://campos24horas.com.br/noticia/o-que-fazer-com-produtos-ype-que-foram-suspensos-posso-pedir-reembolso",
+        "https://campos24horas.com.br/noticia/pessoas-com-deficiencia-tem-direito-ao-passe-livre-no-transporte-publico",
+        "https://campos24horas.com.br/noticia/picanha-grill-dia-das-maes-na-melhor-churrascaria-de-campos",
+        "https://campos24horas.com.br/noticia/policia-civil-do-rio-tera-novos-coletes-balisticos-que-protegem-ate-de-tiros-de-fuzil",
+        "https://campos24horas.com.br/noticia/policia-localiza-dono-de-carro-usado-em-execucao-dentro-de-passageiro-de-app-em-guarus",
+        "https://campos24horas.com.br/noticia/politica-municipal-de-educacao-para-a-diversidade-e-inclusao-em-debate-dia-13",
+        "https://campos24horas.com.br/noticia/pressao-alta-em-jovens-cresce-e-tem-relacao-com-habitos-comuns",
+        "https://campos24horas.com.br/noticia/saude-orienta-para-que-a-populacao-se-vacine-contra-o-sarampo-antes-de-viajar"
+      ]
+    },
+    "jsonld": {
+      "description": "JSON-LD/Open Graph",
+      "results": [
+        {
+          "url": "http://campos24horas.com.br/portal/anuncie-no-campos24horas/",
+          "jsonld_count": 0,
+          "jsonld_types": [],
+          "og_tags": [],
+          "valid": false
+        },
+        {
+          "url": "https://campos24horas.com.br/noticia/8o-bpm-intensifica-buscas-para-identificar-envolvidos-em-homicidios-em-campos",
+          "jsonld_count": 1,
+          "jsonld_types": [
+            "NewsArticle"
+          ],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:image:alt",
+            "og:image:type",
+            "og:image",
+            "og:image:secure_url",
+            "og:url"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://campos24horas.com.br/noticia/acidente-entre-duas-motos-deixa-tres-feridos-no-centro-de-campos",
+          "jsonld_count": 1,
+          "jsonld_types": [
+            "NewsArticle"
+          ],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:image:alt",
+            "og:image:type",
+            "og:image",
+            "og:image:secure_url",
+            "og:url"
+          ],
+          "valid": true
+        },
+        {
+          "url": "https://campos24horas.com.br/",
+          "jsonld_count": 2,
+          "jsonld_types": [
+            "WebSite",
+            "Organization"
+          ],
+          "og_tags": [
+            "og:locale",
+            "og:title",
+            "og:description",
+            "og:image:alt",
+            "og:image:type",
+            "og:image",
+            "og:image:secure_url",
+            "og:url"
+          ],
+          "valid": true
+        }
+      ],
+      "valid": true
+    },
+    "playwright": {
+      "description": "Avaliação Playwright",
+      "needs_playwright": false,
+      "reason": "NAO NECESSARIO — artigo testado tem 18807 chars de texto puro no HTML."
+    }
+  },
+  "summary": {
+    "RSS/Atom raiz": "0 válido(s)",
+    "RSS/Atom /portal/": "2 válido(s)",
+    "RSS por categoria": "7 válido(s)",
+    "WP REST API": "NÃO",
+    "Sitemaps": "2 válido(s) | 11001 URLs | 11001 notícias",
+    "HTML listagem": "68 artigos encontrados",
+    "JSON-LD": "SIM",
+    "Playwright": "NÃO NECESSÁRIO"
+  },
+  "recommendation": [
+    "[OK] Prioridade 1: usar RSS em /portal/feed/ ou /portal/rss/ com fallback para RSS raiz.",
+    "[OK] Playwright: não necessário"
+  ],
+  "solucao": {
+    "estrategia_principal": "rss_com_fallback",
+    "feeds": [
+      "https://campos24horas.com.br/portal/feed/",
+      "https://campos24horas.com.br/portal/rss/"
+    ],
+    "sitemaps": [
+      "https://campos24horas.com.br/sitemap.xml",
+      "https://campos24horas.com.br/noticia/sitemap.xml"
+    ],
+    "wp_api": "",
+    "html_fallback": [
+      "https://campos24horas.com.br/",
+      "https://campos24horas.com.br/portal/",
+      "https://campos24horas.com.br/noticias/",
+      "https://campos24horas.com.br/politica/",
+      "https://campos24horas.com.br/policia/",
+      "https://campos24horas.com.br/regiao/",
+      "https://campos24horas.com.br/geral/"
+    ],
+    "playwright": false,
+    "config_sugerido": {
+      "nome": "campos24horas.com.br",
+      "ativo": true,
+      "tipo": "rss_com_fallback",
+      "feeds": [
+        "https://campos24horas.com.br/portal/feed/",
+        "https://campos24horas.com.br/portal/rss/"
+      ],
+      "sitemaps": [
+        "https://campos24horas.com.br/sitemap.xml",
+        "https://campos24horas.com.br/noticia/sitemap.xml"
+      ],
+      "wp_api": "",
+      "playwright": false,
+      "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+    }
+  }
+}

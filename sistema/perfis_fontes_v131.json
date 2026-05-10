@@ -116,5 +116,76 @@
     "diagnostico_prioridade_proxima_coleta": true,
     "aplicar_na_proxima_coleta_v47_4": true,
     "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias."
+  },
+  {
+    "id": "32d60c998be2",
+    "versao": "v132.5",
+    "nome": "Campos24horas",
+    "dominio": "campos24horas.com.br",
+    "root": "https://campos24horas.com.br/",
+    "ativo": true,
+    "grupo": "Regionais",
+    "estrategia": "rss_cascata",
+    "parser": "rss_cascata",
+    "feeds": [
+      "https://campos24horas.com.br/portal/feed/",
+      "https://campos24horas.com.br/portal/rss/",
+      "https://campos24horas.com.br/portal/categoria/geral/feed/",
+      "https://campos24horas.com.br/portal/categoria/cidade/feed/",
+      "https://campos24horas.com.br/portal/categoria/regiao/feed/",
+      "https://campos24horas.com.br/portal/categoria/esporte/feed/",
+      "https://campos24horas.com.br/portal/categoria/policia/feed/",
+      "https://campos24horas.com.br/portal/categoria/economia/feed/",
+      "https://campos24horas.com.br/portal/categoria/politica/feed/"
+    ],
+    "wp_api": "",
+    "sitemaps": [
+      "https://campos24horas.com.br/sitemap.xml",
+      "https://campos24horas.com.br/noticia/sitemap.xml"
+    ],
+    "html_fallback": [
+      "https://campos24horas.com.br/",
+      "https://campos24horas.com.br/portal/",
+      "https://campos24horas.com.br/noticias/",
+      "https://campos24horas.com.br/politica/",
+      "https://campos24horas.com.br/policia/",
+      "https://campos24horas.com.br/regiao/",
+      "https://campos24horas.com.br/geral/"
+    ],
+    "playwright": false,
+    "janela_horas": 24,
+    "max_itens": 10,
+    "bypass_score": true,
+    "regional_prioritaria": true,
+    "cota_minima": 2,
+    "criado_em": "2026-05-10T00:35:21",
+    "diagnostico_resumo": {
+      "RSS/Atom raiz": "0 válido(s)",
+      "RSS/Atom /portal/": "2 válido(s)",
+      "RSS por categoria": "7 válido(s)",
+      "WP REST API": "NÃO",
+      "Sitemaps": "2 válido(s) | 11001 URLs | 11001 notícias",
+      "HTML listagem": "68 artigos encontrados",
+      "JSON-LD": "SIM",
+      "Playwright": "NÃO NECESSÁRIO"
+    },
+    "autoadequacao_v1314": true,
+    "autoadequacao_v1325": true,
+    "aplicar_so_com_teste_ok": true,
+    "origem_perfil": "diagnostico_de_fonte",
+    "modo": "autoadequador_universal_v1325",
+    "estrategias_ativas": {
+      "rss": true,
+      "wp_api": false,
+      "sitemap": true,
+      "html": true,
+      "playwright": false
+    },
+    "solucao_enriquecida_v1314": true,
+    "status_operacional": "funcional_com_pauta_na_janela",
+    "forcar_proxima_coleta_qtd": 10,
+    "diagnostico_prioridade_proxima_coleta": true,
+    "aplicar_na_proxima_coleta_v47_4": true,
+    "observacao_operacional_v47_4": "Fonte aplicada pelo Diagnóstico: próxima coleta deve priorizar este domínio e tentar trazer até 10 matérias."
   }
 ]

@@ -1,0 +1,129 @@
+RELATÓRIO DE DIAGNÓSTICO DE FONTE JORNALÍSTICA — URURAU v130
+==========================================================================================
+Gerado em: 10/05/2026 00:35:22
+Site: campos24horas.com.br
+Raiz: https://campos24horas.com.br/
+==========================================================================================
+
+RESUMO EXECUTIVO
+------------------------------------------------------------------------------------------
+  RSS/Atom raiz: 0 válido(s)
+  RSS/Atom /portal/: 2 válido(s)
+  RSS por categoria: 7 válido(s)
+  WP REST API: NÃO
+  Sitemaps: 2 válido(s) | 11001 URLs | 11001 notícias
+  HTML listagem: 68 artigos encontrados
+  JSON-LD: SIM
+  Playwright: NÃO NECESSÁRIO
+
+RECOMENDAÇÃO
+------------------------------------------------------------------------------------------
+  [OK] Prioridade 1: usar RSS em /portal/feed/ ou /portal/rss/ com fallback para RSS raiz.
+  [OK] Playwright: não necessário
+
+SOLUÇÃO SUGERIDA PARA O URURAU
+------------------------------------------------------------------------------------------
+  Estratégia principal: rss_com_fallback
+  Feeds sugeridos:
+    - https://campos24horas.com.br/portal/feed/
+    - https://campos24horas.com.br/portal/rss/
+  Sitemaps sugeridos:
+    - https://campos24horas.com.br/sitemap.xml
+    - https://campos24horas.com.br/noticia/sitemap.xml
+  HTML fallback:
+    - https://campos24horas.com.br/
+    - https://campos24horas.com.br/portal/
+    - https://campos24horas.com.br/noticias/
+    - https://campos24horas.com.br/politica/
+    - https://campos24horas.com.br/policia/
+    - https://campos24horas.com.br/regiao/
+    - https://campos24horas.com.br/geral/
+  Playwright: NÃO
+
+TESTE: RSS_ROOT
+------------------------------------------------------------------------------------------
+  [X] https://campos24horas.com.br/feed/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/rss/ | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/atom.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/feed.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/rss.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+
+TESTE: RSS_PORTAL
+------------------------------------------------------------------------------------------
+  [OK] https://campos24horas.com.br/portal/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=10 | erro=-
+  [OK] https://campos24horas.com.br/portal/rss/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=10 | erro=-
+  [X] https://campos24horas.com.br/portal/atom.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/portal/feed.xml | status=404 | kind=HTML | erro=HTTP Error 404: Not Found
+
+TESTE: RSS_CATEGORIAS
+------------------------------------------------------------------------------------------
+  [OK] https://campos24horas.com.br/portal/categoria/policia/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=8 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/politica/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=5 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/regiao/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=2 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/geral/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=10 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/cidade/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=0 | titulo_link=0 | janela=0 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/esporte/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=0 | erro=-
+  [OK] https://campos24horas.com.br/portal/categoria/economia/feed/ | status=200 | kind=FEED_RSS_ATOM | itens=10 | titulo_link=10 | janela=0 | erro=-
+
+TESTE: WP_API
+------------------------------------------------------------------------------------------
+  [X] https://campos24horas.com.br/wp-json/wp/v2/posts?per_page=10 | status=404 | kind= | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/wp-json/wp/v2/posts | status=404 | kind= | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/portal/wp-json/wp/v2/posts?per_page=10 | status=401 | kind= | erro=HTTP Error 401: Unauthorized
+  [X] https://campos24horas.com.br/wp-json/ | status=404 | kind= | erro=HTTP Error 404: Not Found
+
+TESTE: SITEMAP
+------------------------------------------------------------------------------------------
+  [OK] https://campos24horas.com.br/sitemap.xml | status=200 | kind=SITEMAP_XML | urls=1001 | erro=-
+  [X] https://campos24horas.com.br/sitemap_index.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/wp-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [OK] https://campos24horas.com.br/noticia/sitemap.xml | status=200 | kind=SITEMAP_XML | urls=10000 | erro=-
+  [X] https://campos24horas.com.br/post-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/news-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/sitemap-news.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+  [X] https://campos24horas.com.br/google-news-sitemap.xml | status=404 | kind=HTML | urls=0 | erro=HTTP Error 404: Not Found
+
+TESTE: HTML_LISTAGEM
+------------------------------------------------------------------------------------------
+  [OK] https://campos24horas.com.br/ | status=200 | kind= | artigos=39 | erro=-
+  [OK] https://campos24horas.com.br/portal/ | status=200 | kind= | artigos=28 | erro=-
+  [OK] https://campos24horas.com.br/noticias/ | status=200 | kind= | artigos=39 | erro=-
+  [X] https://campos24horas.com.br/noticia/ | status=500 | kind= | artigos=0 | erro=HTTP Error 500: Internal Server Error
+  [OK] https://campos24horas.com.br/politica/ | status=200 | kind= | artigos=1 | erro=-
+  [OK] https://campos24horas.com.br/policia/ | status=200 | kind= | artigos=1 | erro=-
+  [OK] https://campos24horas.com.br/regiao/ | status=200 | kind= | artigos=1 | erro=-
+  [OK] https://campos24horas.com.br/geral/ | status=200 | kind= | artigos=1 | erro=-
+
+TESTE: JSONLD
+------------------------------------------------------------------------------------------
+  [X] http://campos24horas.com.br/portal/anuncie-no-campos24horas/ | status= | kind= | erro=-
+  [OK] https://campos24horas.com.br/noticia/8o-bpm-intensifica-buscas-para-identificar-envolvidos-em-homicidios-em-campos | status= | kind= | erro=-
+  [OK] https://campos24horas.com.br/noticia/acidente-entre-duas-motos-deixa-tres-feridos-no-centro-de-campos | status= | kind= | erro=-
+  [OK] https://campos24horas.com.br/ | status= | kind= | erro=-
+
+TESTE: PLAYWRIGHT
+------------------------------------------------------------------------------------------
+{
+  "description": "Avaliação Playwright",
+  "needs_playwright": false,
+  "reason": "NAO NECESSARIO — artigo testado tem 18807 chars de texto puro no HTML."
+}
+
+CONFIG SUGERIDO (JSON)
+------------------------------------------------------------------------------------------
+{
+  "nome": "campos24horas.com.br",
+  "ativo": true,
+  "tipo": "rss_com_fallback",
+  "feeds": [
+    "https://campos24horas.com.br/portal/feed/",
+    "https://campos24horas.com.br/portal/rss/"
+  ],
+  "sitemaps": [
+    "https://campos24horas.com.br/sitemap.xml",
+    "https://campos24horas.com.br/noticia/sitemap.xml"
+  ],
+  "wp_api": "",
+  "playwright": false,
+  "observacao": "Aplicar em modo seguro: backup antes, não remover fontes funcionais, testar a coleta após aplicar."
+}

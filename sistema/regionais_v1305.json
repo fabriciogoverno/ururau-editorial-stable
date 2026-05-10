@@ -1,10 +1,10 @@
 [
   {
-    "nome": "Campos 24 Horas",
+    "nome": "Campos24horas",
     "url": "https://campos24horas.com.br/portal/feed/",
     "ativo": true,
     "regiao": "Campos/Norte Fluminense",
-    "prioridade": "maxima",
+    "prioridade": "alta",
     "tipo": "regional_v1305",
     "tipo_coleta": "regional_v1305",
     "bypass_score": true,
@@ -17,12 +17,11 @@
     "ativo": true,
     "regiao": "Campos/Norte Fluminense",
     "prioridade": "alta",
-    "tipo": "auto_v131",
-    "tipo_coleta": "auto_v131",
+    "tipo": "regional_v1305",
+    "tipo_coleta": "regional_v1305",
     "bypass_score": true,
     "regional_prioritaria": true,
-    "min_por_fonte": 2,
-    "perfil_v131_id": "424a73dc87f1"
+    "min_por_fonte": 2
   },
   {
     "nome": "J3 News",

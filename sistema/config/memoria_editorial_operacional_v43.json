@@ -1,6 +1,6 @@
 {
   "version": "V43 Premium",
-  "updated_at": "2026-05-08T23:41:02",
+  "updated_at": "2026-05-10T00:08:27",
   "manual": {
     "boost_fontes": {},
     "boost_termos": {},
@@ -17,7 +17,8 @@
       "Agenda do Poder": 2,
       "Manchete RJ": 17,
       "SF Notícias": 22,
-      "Agenciabrasil Ebc": 23
+      "Agenciabrasil Ebc": 23,
+      "Band": 13
     },
     "termos": {
       "teste": 12,
@@ -95,21 +96,33 @@
       "categorias": 23,
       "lava": 46,
       "loucas": 46,
-      "concentrado": 23
+      "concentrado": 23,
+      "decide": 13,
+      "airbnb": 13,
+      "condominio": 13,
+      "depende": 13,
+      "aprovacao": 13,
+      "moradores": 13,
+      "maioria": 13,
+      "votos": 13,
+      "tribunal": 13,
+      "exige": 13,
+      "aval": 13,
+      "dois": 13
     },
     "editorias": {
       "Polícia": 19,
       "Esportes": 3,
       "Saúde": 56,
-      "Política": 3,
+      "Política": 16,
       "Brasil e Mundo": 1,
       "Cidades": 4
     },
     "acoes": {
       "aprovar": 4,
       "redigir": 21,
-      "preview": 19,
-      "publicar": 7,
+      "preview": 24,
+      "publicar": 9,
       "copydesk": 3
     }
   },
@@ -652,6 +665,76 @@
       "editoria": "Saúde",
       "url": "https://agenciabrasil.ebc.com.br/saude/noticia/2026-05/ype-recorre-e-suspende-efeitos-de-decisao-da-anvisa",
       "score": 93,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-09T22:55:51",
+      "acao": "preview",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-09T22:55:54",
+      "acao": "preview",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-09T22:55:59",
+      "acao": "preview",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-09T22:57:18",
+      "acao": "preview",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-09T22:57:30",
+      "acao": "publicar",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-10T00:08:20",
+      "acao": "preview",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
+      "extra": {}
+    },
+    {
+      "quando": "2026-05-10T00:08:27",
+      "acao": "publicar",
+      "titulo": "STJ decide que Airbnb em condomínio depende de aprovação dos moradores",
+      "fonte": "Band",
+      "editoria": "Política",
+      "url": "https://www.band.com.br/noticias/jornal-da-band/ultimas/stj-decide-que-airbnb-em-condominio-depende-de-aprovacao-dos-moradores-202605092115",
+      "score": 100,
       "extra": {}
     }
   ]

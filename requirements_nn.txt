@@ -1,0 +1,9 @@
+# Ururau Neural Engine — Dependências Fase 1
+# Instalar: pip install -r requirements_nn.txt
+
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+pyarrow>=15.0.0      # para parquet
+sentence-transformers>=2.5.0
+chromadb>=0.4.0

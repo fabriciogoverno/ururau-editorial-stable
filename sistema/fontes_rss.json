@@ -64,14 +64,12 @@
   },
   {
     "url": "https://agenciabrasil.ebc.com.br/rss.xml",
-    "nome": "Agenciabrasil Ebc",
+    "nome": "Agência Brasil",
     "canal_forcado": "",
     "ativo": true,
-    "tipo_coleta": "auto_v131",
+    "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 8,
-    "perfil_v131_id": "8b0a0f312f3d",
-    "diagnostico_v131": true
+    "ordem": 8
   },
   {
     "url": "https://g1.globo.com/rss/g1/politica/",
