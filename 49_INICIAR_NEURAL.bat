@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 >nul
 echo ==========================================
-echo  URURAU — INICIAR NEURAL ENGINE SERVICE
+echo  URURAU — NEURAL ENGINE PERSISTENTE
 echo ==========================================
 cd /d "%~dp0sistema"
-python -c "from neural_service import get_neural; n=get_neural(); n.start(); print('Neural Engine iniciada.'); import time; time.sleep(2); print(n.status())"
+python neural_runner.py
 if %errorlevel% neq 0 (
-    echo [ERRO] Falha ao iniciar Neural Engine.
+    echo [ERRO] Neural Engine encerrou com falha.
     pause
     exit /b 1
 )
-echo [OK] Neural Engine rodando em background.
+echo [OK] Neural Engine encerrada.
 pause
