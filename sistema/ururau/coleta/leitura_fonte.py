@@ -1,4 +1,4 @@
-"""
+﻿"""
 coleta/leitura_fonte.py — Leitura e extração de texto da fonte original.
 
 Bloco 21 — Funcionalidade "Leitura da Fonte":
@@ -330,6 +330,17 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
     except Exception:
         pass
 
+    # v134: Reader Proxy prioritário para itens problemáticos/aba Fonte/F5.
+    # Se funcionar, já retorna texto limpo e evita gastar tempo em variações que falham.
+    try:
+        if _deve_priorizar_reader_proxy_v134(pauta):
+            proxy_pre_v134 = _tentar_reader_proxy_v134(pauta, None)
+            if proxy_pre_v134 is not None and getattr(proxy_pre_v134, "sucesso", False):
+                _cache[url] = (agora, proxy_pre_v134)
+                return proxy_pre_v134
+    except Exception as _e_proxy_pre_v134:
+        print(f"[V134][READER_PROXY] prioridade falhou: {_e_proxy_pre_v134}", flush=True)
+
     # v104: usa o extrator definitivo também na aba Fonte.
     try:
         from ururau.coleta.fonte_extractor_v104 import extrair_artigo_v104
@@ -444,6 +455,12 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
         erro="" if sucesso_fallback else f"texto útil insuficiente no fallback HTML ({util_fallback} chars; mínimo {min_fonte_v105})",
     )
 
+    if not sucesso_fallback:
+        proxy_v134 = _tentar_reader_proxy_v134(pauta, resultado)
+        if proxy_v134 is not None and getattr(proxy_v134, "sucesso", False):
+            _cache[url] = (agora, proxy_v134)
+            return proxy_v134
+
     _cache[url] = (agora, resultado)
     if sucesso_fallback:
         print(f"[LEITURA_FONTE] OK — {util_fallback} chars, {len(termos)} termos detectados")
@@ -451,6 +468,98 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
         print(f"[LEITURA_FONTE] FAIL — {util_fallback} chars úteis no fallback HTML")
     return resultado
 
+
+
+
+def _deve_priorizar_reader_proxy_v134(pauta: dict) -> bool:
+    """
+    Decide se o Reader Proxy deve entrar cedo.
+
+    Regra operacional:
+    - se URURAU_READER_PROXY_PRIORITARIO=1, entra antes do fallback HTML;
+    - útil para itens da fila abaixo de 100%, links problemáticos, F5 e varredura persistente.
+    """
+    raw = str(os.getenv("URURAU_READER_PROXY_PRIORITARIO", "1")).strip().lower()
+    if raw not in {"1", "true", "sim", "yes", "s", "on"}:
+        return False
+
+    try:
+        url = (
+            pauta.get("link_origem")
+            or pauta.get("url_final")
+            or pauta.get("url_original")
+            or pauta.get("link")
+            or ""
+        ).strip()
+    except Exception:
+        url = ""
+
+    if not url:
+        return False
+
+    # Entrar cedo para qualquer link real do projeto quando a meta for chegar a 100%.
+    return True
+
+def _tentar_reader_proxy_v134(pauta: dict, resultado_base=None):
+    """
+    Último fallback autorizado: SemPaywall/reader proxy.
+
+    Entra quando os extratores normais não conseguiram texto útil suficiente.
+    Deve ficar dentro do fluxo real de leitura, não apenas como monkey patch externo.
+    """
+    try:
+        from ururau.coleta.reader_proxy_fallback_v134 import extrair_reader_proxy_v134
+
+        url = (
+            pauta.get("link_origem")
+            or pauta.get("url_final")
+            or pauta.get("url_original")
+            or pauta.get("link")
+            or ""
+        ).strip()
+
+        titulo_ref = pauta.get("titulo_origem") or pauta.get("titulo") or ""
+
+        if not url:
+            return None
+
+        data = extrair_reader_proxy_v134(url, titulo_ref=titulo_ref)
+
+        if not data.get("ok"):
+            print(f"[V134][READER_PROXY] FAIL {data.get('erro')} | {url[:120]}", flush=True)
+            return None
+
+        texto = (data.get("texto") or "").strip()
+        if not texto:
+            return None
+
+        imagem = data.get("imagem") or ""
+        if resultado_base is not None:
+            imagem = imagem or getattr(resultado_base, "imagem_url", "") or ""
+
+        novo = ResultadoLeitura(
+            url=data.get("url_clean") or url,
+            texto_limpo=texto[:12000],
+            titulo_extraido=data.get("titulo") or titulo_ref,
+            imagem_url=imagem,
+            termos_destacados=[],
+            score_intel_adicional=0,
+            intel_log="[v134] reader proxy autorizado",
+            tamanho_chars=int(data.get("chars") or len(texto)),
+            sucesso=True,
+            erro="",
+        )
+
+        print(
+            f"[V134][READER_PROXY] OK {novo.tamanho_chars} chars via {data.get('url_clean')}",
+            flush=True
+        )
+
+        return novo
+
+    except Exception as e:
+        print(f"[V134][READER_PROXY] ERRO {type(e).__name__}: {e}", flush=True)
+        return None
 
 def limpar_cache_leitura():
     """Limpa todo o cache de leitura de fonte."""
@@ -465,3 +574,7 @@ def obter_texto_para_redacao(pauta: dict) -> str:
     """
     resultado = ler_fonte_pauta(pauta)
     return resultado.texto_limpo if resultado.sucesso else ""
+
+
+
+

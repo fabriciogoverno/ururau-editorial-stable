@@ -1,4 +1,4 @@
-"""
+﻿"""
 ururau_painel.py - Ponto de entrada do painel editorial Ururau v99 datas Brasília.
 
 Inicializa configuracoes, banco de dados, cliente OpenAI e lanca a GUI.
@@ -91,6 +91,26 @@ def main():
     except ImportError:
         _imprimir("[AVISO] python-dotenv ausente. Continuando com variaveis do sistema.")
 
+
+
+    # v134: trilho de audiência + fallback autorizado de leitura limpa
+    try:
+        from ururau.editorial.audiencia_runtime_patch_v134 import instalar_audiencia_runtime_patch_v134
+        if instalar_audiencia_runtime_patch_v134():
+            _imprimir("[V134][AUDIENCIA] trilho de alcance/audiência ativo.")
+        else:
+            _imprimir("[V134][AUDIENCIA][AVISO] patch não confirmou instalação.")
+    except Exception as _e_audiencia_v134:
+        _imprimir(f"[V134][AUDIENCIA][AVISO] patch não aplicado: {_e_audiencia_v134}")
+
+    try:
+        from ururau.coleta.reader_proxy_fallback_v134 import instalar_reader_proxy_fallback_v134
+        if instalar_reader_proxy_fallback_v134():
+            _imprimir("[V134][READER_PROXY] fallback autorizado ativo.")
+        else:
+            _imprimir("[V134][READER_PROXY][AVISO] patch não confirmou instalação.")
+    except Exception as _e_reader_proxy_v134:
+        _imprimir(f"[V134][READER_PROXY][AVISO] patch não aplicado: {_e_reader_proxy_v134}")
 
     # Patches v117: motor GPT rigoroso + editoria contextual
     try:
@@ -253,3 +273,4 @@ if __name__ == "__main__":
             f"{type(e).__name__}: {e}\n\n{traceback.format_exc()}",
         )
         sys.exit(99)
+
