@@ -29,6 +29,7 @@ from .logger import get_logger
 from .models import Article, CountryCode, LanguageCode, ScraperConfig, SearchParams
 from .scraper import GoogleNewsScraper
 from .utils import is_within_window
+from sistema.ururau_ai_auditor.fonte_validada import validar_resultado_fonte
 
 logger = get_logger("ururau.integracao")
 
@@ -663,6 +664,12 @@ class GoogleNewsIntegrado:
 
         coletado_em = datetime.now(timezone.utc).isoformat()
 
+        validacao_fonte = validar_resultado_fonte({
+            "status": 200,
+            "texto": article.article_text or "",
+            "url": article.url
+        })
+
         pauta: Dict[str, Any] = {
             "id": f"gnews_{abs(hash(article.url))}",
             "titulo": article.title,
@@ -683,7 +690,14 @@ class GoogleNewsIntegrado:
             "cidade": self._get_cidade_por_grupo(grupo),
             "regiao": self._get_regiao_por_grupo(grupo),
             "coletado_em": coletado_em,
-            "status": "pendente" if chars_fonte >= self.extractor.config.min_article_chars else "hidratacao",
+            "status": (
+                "bloqueada_fonte"
+                if not validacao_fonte["ok"]
+                else "pendente" if chars_fonte >= self.extractor.config.min_article_chars
+                else "hidratacao"
+            ),
+            "fonte_validada": validacao_fonte["ok"],
+            "fonte_erro": validacao_fonte.get("erro"),
         }
 
         # Calcula score
