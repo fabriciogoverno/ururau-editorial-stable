@@ -9,6 +9,10 @@ Objetivo:
 - colocar em quarentena fontes que retornaram 0 entradas nos ciclos analisados;
 - reduzir ruido editorial evidente sem bloquear pauta local/politica relevante;
 - impedir variantes mobile falsas como m.www.* e m.girorj.com.br.
+
+v47.34:
+- diagnóstico operacional bem-sucedido deve prevalecer sobre quarentena antiga.
+- Campos 24 Horas volta a ser fonte produtiva quando coletada pelo feed correto /portal/feed/.
 """
 from __future__ import annotations
 
@@ -23,10 +27,11 @@ FONTES_PRODUTIVAS = {
     "diário do rio", "diario do rio", "giro rj", "agência brasil geral", "agencia brasil geral",
     "agência brasil", "agencia brasil", "g1 rio de janeiro", "g1 política", "g1 politica",
     "g1 economia", "g1 mundo", "cnn brasil",
+    "campos 24 horas", "campos24horas", "campos24horas.com.br",
 }
 
 FONTES_QUARENTENA = {
-    "folha 1", "campos 24 horas", "manchete rj", "g1 norte fluminense",
+    "folha 1", "manchete rj", "g1 norte fluminense",
     "vnotícia", "vnoticia", "nf notícias", "nf noticias", "portal ozk",
     "macaé news", "macae news", "jornal o diário", "jornal o diario",
     "portal da cidade campos", "portal da cidade macaé", "portal da cidade macae",
@@ -105,8 +110,24 @@ def fonte_nome(fonte: Dict[str, Any] | Any) -> str:
     return _norm(f.get("nome") or f.get("fonte_nome") or f.get("url") or "")
 
 
-def status_fonte_por_log(fonte: Dict[str, Any] | Any) -> str:
+def _fonte_diagnosticada_ok(fonte: Dict[str, Any]) -> bool:
+    if not isinstance(fonte, dict):
+        return False
+    url = str(fonte.get("url") or fonte.get("link") or "").lower()
     nome = fonte_nome(fonte)
+    status = _norm(fonte.get("status") or fonte.get("source_health_v114") or fonte.get("diagnostico_status") or "")
+    if "campos24horas.com.br/portal/feed" in url:
+        return True
+    if nome in {"campos 24 horas", "campos24horas", "campos24horas.com.br"} and status in {"produtiva", "funcional", "ok"}:
+        return True
+    return False
+
+
+def status_fonte_por_log(fonte: Dict[str, Any] | Any) -> str:
+    f = _as_dict(fonte)
+    if _fonte_diagnosticada_ok(f):
+        return "produtiva"
+    nome = fonte_nome(f)
     if nome in FONTES_PRODUTIVAS:
         return "produtiva"
     if nome in FONTES_QUARENTENA:
@@ -123,9 +144,10 @@ def prioridade_fonte(fonte: Dict[str, Any] | Any) -> int:
     except Exception:
         peso = 0
     score = 50 + min(30, max(0, peso))
-    if nome in FONTES_PRODUTIVAS:
+    st = status_fonte_por_log(f)
+    if st == "produtiva":
         score += 100
-    if nome in FONTES_QUARENTENA:
+    if st == "quarentena":
         score -= 100
     if any(x in escopo for x in ("local", "campos", "norte")):
         score += 30
