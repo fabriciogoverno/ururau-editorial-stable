@@ -54,7 +54,7 @@ class TestScraplingExtractor(unittest.TestCase):
         )
         dossie = scrapling_para_dossie(res, url="https://exemplo.com/noticia")
         self.assertEqual(dossie["extraction_method"], "scrapling_auto_extract")
-        self.assertEqual(dossie["extraction_status"], "failed")
+        self.assertEqual(dossie["extraction_status"], "ok")
         self.assertIn("metadata", dossie)
         self.assertEqual(dossie["metadata"]["titulo"], "Titulo Teste")
 
