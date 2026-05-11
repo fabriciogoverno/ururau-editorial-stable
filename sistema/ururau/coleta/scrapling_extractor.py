@@ -151,19 +151,14 @@ class UrurauScraplingExtractor:
                 self.fetcher = StealthyFetcher
 
     def _fetch(self, url: str) -> Any:
-        tentativas = []
         if self.fetcher is None:
             raise RuntimeError("scrapling_fetcher_indisponivel")
-        # API de instância usada no spec.
         if hasattr(self.fetcher, "fetch") and not isinstance(self.fetcher, type):
-            tentativas.append("instance.fetch")
             try:
                 return self.fetcher.fetch(url)
             except TypeError:
                 return self.fetcher.fetch(url, headless=True, network_idle=True)
-        # API de classe documentada.
         if hasattr(StealthyFetcher, "fetch"):
-            tentativas.append("class.fetch")
             try:
                 return StealthyFetcher.fetch(url, headless=True, network_idle=True)
             except TypeError:
@@ -174,18 +169,13 @@ class UrurauScraplingExtractor:
         raise RuntimeError("scrapling_fetch_api_nao_suportada")
 
     def extrair(self, url: str, texto_existente: str = "", titulo: str = "") -> ScraplingResult:
-        """
-        Extrai matéria completa de uma URL pública.
-        """
+        """Extrai matéria completa de uma URL pública."""
         url = (url or "").strip()
         if not url:
             return ScraplingResult(ok=False, erro="url_vazia")
 
         if not SCRAPLING_DISPONIVEL or not self.fetcher:
-            return ScraplingResult(
-                ok=False, url_original=url, url_final=url,
-                metodo="scrapling:nao_instalado", erro="scrapling nao instalado"
-            )
+            return ScraplingResult(ok=False, url_original=url, url_final=url, metodo="scrapling:nao_instalado", erro="scrapling nao instalado")
 
         min_chars = _env_int("URURAU_SCRAPLING_MIN_CHARS", _env_int("URURAU_MIN_CHARS_TEXTO_FONTE", 900))
         tentativas: list[str] = []
@@ -220,46 +210,24 @@ class UrurauScraplingExtractor:
             status = "ok" if util >= max(1200, min_chars) else ("short_usable" if ok else "failed")
             score = 96 if util >= 2200 else 88 if util >= 1400 else 78 if ok else 10
 
-            return ScraplingResult(
-                ok=ok,
-                url_original=url,
-                url_final=final_url,
-                titulo=titulo_extraido,
-                texto=texto[:16000],
-                imagem=imagem,
-                credito_foto=autor,
-                site_name=site_name,
-                metodo="scrapling_auto_extract" if article is not None else "scrapling_html_fallback",
-                status=status,
-                score=score,
-                chars=len(texto),
-                util_chars=util,
-                tentativas=list(tentativas),
-            )
+            return ScraplingResult(ok=ok, url_original=url, url_final=final_url, titulo=titulo_extraido, texto=texto[:16000], imagem=imagem, credito_foto=autor, site_name=site_name, metodo="scrapling_auto_extract" if article is not None else "scrapling_html_fallback", status=status, score=score, chars=len(texto), util_chars=util, tentativas=list(tentativas))
 
         except Exception as e:
             erro_str = f"{type(e).__name__}: {e}"
-            return ScraplingResult(
-                ok=False, url_original=url, url_final=url, titulo=titulo,
-                metodo="scrapling_error", erro=erro_str, tentativas=list(tentativas)
-            )
+            return ScraplingResult(ok=False, url_original=url, url_final=url, titulo=titulo, metodo="scrapling_error", erro=erro_str, tentativas=list(tentativas))
 
 
 def scrapling_para_dossie(res: ScraplingResult, url: str = "", texto_existente: str = "") -> dict[str, Any]:
-    """
-    Converte ScraplingResult para o dict padrao do pipeline Ururau.
-    """
+    """Converte ScraplingResult para o dict padrao do pipeline Ururau."""
     texto = (res.texto or "").strip()
     util = int(res.util_chars or texto_util_chars(texto))
-    min_chars = _env_int("URURAU_SCRAPLING_MIN_CHARS", _env_int("URURAU_MIN_CHARS_TEXTO_FONTE", 900))
-
     return {
         "dossie": texto[:16000],
         "raw_source_text": texto[:16000],
         "cleaned_source_text": texto[:16000],
         "extraction_method": res.metodo or "scrapling_failed",
-        "source_sufficiency_score": int(res.score or (92 if util >= 1600 else 80 if util >= min_chars else 5)),
-        "extraction_status": "ok" if res.ok and util >= max(1200, min_chars) else ("short_usable" if res.ok else "failed"),
+        "source_sufficiency_score": int(res.score or (92 if util >= 1600 else 80 if util >= 500 else 5)),
+        "extraction_status": res.status or ("ok" if res.ok else "failed"),
         "metadata": {
             "url": url or res.url_original or "",
             "resolved_url": res.url_final or url or "",
@@ -278,9 +246,4 @@ def scrapling_para_dossie(res: ScraplingResult, url: str = "", texto_existente: 
     }
 
 
-__all__ = [
-    "ScraplingResult",
-    "UrurauScraplingExtractor",
-    "scrapling_para_dossie",
-    "SCRAPLING_DISPONIVEL",
-]
+__all__ = ["ScraplingResult", "UrurauScraplingExtractor", "scrapling_para_dossie", "SCRAPLING_DISPONIVEL"]
