@@ -14,6 +14,7 @@ if exist "sistema\ururau_autopilot_service.py" (
 )
 
 cd /d "%~dp0sistema"
-python ururau_painel.py
+set PYTHONPATH=%CD%;%PYTHONPATH%
+python -c "import sitecustomize; import ururau_painel; ururau_painel.main()"
 
 pause
