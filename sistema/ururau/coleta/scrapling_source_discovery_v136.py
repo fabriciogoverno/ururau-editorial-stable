@@ -2,11 +2,13 @@
 """Scrapling Source Discovery v136.
 
 Descobre links de matérias usando recursos centrais do Scrapling:
-- Fetcher/Stealthy/Dynamic via ScraplingEngineV136
-- CSS-like link extraction
-- feed/sitemap/homepage probing
-- diagnóstico por domínio
-- saída JSON/JSONL para workers/painel
+- Fetcher rápido para RSS/Atom/Sitemap/XML, sem navegador;
+- Fetcher/Stealthy/Dynamic apenas para homepage/listagem HTML;
+- CSS-like link extraction;
+- diagnóstico por domínio;
+- saída JSON/JSONL para workers/painel.
+
+Regra central: XML/feed/sitemap não deve ir para browser nem esperar <body>.
 """
 from __future__ import annotations
 
@@ -37,6 +39,7 @@ NOISE_HINTS = re.compile(
     r"(?i)(/tag/|/tags/|/author/|/categoria/|/category/|/login|/cadastro|/newsletter|"
     r"/wp-admin|/wp-content|/feed/?$|/rss/?$|#|javascript:|mailto:|whatsapp:)"
 )
+XML_HINTS = re.compile(r"(?i)(feed/?$|rss/?$|atom\.xml|rss\.xml|sitemap|news-sitemap|\.xml(?:\?|$))")
 
 
 @dataclass
@@ -72,14 +75,20 @@ def _clean(txt: str) -> str:
     return re.sub(r"\s+", " ", str(txt or "")).strip()[:220]
 
 
+def _is_xml_like_url(url: str) -> bool:
+    return bool(XML_HINTS.search(str(url or "")))
+
+
 def urls_candidatas_para_fonte(url_base: str) -> list[str]:
     engine = ScraplingEngineV136()
     base = engine.normalize_url(url_base)
     p = urlparse(base)
     root = f"{p.scheme}://{p.netloc}/"
+
+    # Se a fonte já é feed/sitemap, testa ela primeiro e evita duplicações inúteis.
     paths = ["", "feed/", "rss/", "atom.xml", "rss.xml", "sitemap.xml", "sitemap_index.xml", "news-sitemap.xml"]
-    out = []
-    seen = set()
+    out: list[str] = []
+    seen: set[str] = set()
     for path in paths:
         u = base if not path else urljoin(root, path)
         if u not in seen:
@@ -88,22 +97,29 @@ def urls_candidatas_para_fonte(url_base: str) -> list[str]:
     return out
 
 
+def _same_domain(engine: ScraplingEngineV136, url: str, domain: str) -> bool:
+    d = engine.domain(url)
+    domain = (domain or "").lower().removeprefix("www.")
+    return bool(d and domain and (d == domain or d.endswith("." + domain)))
+
+
 def _extract_links(html: str, base_url: str, fonte: str, origem: str, metodo: str) -> list[LinkCandidatoV136]:
     engine = ScraplingEngineV136()
-    soup = BeautifulSoup(html or "", "html.parser")
+    soup_xml = BeautifulSoup(html or "", "xml")
+    soup_html = BeautifulSoup(html or "", "html.parser")
     domain = engine.domain(base_url)
-    seen = set()
+    seen: set[str] = set()
     out: list[LinkCandidatoV136] = []
 
-    # RSS/sitemap nodes
-    for item in soup.find_all(["item", "entry", "url"]):
+    # RSS/Atom/Sitemap nodes.
+    for item in soup_xml.find_all(["item", "entry", "url"]):
         loc = item.find("link") or item.find("loc")
         href = loc.get("href") if loc else ""
         href = href or (loc.get_text(" ", strip=True) if loc else "")
         if not href:
             continue
         u = engine.normalize_url(href, base_url)
-        if not u or not engine.domain(u).endswith(domain) or NOISE_HINTS.search(u):
+        if not u or not _same_domain(engine, u, domain) or NOISE_HINTS.search(u):
             continue
         if not ARTICLE_HINTS.search(u):
             continue
@@ -113,18 +129,15 @@ def _extract_links(html: str, base_url: str, fonte: str, origem: str, metodo: st
         if k in seen:
             continue
         seen.add(k)
-        out.append(LinkCandidatoV136(url=u, titulo=titulo, fonte=fonte, origem=origem, dominio=domain, score=85 if titulo else 60, metodo=metodo))
+        out.append(LinkCandidatoV136(url=u, titulo=titulo, fonte=fonte, origem=origem, dominio=domain, score=90 if titulo else 70, metodo=metodo))
 
-    # HTML anchors
-    for a in soup.find_all("a", href=True):
+    # HTML anchors.
+    for a in soup_html.find_all("a", href=True):
         href = str(a.get("href") or "").strip()
         if not href or NOISE_HINTS.search(href):
             continue
         u = engine.normalize_url(href, base_url)
-        if not u:
-            continue
-        d = engine.domain(u)
-        if domain and d != domain and not d.endswith("." + domain):
+        if not u or not _same_domain(engine, u, domain):
             continue
         if not ARTICLE_HINTS.search(u):
             continue
@@ -144,6 +157,11 @@ def _extract_links(html: str, base_url: str, fonte: str, origem: str, metodo: st
     return out
 
 
+def _fetch_fast_only(engine: ScraplingEngineV136, url: str):
+    # Para XML/feed/sitemap, nunca usar browser, pois não há <body> e gera timeout.
+    return engine.fetch(url, mode="fast")
+
+
 def diagnosticar_fonte_scrapling_v136(fonte: str, url_base: str, limite: int = 40) -> DiagnosticoFonteV136:
     engine = ScraplingEngineV136()
     diag = DiagnosticoFonteV136(
@@ -153,26 +171,34 @@ def diagnosticar_fonte_scrapling_v136(fonte: str, url_base: str, limite: int = 4
         started_at=time.strftime("%Y-%m-%d %H:%M:%S"),
     )
     todos: list[LinkCandidatoV136] = []
-    seen = set()
+    seen: set[str] = set()
 
     for u in urls_candidatas_para_fonte(url_base):
         diag.tentativas.append(u)
-        for mode in ["fast", "stealth", "dynamic"]:
-            try:
-                result = engine.fetch(u, mode=mode)
+        try:
+            if _is_xml_like_url(u):
+                modes = ["fast"]
+            else:
+                modes = ["fast", "stealth", "dynamic"]
+
+            for mode in modes:
+                result = _fetch_fast_only(engine, u) if mode == "fast" else engine.fetch(u, mode=mode)
                 if not result.ok:
                     diag.erros.append(f"{u} [{mode}]: {result.error}")
                     continue
+
                 links = _extract_links(result.html or result.text, result.final_url or u, fonte, origem=u, metodo=result.method or mode)
                 for link in links:
                     h = _hash(link.url)
                     if h not in seen:
                         seen.add(h)
                         todos.append(link)
-                if links:
+                if links or _is_xml_like_url(u):
+                    # Feed/sitemap já foi processado; não há razão para tentar browser.
                     break
-            except Exception as exc:
-                diag.erros.append(f"{u} [{mode}]: {type(exc).__name__}: {exc}")
+        except Exception as exc:
+            diag.erros.append(f"{u}: {type(exc).__name__}: {exc}")
+
         if len(todos) >= limite:
             break
 
