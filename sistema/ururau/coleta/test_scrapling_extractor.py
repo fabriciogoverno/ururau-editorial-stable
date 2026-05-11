@@ -1,11 +1,8 @@
-"""
+r"""
 test_scrapling_extractor.py - Testes de validação da integração Scrapling.
 
 Execute via:
     cd sistema
-    python -m pytest ururau/coleta/test_scrapling_extractor.py -v
-Ou via PowerShell:
-    cd "C:\Users\fabri\Downloads\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\PURAL_EDITORIAL_V47_12_PREMIUM_OPERACIONAL\sistema"
     python -m pytest ururau/coleta/test_scrapling_extractor.py -v
 """
 import os
@@ -26,12 +23,16 @@ class TestScraplingExtractor(unittest.TestCase):
     def test_01_extrair_url_valida(self):
         """Testa extração de uma URL real de notícia."""
         ext = UrurauScraplingExtractor()
-        # URL de teste: G1 (estrutura padrao)
         url = "https://g1.globo.com/"
         res = ext.extrair(url)
         self.assertIsInstance(res, ScraplingResult)
-        # Mesmo que nao ache artigo na home, nao deve crashar
-        self.assertIn(res.metodo, ["scrapling_auto_extract", "scrapling_html_fallback", "scrapling_error"])
+        self.assertIn(res.metodo, [
+            "scrapling_auto_extract",
+            "scrapling_selectors",
+            "scrapling_page_text",
+            "scrapling_html_fallback",
+            "scrapling_error",
+        ])
 
     @unittest.skipUnless(SCRAPLING_DISPONIVEL, "Scrapling nao instalado")
     def test_02_extrair_url_vazia(self):
@@ -45,12 +46,18 @@ class TestScraplingExtractor(unittest.TestCase):
     def test_03_para_dossie_estrutura(self):
         """Testa conversao para dict do pipeline Ururau."""
         res = ScraplingResult(
-            ok=True, url_original="https://exemplo.com/noticia",
+            ok=True,
+            url_original="https://exemplo.com/noticia",
             url_final="https://exemplo.com/noticia",
-            titulo="Titulo Teste", texto="Texto da matéria com conteúdo jornalístico.",
-            imagem="https://exemplo.com/img.jpg", site_name="Exemplo",
-            metodo="scrapling_auto_extract", status="ok", score=95,
-            chars=50, util_chars=45
+            titulo="Titulo Teste",
+            texto="Texto da matéria com conteúdo jornalístico.",
+            imagem="https://exemplo.com/img.jpg",
+            site_name="Exemplo",
+            metodo="scrapling_auto_extract",
+            status="ok",
+            score=95,
+            chars=50,
+            util_chars=45,
         )
         dossie = scrapling_para_dossie(res, url="https://exemplo.com/noticia")
         self.assertEqual(dossie["extraction_method"], "scrapling_auto_extract")
@@ -78,7 +85,7 @@ class TestScraplingExtractor(unittest.TestCase):
 
     def test_06_scrapling_disponivel(self):
         """Verifica se Scrapling está instalado no ambiente."""
-        self.assertTrue(SCRAPLING_DISPONIVEL, "Scrapling nao está instalado. Execute: pip install scrapling")
+        self.assertTrue(SCRAPLING_DISPONIVEL, "Scrapling nao está instalado. Execute: pip install scrapling[fetchers]")
 
 
 if __name__ == "__main__":
