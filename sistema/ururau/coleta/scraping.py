@@ -97,6 +97,7 @@ def _texto_rss_eh_snippet_google(texto: str) -> bool:
         return True
     return False
 
+
 def extrair_texto_pagina(url: str) -> str:
     """
     Extrai o texto principal do artigo de uma URL.
@@ -247,6 +248,7 @@ def _dossie_v104_para_dict(url: str, texto_existente: str = "", titulo: str = ""
         print(f"[V104][FONTE] erro interno no extrator definitivo: {e}")
         return None
 
+
 def _dossie_v86_para_dict(url: str, texto_existente: str = "") -> dict | None:
     """Executa o extrator multiestratégia v86 antes do bloqueio antigo.
 
@@ -308,7 +310,32 @@ def _dossie_v86_para_dict(url: str, texto_existente: str = "") -> dict | None:
         print(f"[V86][FONTE] erro interno no extrator multiestratégia: {e}")
         return None
 
+
 def extrair_dossie_completo(url: str, texto_existente: str = "") -> dict:
+    """
+    vScrapling: versao com Scrapling como extrator principal.
+    Mantém fallback v104 legado por 30 dias (segurança).
+    """
+    if _env_bool_v86("URURAU_SCRAPLING_ATIVO", True):
+        try:
+            from ururau.coleta.scrapling_extractor import (
+                UrurauScraplingExtractor, scrapling_para_dossie, SCRAPLING_DISPONIVEL
+            )
+            if SCRAPLING_DISPONIVEL:
+                ext = UrurauScraplingExtractor()
+                res = ext.extrair(url, texto_existente=texto_existente)
+                if res.ok:
+                    print(f"[SCRAPLING] OK {res.util_chars} chars via {res.metodo}: {res.url_final[:100]}")
+                    return scrapling_para_dossie(res, url=url, texto_existente=texto_existente)
+                else:
+                    print(f"[SCRAPLING] Falhou ({(res.erro or '')[:80]}), caindo para fallback v104...")
+        except Exception as e:
+            print(f"[SCRAPLING] Erro ao inicializar: {e}. Fallback v104.")
+
+    return extrair_dossie_completo_legacy(url, texto_existente)
+
+
+def extrair_dossie_completo_legacy(url: str, texto_existente: str = "") -> dict:
     """
     v68: versao estruturada que retorna metadados de extracao.
 
