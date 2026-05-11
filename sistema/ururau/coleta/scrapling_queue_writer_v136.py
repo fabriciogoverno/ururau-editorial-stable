@@ -4,8 +4,12 @@
 Recebe links descobertos pelo Scrapling e grava somente pautas novas no banco,
 respeitando bloqueios, descartadas/reprovadas e deduplicação básica.
 
-Regra v136.1: nenhum candidato pode desaparecer sem motivo contabilizado.
-Regra v136.2: se a tabela pautas tiver coluna uid obrigatória, preencher uid.
+Regra v136.3:
+- nenhum candidato desaparece sem motivo;
+- uid é preenchido;
+- titulo_origem é preenchido;
+- qualquer coluna NOT NULL sem default conhecida recebe valor seguro;
+- relatório mostra inseridos, duplicados, bloqueados, sem_url e erros.
 """
 from __future__ import annotations
 
@@ -48,7 +52,7 @@ def _extrair_primeira_url(raw: str) -> str:
         return ""
     m = URL_RX.search(raw)
     if m:
-        return m.group(0).rstrip(".,;)"]")
+        return m.group(0).rstrip(".,;)]\"'")
     return raw
 
 
@@ -79,12 +83,17 @@ def _uid_for_url(url: str) -> str:
     return "scrapling_v136_" + _hash_url(url)[:24]
 
 
-def _cols(con: sqlite3.Connection, table: str) -> list[str]:
-    return [r[1] for r in con.execute(f"PRAGMA table_info({table})").fetchall()]
+def _table_exists(con: sqlite3.Connection, table: str) -> bool:
+    row = con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone()
+    return bool(row)
 
 
 def _table_info(con: sqlite3.Connection, table: str) -> list[sqlite3.Row]:
     return con.execute(f"PRAGMA table_info({table})").fetchall()
+
+
+def _cols(con: sqlite3.Connection, table: str) -> list[str]:
+    return [r["name"] if isinstance(r, sqlite3.Row) else r[1] for r in _table_info(con, table)]
 
 
 def _ensure_col(con: sqlite3.Connection, table: str, col: str, typ: str = "TEXT") -> None:
@@ -92,21 +101,13 @@ def _ensure_col(con: sqlite3.Connection, table: str, col: str, typ: str = "TEXT"
         con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
 
 
-def _table_exists(con: sqlite3.Connection, table: str) -> bool:
-    row = con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone()
-    return bool(row)
-
-
 def _setup(con: sqlite3.Connection) -> None:
     if not _table_exists(con, "pautas"):
         con.execute(
-            "CREATE TABLE pautas (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT, titulo TEXT, link_origem TEXT, fonte TEXT, status TEXT, criado_em TEXT)"
+            "CREATE TABLE pautas (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL, titulo_origem TEXT NOT NULL, titulo TEXT, link_origem TEXT, fonte TEXT, status TEXT, criado_em TEXT)"
         )
 
-    for col in [
-        "titulo", "link_origem", "fonte", "status", "criado_em", "url_hash_v136",
-        "titulo_hash_v136", "origem_v136", "score_v136", "dominio_v136"
-    ]:
+    for col in ["url_hash_v136", "titulo_hash_v136", "origem_v136", "score_v136", "dominio_v136"]:
         _ensure_col(con, "pautas", col)
 
     if not _table_exists(con, "links_bloqueados"):
@@ -129,13 +130,14 @@ def _blocked_urls(con: sqlite3.Connection) -> set[str]:
 
 
 def _existing(con: sqlite3.Connection) -> tuple[set[str], set[str], set[str]]:
-    urls = set()
-    titles = set()
-    uids = set()
+    urls, titles, uids = set(), set(), set()
     cols = set(_cols(con, "pautas"))
-    select_uid = "uid" if "uid" in cols else "'' AS uid"
+    link_col = "link_origem" if "link_origem" in cols else None
+    title_col = "titulo_origem" if "titulo_origem" in cols else ("titulo" if "titulo" in cols else None)
+    uid_col = "uid" if "uid" in cols else None
+    select_cols = [link_col or "'' AS link_origem", title_col or "'' AS titulo_origem", uid_col or "'' AS uid"]
     try:
-        for row in con.execute(f"SELECT link_origem, titulo, {select_uid} FROM pautas"):
+        for row in con.execute(f"SELECT {', '.join(select_cols)} FROM pautas"):
             u = _norm_url(row[0] or "")
             t = _title_key(row[1] or "")
             uid = str(row[2] or "")
@@ -150,7 +152,7 @@ def _existing(con: sqlite3.Connection) -> tuple[set[str], set[str], set[str]]:
     return urls, titles, uids
 
 
-def _add_ignored(res: QueueWriteResultV136, reason: str, item: dict[str, Any], limit: int = 80) -> None:
+def _add_ignored(res: QueueWriteResultV136, reason: str, item: dict[str, Any], limit: int = 100) -> None:
     if len(res.ignorados) < limit:
         res.ignorados.append({
             "motivo": reason,
@@ -161,25 +163,94 @@ def _add_ignored(res: QueueWriteResultV136, reason: str, item: dict[str, Any], l
         })
 
 
-def _insert_pauta(con: sqlite3.Connection, item: dict[str, Any], url: str, title: str, tkey: str) -> None:
-    cols = set(_cols(con, "pautas"))
-    uid = _uid_for_url(url)
-
-    data = {
-        "uid": uid,
+def _default_for_required_col(col: str, url: str, title: str, item: dict[str, Any]) -> str:
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+    domain = item.get("dominio") or urlparse(url).netloc
+    fonte = item.get("fonte") or domain or "Scrapling v136"
+    mapping = {
+        "uid": _uid_for_url(url),
         "titulo": title or url,
+        "titulo_origem": title or url,
+        "headline": title or url,
+        "link": url,
+        "url": url,
+        "link_origem": url,
+        "url_original": url,
+        "url_final": url,
+        "fonte": fonte,
+        "nome_fonte": fonte,
+        "source": fonte,
+        "status": "captada",
+        "situacao": "captada",
+        "criado_em": now,
+        "data_criacao": now,
+        "data_captura": now,
+        "created_at": now,
+        "updated_at": now,
+        "origem": item.get("origem") or item.get("metodo") or "scrapling_v136",
+        "canal": item.get("canal") or "Geral",
+        "editoria": item.get("editoria") or "Geral",
+        "resumo": item.get("resumo") or "",
+        "resumo_origem": item.get("resumo") or "",
+        "imagem": item.get("imagem") or "",
+        "imagem_url": item.get("imagem") or "",
+    }
+    if col in mapping:
+        return str(mapping[col])
+    if col == "url_hash_v136":
+        return _hash_url(url)
+    if col == "titulo_hash_v136":
+        return _title_key(title)
+    if col == "origem_v136":
+        return item.get("origem") or item.get("metodo") or "scrapling_v136"
+    if col == "score_v136":
+        return str(item.get("score") or 0)
+    if col == "dominio_v136":
+        return domain
+    return ""
+
+
+def _build_insert_data(con: sqlite3.Connection, item: dict[str, Any], url: str, title: str) -> dict[str, str]:
+    info = _table_info(con, "pautas")
+    cols = [r["name"] for r in info]
+    base = {
+        "uid": _uid_for_url(url),
+        "titulo": title or url,
+        "titulo_origem": title or url,
         "link_origem": url,
         "fonte": item.get("fonte") or item.get("dominio") or "Scrapling v136",
         "status": "captada",
         "criado_em": time.strftime("%Y-%m-%d %H:%M:%S"),
         "url_hash_v136": _hash_url(url),
-        "titulo_hash_v136": tkey,
+        "titulo_hash_v136": _title_key(title),
         "origem_v136": item.get("origem") or item.get("metodo") or "scrapling_v136",
         "score_v136": str(item.get("score") or 0),
         "dominio_v136": item.get("dominio") or urlparse(url).netloc,
     }
+    data: dict[str, str] = {}
+    for r in info:
+        name = r["name"]
+        notnull = int(r["notnull"] or 0)
+        pk = int(r["pk"] or 0)
+        dflt = r["dflt_value"]
+        if pk and name.lower() == "id":
+            continue
+        if name in base:
+            data[name] = str(base[name])
+            continue
+        if notnull and dflt is None:
+            data[name] = _default_for_required_col(name, url, title, item)
+    for k, v in base.items():
+        if k in cols and k not in data:
+            data[k] = str(v)
+    return data
 
-    insert_cols = [c for c in data.keys() if c in cols]
+
+def _insert_pauta(con: sqlite3.Connection, item: dict[str, Any], url: str, title: str) -> None:
+    data = _build_insert_data(con, item, url, title)
+    if not data:
+        raise RuntimeError("sem_campos_para_insert")
+    insert_cols = list(data.keys())
     placeholders = ", ".join(["?"] * len(insert_cols))
     sql = f"INSERT INTO pautas ({', '.join(insert_cols)}) VALUES ({placeholders})"
     con.execute(sql, [data[c] for c in insert_cols])
@@ -197,55 +268,42 @@ def inserir_candidatos_v136(candidatos: list[dict[str, Any]], db_path: Path | No
     except Exception:
         pass
     _setup(con)
-
     blocked = _blocked_urls(con)
     existing_urls, existing_titles, existing_uids = _existing(con)
-
     for raw in candidatos or []:
         res.analisados += 1
         item = raw if isinstance(raw, dict) else {}
         try:
             url = _norm_url(item.get("url") or "")
             title = str(item.get("titulo") or "").strip()
-
             if not url:
                 res.sem_url += 1
                 _add_ignored(res, "sem_url", item)
                 continue
-
             if url in blocked:
                 res.bloqueados += 1
                 _add_ignored(res, "bloqueado", item)
                 continue
-
             tkey = _title_key(title)
             uid = _uid_for_url(url)
-
             if url in existing_urls or uid in existing_uids:
                 res.duplicados += 1
                 res.duplicados_url += 1
                 _add_ignored(res, "duplicado_url", item)
                 continue
-
             if tkey and tkey in existing_titles:
                 res.duplicados += 1
                 res.duplicados_titulo += 1
                 _add_ignored(res, "duplicado_titulo", item)
                 continue
-
-            _insert_pauta(con, item, url, title, tkey)
+            _insert_pauta(con, item, url, title)
             existing_urls.add(url)
             existing_uids.add(uid)
             if tkey:
                 existing_titles.add(tkey)
-
             res.inseridos += 1
-            if len(res.inseridos_amostra) < 80:
-                res.inseridos_amostra.append({
-                    "url": url,
-                    "titulo": title or url,
-                    "fonte": item.get("fonte") or item.get("dominio") or "Scrapling v136",
-                })
+            if len(res.inseridos_amostra) < 100:
+                res.inseridos_amostra.append({"url": url, "titulo": title or url, "fonte": item.get("fonte") or item.get("dominio") or "Scrapling v136"})
             if res.inseridos % 10 == 0:
                 con.commit()
         except Exception as exc:
