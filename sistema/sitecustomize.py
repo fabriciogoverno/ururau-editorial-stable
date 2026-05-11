@@ -16,3 +16,13 @@ except Exception as _e_v134:
         print(f"[V134][AUDIENCIA][AVISO] patch não aplicado: {_e_v134}", flush=True)
     except Exception:
         pass
+
+try:
+    from ururau.coleta.leitura_fonte_short_ok_v136 import instalar_short_ok_v136
+    if instalar_short_ok_v136():
+        print("[V136][SHORT_OK] patch de texto curto útil instalado.", flush=True)
+except Exception as _e_v136_short:
+    try:
+        print(f"[V136][SHORT_OK][AVISO] patch não aplicado: {_e_v136_short}", flush=True)
+    except Exception:
+        pass
