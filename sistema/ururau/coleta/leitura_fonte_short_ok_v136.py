@@ -6,6 +6,7 @@ Patch runtime para aceitar texto curto válido e reaproveitar V134/cache.
 Objetivo:
 - Evitar que o hidratador v105 trate como falha textos úteis acima de 550 chars.
 - Reaproveitar Reader Proxy/cache V134 quando a leitura legada retorna 0 chars.
+- Expor aliases texto/chars/ok/get() em ResultadoLeitura para fluxos legados.
 - Manter fallback legado sem remover código antigo.
 """
 from __future__ import annotations
@@ -37,6 +38,12 @@ def _url_da_pauta(pauta: dict) -> str:
     ).strip()
 
 
+def _titulo_da_pauta(pauta: dict) -> str:
+    if not isinstance(pauta, dict):
+        return ""
+    return pauta.get("titulo_origem") or pauta.get("titulo") or pauta.get("headline") or ""
+
+
 def _resultado_from_text(lf: Any, url: str, titulo: str, texto: str, imagem: str = "", metodo: str = "v136_short_ok"):
     texto = (texto or "").strip()
     return lf.ResultadoLeitura(
@@ -53,6 +60,116 @@ def _resultado_from_text(lf: Any, url: str, titulo: str, texto: str, imagem: str
     )
 
 
+def _instalar_aliases_resultado(lf: Any) -> None:
+    """Compatibiliza ResultadoLeitura com fluxos legados do v105.
+
+    Alguns trechos antigos consultam resultado.texto, resultado.chars,
+    resultado.ok ou resultado.get('texto'), enquanto a classe real usa
+    texto_limpo, tamanho_chars e sucesso. Sem estes aliases, o v105 pode
+    imprimir FALHOU 0 chars mesmo após o V134 retornar texto OK.
+    """
+    cls = getattr(lf, "ResultadoLeitura", None)
+    if cls is None:
+        return
+
+    def _get_texto(self):
+        return getattr(self, "texto_limpo", "") or ""
+
+    def _set_texto(self, value):
+        try:
+            self.texto_limpo = value or ""
+            self.tamanho_chars = len(self.texto_limpo)
+        except Exception:
+            pass
+
+    def _get_chars(self):
+        try:
+            return int(getattr(self, "tamanho_chars", 0) or len(getattr(self, "texto_limpo", "") or ""))
+        except Exception:
+            return 0
+
+    def _set_chars(self, value):
+        try:
+            self.tamanho_chars = int(value or 0)
+        except Exception:
+            pass
+
+    def _get_ok(self):
+        return bool(getattr(self, "sucesso", False))
+
+    def _set_ok(self, value):
+        try:
+            self.sucesso = bool(value)
+        except Exception:
+            pass
+
+    def _get_imagem(self):
+        return getattr(self, "imagem_url", "") or ""
+
+    def _set_imagem(self, value):
+        try:
+            self.imagem_url = value or ""
+        except Exception:
+            pass
+
+    def _dict_get(self, key, default=None):
+        mapping = {
+            "texto": "texto_limpo",
+            "texto_limpo": "texto_limpo",
+            "cleaned_source_text": "texto_limpo",
+            "raw_source_text": "texto_limpo",
+            "chars": "tamanho_chars",
+            "tamanho_chars": "tamanho_chars",
+            "ok": "sucesso",
+            "sucesso": "sucesso",
+            "imagem": "imagem_url",
+            "imagem_url": "imagem_url",
+            "titulo": "titulo_extraido",
+            "titulo_extraido": "titulo_extraido",
+            "erro": "erro",
+            "url": "url",
+        }
+        return getattr(self, mapping.get(key, key), default)
+
+    def _getitem(self, key):
+        value = _dict_get(self, key, None)
+        if value is None:
+            raise KeyError(key)
+        return value
+
+    try:
+        cls.texto = property(_get_texto, _set_texto)
+        cls.chars = property(_get_chars, _set_chars)
+        cls.ok = property(_get_ok, _set_ok)
+        cls.imagem = property(_get_imagem, _set_imagem)
+        cls.get = _dict_get
+        cls.__getitem__ = _getitem
+    except Exception:
+        pass
+
+
+def _aceitar_resultado_curto(resultado: Any, min_chars: int) -> Any:
+    try:
+        texto = (getattr(resultado, "texto_limpo", "") or getattr(resultado, "texto", "") or "").strip()
+        chars = int(getattr(resultado, "tamanho_chars", 0) or getattr(resultado, "chars", 0) or len(texto))
+        if texto and len(texto) >= min_chars:
+            resultado.sucesso = True
+            resultado.erro = ""
+            resultado.tamanho_chars = len(texto)
+            if not getattr(resultado, "texto_limpo", ""):
+                resultado.texto_limpo = texto
+            if not getattr(resultado, "intel_log", ""):
+                resultado.intel_log = "[v136_short_ok] texto útil aceito"
+            return resultado
+        if texto and chars >= min_chars:
+            resultado.sucesso = True
+            resultado.erro = ""
+            return resultado
+    except Exception:
+        pass
+    return resultado
+
+
 def instalar_short_ok_v136() -> bool:
     global _INSTALADO, _ORIGINAL
     if _INSTALADO:
@@ -67,30 +184,19 @@ def instalar_short_ok_v136() -> bool:
     if not callable(original):
         return False
 
+    _instalar_aliases_resultado(lf)
     _ORIGINAL = original
 
     def wrapper(pauta: dict, forcar_refresh: bool = False):
         min_chars = _min_chars()
         url = _url_da_pauta(pauta)
-        titulo = ""
-        if isinstance(pauta, dict):
-            titulo = pauta.get("titulo_origem") or pauta.get("titulo") or pauta.get("headline") or ""
+        titulo = _titulo_da_pauta(pauta)
 
         resultado = original(pauta, forcar_refresh=forcar_refresh)
+        resultado = _aceitar_resultado_curto(resultado, min_chars)
 
         try:
-            texto = (getattr(resultado, "texto_limpo", "") or "").strip()
-            chars = int(getattr(resultado, "tamanho_chars", 0) or len(texto))
-            if texto and len(texto) >= min_chars:
-                resultado.sucesso = True
-                resultado.erro = ""
-                resultado.tamanho_chars = len(texto)
-                if not getattr(resultado, "intel_log", ""):
-                    resultado.intel_log = "[v136_short_ok] texto útil aceito"
-                return resultado
-            if chars >= min_chars and texto:
-                resultado.sucesso = True
-                resultado.erro = ""
+            if getattr(resultado, "sucesso", False):
                 return resultado
         except Exception:
             pass
@@ -139,7 +245,7 @@ def instalar_short_ok_v136() -> bool:
 
     lf.ler_fonte_pauta = wrapper
     _INSTALADO = True
-    print(f"[V136][SHORT_OK] leitura_fonte aceita texto útil >= {_min_chars()} chars.", flush=True)
+    print(f"[V136][SHORT_OK] leitura_fonte aceita texto útil >= {_min_chars()} chars; aliases texto/chars/ok/get ativos.", flush=True)
     return True
 
 
