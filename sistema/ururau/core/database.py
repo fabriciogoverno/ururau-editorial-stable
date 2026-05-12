@@ -1023,19 +1023,35 @@ class Database:
             finally:
                 conn.close()
 
-        # Separa baixo_score para o fim sem precisar de query separada,
-        # mantendo determinismo de ordenacao.
-        normais: list[dict] = []
+        # Separa em tres grupos preservando ordenacao por data DESC dentro de
+        # cada um (a query ja veio nessa ordem):
+        #   1) com texto da fonte valido (>= MIN_VALID chars uteis) -> sobem
+        #   2) sem texto valido (em hidratacao / pendentes)
+        #   3) baixo_score -> sempre no fim
+        # Pedido do usuario (12/05/2026): "matérias que já chegam a 100% deveriam
+        # ficar em cima na fila, e à medida que as outras forem ajustando aí sim
+        # ajustar por data".
+        try:
+            from ururau.core.source_text_contract import source_text_is_valid
+        except Exception:
+            def source_text_is_valid(p):
+                t = (p or {}).get("cleaned_source_text") or ""
+                return len(str(t).strip()) >= 550
+        com_texto: list[dict] = []
+        pendentes: list[dict] = []
         baixo: list[dict] = []
         for d in rows:
             st = str(d.get("status") or "").lower()
             if st == "baixo_score":
                 baixo.append(d)
+            elif source_text_is_valid(d):
+                com_texto.append(d)
             else:
-                normais.append(d)
+                pendentes.append(d)
+        out = com_texto + pendentes
         if incluir_baixo_score:
-            return normais + baixo
-        return normais
+            out = out + baixo
+        return out
 
     def contadores_dashboard(self) -> dict:
         """Contadores oficiais para os indicadores superiores do painel.

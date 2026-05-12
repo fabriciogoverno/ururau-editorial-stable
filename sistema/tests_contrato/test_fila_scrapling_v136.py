@@ -353,5 +353,44 @@ class TestFiltrosEditoriais(unittest.TestCase):
         self.assertFalse(lixo, f"materia valida foi marcada como lixo: {motivo}")
 
 
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 18-19) Ordenacao TXT OK no topo (spec_claudio_hidratacao_continua)
+# ────────────────────────────────────────────────────────────────────────────
+class TestOrdenacaoTxtOkNoTopo(unittest.TestCase):
+    def setUp(self):
+        self.db = _make_db()
+
+    def test_txt_ok_sobe_para_o_topo_independente_da_data(self):
+        # Tres pautas:
+        #  a) sem texto, mais recente
+        #  b) com texto valido, antiga
+        #  c) sem texto, intermediaria
+        # Esperado: b primeiro (TXT OK), depois pelas datas dentro de pendentes.
+        self.db.salvar_pauta({**_pauta("recente_sem"),
+                              "captada_em": "2026-05-12 18:00:00"})
+        self.db.salvar_pauta({**_pauta("antiga_com", cleaned=_texto_valido(900)),
+                              "captada_em": "2026-05-10 08:00:00"})
+        self.db.salvar_pauta({**_pauta("intermed_sem"),
+                              "captada_em": "2026-05-11 12:00:00"})
+        uids = [p["uid"] for p in self.db.query_fila_ativa()]
+        # antiga_com (com texto) deve vir antes de qualquer pendente.
+        self.assertEqual(uids[0], "antiga_com")
+        # Dentro do grupo de pendentes, recente vem antes da intermediaria.
+        self.assertLess(uids.index("recente_sem"), uids.index("intermed_sem"))
+
+    def test_baixo_score_continua_no_fim_mesmo_com_texto(self):
+        # Mesmo se a pauta de baixo_score tiver texto valido, ela ainda vai pro fim.
+        self.db.salvar_pauta(_pauta("normal_a"))
+        self.db.salvar_pauta(_pauta("bx_com_texto", status="baixo_score",
+                                    cleaned=_texto_valido(900)))
+        self.db.salvar_pauta({**_pauta("normal_b", cleaned=_texto_valido(900)),
+                              "captada_em": "2026-05-12 18:00:00"})
+        uids = [p["uid"] for p in self.db.query_fila_ativa()]
+        self.assertEqual(uids[-1], "bx_com_texto")
+        self.assertLess(uids.index("normal_b"), uids.index("normal_a"))
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main(verbosity=2)

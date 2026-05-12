@@ -1424,6 +1424,21 @@ class PainelUrurau(tk.Tk):
                 except Exception:
                     pass
                 print(f"[v106][FONTE] OK {util} chars ({origem}): {(pauta.get('titulo_origem') or '')[:80]}")
+                # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+                # ao terminar uma hidratacao com sucesso, agenda re-aplicacao do
+                # filtro/ordem para que a pauta suba para o grupo "TXT OK" no topo.
+                # Debounce de 800ms para nao redesenhar a UI em rajada.
+                try:
+                    if hasattr(self, "_v200_refresh_debounce_after_id"):
+                        try:
+                            self.after_cancel(self._v200_refresh_debounce_after_id)
+                        except Exception:
+                            pass
+                    self._v200_refresh_debounce_after_id = self.after(
+                        800, lambda: self._carregar_pautas(forcar=False)
+                    )
+                except Exception as _e_v200:
+                    print(f"[FILA][CANONICO][AVISO] refresh pos-hidratacao falhou: {_e_v200}")
                 # v106: depois do texto OK, agenda imagem automaticamente em baixa prioridade.
                 try:
                     img_url = str(getattr(res, "imagem_url", "") or "").strip()
@@ -2243,15 +2258,31 @@ class PainelUrurau(tk.Tk):
                 self._pautas_cache    = cache
                 self._carregando_lista = False
                 self._aplicar_filtro()
-                # v105: toda pauta recém-listada entra na fila de hidratação textual, mesmo sem clique.
-                for _p in cache[: self._env_int("URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH", 50)]:
-                    self._v105_agendar_hidratacao(_p, prioridade=False, motivo="refresh_fila")
+                # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+                # enfileirar TODAS as pautas sem texto valido. Antes, o default era
+                # cache[:50] e o usuario relatou que so as primeiras 50 hidratavam
+                # sozinhas; ele precisava clicar nas demais. Agora hidrata em rajadas
+                # mas continua respeitando o cooldown por dominio do _v105_hidratar_pauta.
+                limite = self._env_int("URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH", 999)
+                count_pendentes = 0
+                for _p in cache:
                     try:
                         _ok_txt, _util_txt, _ = self._v105_texto_fonte_util(_p)
-                        if _ok_txt and not self._v106_imagem_ok(_p):
-                            self._v106_agendar_imagem(_p, motivo="refresh_fila_texto_ok", delay=3.0)
                     except Exception:
-                        pass
+                        _ok_txt = False
+                    if not _ok_txt:
+                        if count_pendentes >= limite:
+                            break
+                        count_pendentes += 1
+                        self._v105_agendar_hidratacao(_p, prioridade=False, motivo="refresh_fila")
+                    else:
+                        try:
+                            if not self._v106_imagem_ok(_p):
+                                self._v106_agendar_imagem(_p, motivo="refresh_fila_texto_ok", delay=3.0)
+                        except Exception:
+                            pass
+                if count_pendentes:
+                    print(f"[FILA][CANONICO] enfileiradas {count_pendentes} pauta(s) sem texto valido para hidratacao automatica.")
                 self._atualizar_stats_async()
                 self._set_status(f"{len(cache)} pautas na fila — ordem: mais recentes primeiro; texto completo em hidratação persistente; imagem depois do texto. (F5/Atualizar recarrega e aplica fontes)")
             self.after(0, _ok)
