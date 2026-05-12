@@ -318,3 +318,30 @@ def formatar_texto_fonte(pauta: dict | None, texto: str, resultado: Any = None, 
     if max_chars and len(out) > max_chars:
         out = out[:max_chars].rsplit(" ", 1)[0].strip()
     return out
+
+
+# fix/auditoria-fila-scrapling-v136: leitor oficial para a aba Fonte.
+def obter_texto_fonte_via_contrato(pauta: dict | None) -> tuple[str, int, bool]:
+    """Retorna ``(texto, chars_uteis, valido)`` para a aba Fonte.
+
+    Le sempre via ``ururau.core.source_text_contract.get_source_text`` para
+    garantir que a aba Fonte nunca exiba "OK" com 0 caracteres e nunca troque
+    texto valido por falha posterior. ``valido = chars_uteis >= MIN_VALID``.
+    """
+    try:
+        from ururau.core.source_text_contract import (
+            get_source_text, texto_util_chars, min_valid,
+        )
+        texto = get_source_text(pauta or {})
+        util = int(texto_util_chars(texto))
+        return texto, util, util >= min_valid()
+    except Exception:
+        p = pauta or {}
+        texto = str(
+            p.get("cleaned_source_text") or p.get("texto_fonte_v134")
+            or p.get("texto_fonte") or p.get("texto_fonte_v105")
+            or p.get("raw_source_text") or p.get("dossie") or ""
+        )
+        util = len(texto.strip())
+        return texto, util, util >= 550
+

@@ -1071,16 +1071,29 @@ class PainelUrurau(tk.Tk):
         return str(pauta.get("uid") or pauta.get("_uid") or "")
 
     def _v105_texto_fonte_util(self, pauta: dict) -> tuple[bool, int, str]:
-        texto = (
-            pauta.get("cleaned_source_text") or pauta.get("fonte_aba_texto") or
-            pauta.get("leitura_fonte_texto") or pauta.get("dossie") or pauta.get("texto_fonte") or ""
-        )
+        # fix/auditoria-fila-scrapling-v136: contrato oficial de texto da fonte.
+        # Cadeia canonica: cleaned_source_text -> v134 -> texto_fonte -> v105 -> raw -> dossie.
+        # Nao sobrescreve texto valido com vazio (regra garantida em set_source_text).
         try:
-            from ururau.coleta.limpeza_texto_v81 import texto_util_chars
-            util = int(texto_util_chars(str(texto)))
+            from ururau.core.source_text_contract import get_source_text, texto_util_chars as _tuc, min_valid as _mv
+            texto = get_source_text(pauta) or pauta.get("fonte_aba_texto") or pauta.get("leitura_fonte_texto") or ""
+            util = int(_tuc(str(texto)))
+            # Respeita o minimo do projeto (default 900 nesta base) se for maior que 550.
+            minimo = max(int(_mv()), int(self._v105_min_chars_fonte()))
+            return util >= minimo, util, str(texto or "")
         except Exception:
-            util = len(str(texto or "").strip())
-        return util >= self._v105_min_chars_fonte(), util, str(texto or "")
+            # Fallback inline (modo defensivo): preserva o comportamento anterior
+            # caso o contrato nao esteja disponivel por algum motivo de import.
+            texto = (
+                pauta.get("cleaned_source_text") or pauta.get("fonte_aba_texto") or
+                pauta.get("leitura_fonte_texto") or pauta.get("dossie") or pauta.get("texto_fonte") or ""
+            )
+            try:
+                from ururau.coleta.limpeza_texto_v81 import texto_util_chars
+                util = int(texto_util_chars(str(texto)))
+            except Exception:
+                util = len(str(texto or "").strip())
+            return util >= self._v105_min_chars_fonte(), util, str(texto or "")
 
     def _v105_parse_pauta_db(self, row: dict) -> dict:
         d = dict(row or {})
@@ -1718,10 +1731,20 @@ class PainelUrurau(tk.Tk):
     def _atualizar_stats_async(self):
         def _t():
             try:
-                s = self.db.estatisticas()
-                txt = (f"Pautas: {s['total_pautas']}  |  "
-                       f"Publicadas: {s['total_publicadas']}  |  "
-                       f"Materias: {s['total_materias']}")
+                # fix/auditoria-fila-scrapling-v136: usa contadores oficiais
+                # (excluem baixo_score de "Pautas" e separam descartadas/bloqueadas).
+                # Fallback para estatisticas() se a versao do DB nao tiver os contadores.
+                try:
+                    c = self.db.contadores_dashboard()
+                    txt = (f"Pautas: {c['pautas_ativas']}  |  "
+                           f"Publicadas: {c['publicadas']}  |  "
+                           f"Materias: {c['materias']}  |  "
+                           f"Baixo score: {c['baixo_score']}")
+                except Exception:
+                    s = self.db.estatisticas()
+                    txt = (f"Pautas: {s['total_pautas']}  |  "
+                           f"Publicadas: {s['total_publicadas']}  |  "
+                           f"Materias: {s['total_materias']}")
                 def _update_stats_safe():
                     try:
                         if hasattr(self, "_lbl_stats") and self._lbl_stats.winfo_exists():
@@ -2140,24 +2163,36 @@ class PainelUrurau(tk.Tk):
 
     def _carregar_thread(self):
         try:
-            conn = self.db._conectar()
+            # fix/auditoria-fila-scrapling-v136: usa query oficial em vez de SQL
+            # solto. Mantem ordenacao por captacao DESC, exclui publicadas/descartadas/
+            # bloqueadas, e ja desempacota dados_json para o cache.
             try:
-                rows = conn.execute(
-                    "SELECT uid, titulo_origem, status, urgente, "
-                    "score_editorial, dados_json, fonte_nome, "
-                    "captada_em, atualizada_em "
-                    "FROM pautas ORDER BY atualizada_em DESC LIMIT 500"
-                ).fetchall()
-                cache = []
-                for row in rows:
-                    d = dict(row)
-                    try:
-                        extra = json.loads(d.get("dados_json") or "{}")
-                        d.update(extra)
-                    except Exception:
-                        pass
-                    cache.append(d)
-
+                cache = self.db.query_fila_ativa(incluir_baixo_score=True, limite=500)
+            except Exception as _e_qfa:
+                print(f"[FILA][CANONICO][AVISO] query_fila_ativa indisponivel ({_e_qfa}); usando fallback legado.")
+                conn = self.db._conectar()
+                try:
+                    rows = conn.execute(
+                        "SELECT uid, titulo_origem, status, urgente, "
+                        "score_editorial, dados_json, fonte_nome, "
+                        "captada_em, atualizada_em "
+                        "FROM pautas ORDER BY atualizada_em DESC LIMIT 500"
+                    ).fetchall()
+                    cache = []
+                    for row in rows:
+                        d = dict(row)
+                        try:
+                            extra = json.loads(d.get("dados_json") or "{}")
+                            d.update(extra)
+                        except Exception:
+                            pass
+                        cache.append(d)
+                finally:
+                    conn.close()
+            # fix/auditoria-fila-scrapling-v136: a conexao SQLite vivia aqui apenas
+            # para a query bruta. Agora a query oficial roda em query_fila_ativa.
+            # Mantemos try/finally para nao quebrar a indentacao do bloco janela.
+            try:
                 # v99: a fila mostra somente matérias publicadas dentro da janela
                 # editorial configurada, em horário de Brasília, mais recentes primeiro.
                 # Não usa captada_em para aprovar pauta antiga: a regra é publicação na fonte.
@@ -2202,7 +2237,7 @@ class PainelUrurau(tk.Tk):
 
                 cache.sort(key=_chave_data, reverse=True)
             finally:
-                conn.close()
+                pass  # conn ja nao e necessario; query_fila_ativa fechou.
 
             def _ok():
                 self._pautas_cache    = cache
@@ -3786,6 +3821,31 @@ class PainelUrurau(tk.Tk):
     def _acao_redigir(self):
         if not self._pauta_sel:
             messagebox.showwarning("Redigir", "Selecione uma pauta primeiro."); return
+        # fix/auditoria-fila-scrapling-v136: guard oficial do Redigir.
+        # Bloqueia: separador, publicada/descartada/bloqueada/reprovada,
+        # baixo_score nao aprovado, e item de "lixo editorial" (gols/charge/etc).
+        # A validacao de >=550 chars uteis acontece dentro de _redigir_thread,
+        # apos rehidratacao explicita; aqui filtramos o que NUNCA deve passar.
+        try:
+            from ururau.core.source_text_contract import eh_lixo_editorial
+            ps = dict(self._pauta_sel or {})
+            if ps.get("_separador_coleta_v123") or str(ps.get("status") or "").lower() == "_separador":
+                messagebox.showwarning("Redigir", "Item selecionado e um separador visual, nao uma pauta."); return
+            st = str(ps.get("status") or "").lower()
+            if st in {"publicada","publicado","descartada","descartado","rejeitada","rejeitado",
+                      "bloqueada","bloqueado","reprovada","reprovado","excluida","excluido"}:
+                messagebox.showwarning("Redigir", f"Pauta esta com status '{st}' e nao pode ser redigida."); return
+            if st == "baixo_score" and not (ps.get("aprovada_baixo_score") or ps.get("aprovada")):
+                messagebox.showwarning("Redigir",
+                    "Esta pauta esta em baixo score e ainda nao foi aprovada. "
+                    "Use Aprovar antes de Redigir."); return
+            lixo, motivo = eh_lixo_editorial(ps)
+            if lixo and motivo not in {"baixo_score", "quarentena"}:
+                messagebox.showwarning("Redigir",
+                    f"Pauta classificada como lixo editorial ({motivo}). "
+                    "Use Aprovar manualmente se quiser forcar o Redigir."); return
+        except Exception as _e_guard:
+            print(f"[REDIGIR][GUARD][AVISO] guard nao aplicado: {_e_guard}")
         # v46.7: permite fallback local, mas avisa claramente no painel.
         if not self.client:
             aviso = "IA OpenAI indisponível: redigindo por fallback local e marcando diagnóstico."
