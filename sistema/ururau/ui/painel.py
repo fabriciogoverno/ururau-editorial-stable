@@ -4026,19 +4026,33 @@ class PainelUrurau(tk.Tk):
                 materia = wf.etapa_pacote_editorial(uid, materia)
                 wf.etapa_verificacao_risco(uid, pauta, materia)
                 wf.etapa_persistir_materia(uid, pauta, materia)
+                # spec_claudio_ia_real: so concluir se houve chamada real a IA.
                 try:
                     gj_ia = dict(getattr(materia, "generated_article_json", {}) or {})
                     modo_ia = getattr(materia, "modo_geracao", "") or gj_ia.get("modo_geracao") or "sem_telemetria_ia"
                     status_ia = getattr(materia, "ia_status", "") or gj_ia.get("ia_status") or "sem_telemetria_ia"
                     origem_ia = getattr(materia, "ia_texto_final_origem", "") or gj_ia.get("ia_texto_final_origem") or ("openai" if modo_ia == "openai_gpt4mini" else "fallback_local")
                     openai_status = getattr(materia, "ia_openai_status", "") or gj_ia.get("ia_openai_status") or ""
-                    extra_openai = f" | OpenAI: {openai_status}" if openai_status and openai_status != status_ia else ""
-                    msg_ia = f"Redação concluída | IA: {modo_ia} / {status_ia} | origem={origem_ia}{extra_openai}"
+                    ia_chamada_v200 = bool(modo_ia and modo_ia not in {"fallback_local", "sem_telemetria_ia", ""})
                 except Exception:
-                    msg_ia = "Redação concluída | IA: sem diagnóstico"
-                self.after(0, lambda msg_ia=msg_ia: self._set_status(msg_ia))
-                self.after(0, lambda msg_ia=msg_ia: messagebox.showinfo(
-                    "Redacao Concluida", f"Materia gerada. {msg_ia}. Use Preview antes de publicar."))
+                    modo_ia = ""
+                    status_ia = "sem_telemetria_ia"
+                    ia_chamada_v200 = False
+                if ia_chamada_v200:
+                    modelo_label = modo_ia or "gpt-4.1-mini"
+                    msg_ia = f"Redacao concluida com IA | Modelo: {modelo_label} | Status: {status_ia}"
+                    self.after(0, lambda mi=msg_ia: self._set_status(mi))
+                    self.after(0, lambda mi=msg_ia, modelo=modelo_label: messagebox.showinfo(
+                        "Redacao concluida",
+                        f"Materia redigida com IA apos validacao da fonte. Modelo: {modelo}. Use Preview antes de publicar."))
+                else:
+                    msg_alerta = f"Rascunho local sem IA | modo={modo_ia or 'desconhecido'} | status={status_ia}"
+                    self.after(0, lambda ma=msg_alerta: self._set_status(ma))
+                    self.after(0, lambda: messagebox.showwarning(
+                        "Rascunho local sem IA",
+                        "A IA nao foi executada (sem credencial, erro de modelo ou rede). "
+                        "O conteudo gerado e rascunho local e NAO deve ser publicado. "
+                        "Configure OPENAI_API_KEY e OPENAI_MODEL=gpt-4.1-mini e clique Redigir novamente."))
             else:
                 self.after(0, lambda: self._set_status("Falha na redacao [XX]"))
             self.after(0, self._carregar_pautas)
