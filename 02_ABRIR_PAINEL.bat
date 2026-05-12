@@ -2,6 +2,22 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 
+REM ── fix/auditoria-fila-scrapling-v136: flags canonicas obrigatorias ──
+REM Decisao §4 do spec_autorizacao_claudio:
+REM  - desliga patches runtime de FilaPautas.popular (V136/V137/V138)
+REM  - cleaned_source_text e canonico; MIN_VALID=550
+REM  - Scrapling v136 segue como motor principal
+REM Para rollback rapido, comente as 4 linhas abaixo ou exporte =0.
+set URURAU_DISABLE_FILA_RUNTIME_PATCHES=1
+set URURAU_USE_CANONICAL_QUEUE=1
+set URURAU_USE_SCRAPLING_V136=1
+set URURAU_MIN_VALID=550
+REM hidratacao paralela e mais rapida (spec_claudio_hidratacao_continua):
+set URURAU_V105_WORKERS=4
+set URURAU_V105_INTERVALO_ENTRE_FONTES=0.4
+set URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH=999
+
+
 echo ==========================================
 echo  URURAU — ABRIR PAINEL EDITORIAL
 echo ==========================================

@@ -507,7 +507,15 @@ class Database:
                         (uid,)
                     ).fetchone()
                 if row:
-                    return row["status"] in ("rejeitada", "bloqueada", "excluida")
+                    # Lista expandida (spec_claudio_reverter_bloqueio §6) para
+                    # cobrir TODAS as variantes que indicam pauta sem fila ativa.
+                    return str(row["status"] or "").lower() in (
+                        "rejeitada", "rejeitado",
+                        "bloqueada", "bloqueado",
+                        "excluida", "excluido",
+                        "descartada", "descartado",
+                        "reprovada", "reprovado",
+                    )
                 return False
             finally:
                 conn.close()
@@ -956,8 +964,270 @@ class Database:
             finally:
                 conn.close()
 
+    # ── Fila ativa / contadores oficiais ─────────────────────────────────────
+    #
+    # Adicionados em fix/auditoria-fila-scrapling-v136 para consolidar o que
+    # antes vivia em patches concorrentes (V136 FILA_FORCE, V137 FILA_REAL,
+    # V138 FILA_DB). Fonte única da verdade para fila e contadores superiores.
 
-# ── Singleton global ──────────────────────────────────────────────────────────
+    # status que NAO devem aparecer na fila ativa
+    _STATUS_FORA_DA_FILA = (
+        "publicada", "publicado", "descartada", "descartado",
+        "rejeitada", "rejeitado", "bloqueada", "bloqueado",
+        "reprovada", "reprovado", "excluida", "excluido",
+    )
+
+    def query_fila_ativa(self, *, incluir_baixo_score: bool = True,
+                         limite: int = 500) -> list[dict]:
+        """Query oficial da fila ativa (substitui patches de runtime).
+
+        Regras (spec_autorizacao §5 Fase B):
+
+        * Exclui publicadas/descartadas/bloqueadas/reprovadas/excluidas.
+        * Nao cria separador falso com horario atual.
+        * Nao carrega lote generico de 160 registros como solucao visual.
+        * Ordena: pautas validas primeiro (por captacao desc), depois
+          baixo score, depois itens que exigem Aprovar/Reprovar.
+        * Cada dict retornado ja tem o ``dados_json`` decodificado e
+          mesclado (chaves do JSON sobrescrevem colunas conflitantes - assim
+          o alias canonico ``cleaned_source_text`` chega ao chamador).
+
+        Nao chama nenhum patch de runtime e nao depende de polling agressivo.
+        Resultado deterministico para a mesma snapshot do banco.
+        """
+        placeholders = ",".join("?" * len(self._STATUS_FORA_DA_FILA))
+        sql = (
+            "SELECT uid, titulo_origem, link_origem, fonte_nome, canal, "
+            "       score_editorial, status, urgente, "
+            "       captada_em, atualizada_em, dados_json "
+            "FROM pautas "
+            f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
+            "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> '' "
+            "ORDER BY datetime(COALESCE(captada_em, atualizada_em)) DESC "
+            "LIMIT ?"
+        )
+        rows: list[dict] = []
+        with _lock:
+            conn = self._conectar()
+            try:
+                cur = conn.execute(
+                    sql,
+                    tuple(self._STATUS_FORA_DA_FILA) + (int(limite),),
+                )
+                for r in cur.fetchall():
+                    d = dict(r)
+                    try:
+                        extra = json.loads(d.get("dados_json") or "{}")
+                        if isinstance(extra, dict):
+                            # JSON vence em chaves repetidas - e a versao mais
+                            # rica da pauta (carrega cleaned_source_text etc).
+                            d.update(extra)
+                    except Exception:
+                        pass
+                    # garante presenca de _uid (compat com painel)
+                    if d.get("uid") and not d.get("_uid"):
+                        d["_uid"] = d["uid"]
+                    rows.append(d)
+            finally:
+                conn.close()
+
+        # Separa em tres grupos preservando ordenacao por data DESC dentro de
+        # cada um (a query ja veio nessa ordem):
+        #   1) com texto da fonte valido (>= MIN_VALID chars uteis) -> sobem
+        #   2) sem texto valido (em hidratacao / pendentes)
+        #   3) baixo_score -> sempre no fim
+        # Pedido do usuario (12/05/2026): "matérias que já chegam a 100% deveriam
+        # ficar em cima na fila, e à medida que as outras forem ajustando aí sim
+        # ajustar por data".
+        try:
+            from ururau.core.source_text_contract import source_text_is_valid
+        except Exception:
+            def source_text_is_valid(p):
+                t = (p or {}).get("cleaned_source_text") or ""
+                return len(str(t).strip()) >= 550
+        com_texto: list[dict] = []
+        pendentes: list[dict] = []
+        baixo: list[dict] = []
+        for d in rows:
+            st = str(d.get("status") or "").lower()
+            if st == "baixo_score":
+                baixo.append(d)
+            elif source_text_is_valid(d):
+                com_texto.append(d)
+            else:
+                pendentes.append(d)
+        out = com_texto + pendentes
+        if incluir_baixo_score:
+            out = out + baixo
+        return out
+
+    # Status recuperaveis (spec_claudio_reverter_bloqueio_descartada_redigir).
+    # NUNCA mudar uma pauta para esses por falha tecnica: descartada, descartado,
+    # bloqueada, bloqueado, rejeitada, rejeitado, reprovada, reprovado, excluida.
+    # Em vez disso usar: erro_ia, erro_credencial_ia, erro_modelo_ia, erro_rede_ia,
+    # fonte_insuficiente, redacao_pendente.
+    STATUS_RECUPERAVEIS = (
+        "captada", "em_redacao", "pronta_para_redigir", "redacao_pendente",
+        "erro_ia", "erro_credencial_ia", "erro_modelo_ia", "erro_rede_ia",
+        "fonte_insuficiente", "pendente_fonte", "baixo_score",
+    )
+
+    def reativar_pauta_para_redacao(self, uid: str, motivo: str = "",
+                                    novo_status: str = "em_redacao") -> dict:
+        """Reativa uma pauta marcada como descartada/bloqueada para redigir.
+
+        Pre-condicao: chamador ja validou que ha texto fonte valido OU usuario
+        confirmou explicitamente a reativacao (caso baixo_score).
+
+        Acao:
+          - Le status atual (anterior)
+          - Remove o link de links_bloqueados se estiver la
+          - Grava novo_status (default 'em_redacao')
+          - Log de auditoria com motivo e status_anterior
+
+        Nao apaga a pauta, nao toca em dados_json (preserva todo o trabalho
+        anterior). Devolve dict com status anterior e novo para o chamador
+        exibir feedback.
+        """
+        status_anterior = ""
+        link_atual = ""
+        with _lock:
+            conn = self._conectar()
+            try:
+                row = conn.execute(
+                    "SELECT status, link_origem FROM pautas WHERE uid=? LIMIT 1",
+                    (uid,),
+                ).fetchone()
+                if row:
+                    status_anterior = (row["status"] or "").strip()
+                    link_atual = (row["link_origem"] or "").strip()
+            finally:
+                conn.close()
+
+        # Remove bloqueio definitivo por link, se existir.
+        try:
+            if link_atual:
+                with _lock:
+                    conn = self._conectar()
+                    try:
+                        conn.execute(
+                            "DELETE FROM links_bloqueados WHERE link=?",
+                            (link_atual,),
+                        )
+                        conn.commit()
+                    finally:
+                        conn.close()
+                with _cache_lock:
+                    _links_bloqueados_cache.discard(link_atual)
+        except Exception:
+            pass
+
+        # Aplica novo status.
+        self.atualizar_status_pauta(uid, novo_status)
+
+        # Auditoria.
+        try:
+            self.log_auditoria(
+                uid,
+                "pauta_reativada_para_redacao",
+                {
+                    "motivo": motivo or "texto_fonte_valido",
+                    "status_anterior": status_anterior,
+                    "novo_status": novo_status,
+                    "link_origem": link_atual,
+                },
+            )
+        except Exception:
+            pass
+
+        return {
+            "uid": uid,
+            "status_anterior": status_anterior,
+            "novo_status": novo_status,
+            "motivo": motivo,
+            "link_atual": link_atual,
+        }
+
+    def marcar_status_redacao(self, uid: str, status_redacao: str,
+                              detalhe: str = "") -> None:
+        """Grava status auxiliar de redacao SEM mudar o status principal da pauta.
+
+        Usado para refletir falhas de IA/rede/credencial sem tornar a pauta
+        descartada. Vai para o dados_json sob a chave 'status_redacao_v200'.
+        """
+        try:
+            row = self.buscar_pauta(uid)
+            if not row:
+                return
+            p = dict(row)
+            try:
+                extra = json.loads(p.get("dados_json") or "{}")
+                if isinstance(extra, dict):
+                    p.update(extra)
+            except Exception:
+                pass
+            p["status_redacao_v200"] = status_redacao
+            if detalhe:
+                p["status_redacao_detalhe_v200"] = str(detalhe)[:500]
+            p["atualizada_em"] = self._agora()
+            self.salvar_pauta(p)
+            try:
+                self.log_auditoria(uid, "status_redacao_atualizado",
+                                   {"status_redacao": status_redacao,
+                                    "detalhe": detalhe[:200]})
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    def contadores_dashboard(self) -> dict:
+        """Contadores oficiais para os indicadores superiores do painel.
+
+        Substitui leituras avulsas espalhadas pelo painel. Sempre consulta
+        os campos canonicos de status e ignora itens marcados como
+        ``baixo_score`` na contagem de "Pautas ativas".
+        """
+        with _lock:
+            conn = self._conectar()
+            try:
+                placeholders = ",".join("?" * len(self._STATUS_FORA_DA_FILA))
+                ativas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas "
+                    f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
+                    "  AND (status IS NULL OR LOWER(status) <> 'baixo_score') "
+                    "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> ''",
+                    tuple(self._STATUS_FORA_DA_FILA),
+                ).fetchone()[0]
+                baixo = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status)='baixo_score'"
+                ).fetchone()[0]
+                descartadas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status) IN ('descartada','descartado','rejeitada','rejeitado','excluida','excluido')"
+                ).fetchone()[0]
+                bloqueadas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status) IN ('bloqueada','bloqueado','reprovada','reprovado')"
+                ).fetchone()[0]
+                publicadas = conn.execute(
+                    "SELECT COUNT(*) FROM publicacoes WHERE LOWER(status)='publicada'"
+                ).fetchone()[0]
+                materias = conn.execute(
+                    "SELECT COUNT(*) FROM materias"
+                ).fetchone()[0]
+                total = conn.execute("SELECT COUNT(*) FROM pautas").fetchone()[0]
+                return {
+                    "pautas_ativas": int(ativas),
+                    "baixo_score":   int(baixo),
+                    "publicadas":    int(publicadas),
+                    "materias":      int(materias),
+                    "descartadas":   int(descartadas),
+                    "bloqueadas":    int(bloqueadas),
+                    "total":         int(total),
+                }
+            finally:
+                conn.close()
+
+
+# -- Singleton global ----------------------------------------------------------
 _db_instance: Optional[Database] = None
 
 def get_db(caminho: str = "ururau.db") -> Database:

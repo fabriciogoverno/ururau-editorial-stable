@@ -203,6 +203,12 @@ def _patch(mod) -> None:
 
 def instalar_fila_visual_fix_v136() -> bool:
     global _INSTALLED, _ORIG_IMPORT
+    # fix/auditoria-fila-scrapling-v136: gate oficial.
+    # Default = desligado. Para reativar: URURAU_DISABLE_FILA_RUNTIME_PATCHES=0.
+    _flag = str(os.getenv("URURAU_DISABLE_FILA_RUNTIME_PATCHES", "1")).strip().lower()
+    if _flag in {"1", "true", "sim", "yes", "s", "on"}:
+        print("[V136][FILA_VISUAL] patch ignorado por URURAU_DISABLE_FILA_RUNTIME_PATCHES=1.", flush=True)
+        return False
     if _INSTALLED:
         return True
     if "ururau.ui.painel" in sys.modules:
