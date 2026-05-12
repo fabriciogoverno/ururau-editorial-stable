@@ -12,6 +12,10 @@ set URURAU_DISABLE_FILA_RUNTIME_PATCHES=1
 set URURAU_USE_CANONICAL_QUEUE=1
 set URURAU_USE_SCRAPLING_V136=1
 set URURAU_MIN_VALID=550
+REM hidratacao paralela e mais rapida (spec_claudio_hidratacao_continua):
+set URURAU_V105_WORKERS=4
+set URURAU_V105_INTERVALO_ENTRE_FONTES=0.4
+set URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH=999
 
 
 echo ==========================================

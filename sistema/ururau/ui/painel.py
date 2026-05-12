@@ -1122,8 +1122,17 @@ class PainelUrurau(tk.Tk):
         if self._hidratar_worker_started:
             return
         self._hidratar_worker_started = True
-        threading.Thread(target=self._v105_hidratador_loop, daemon=True).start()
-        print("[v105][FONTE] Hidratador persistente iniciado; texto tem prioridade sobre imagem.")
+        # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+        # hidratador paralelo. Default 4 workers (configuravel via URURAU_V105_WORKERS).
+        # Cada worker tem seu proprio loop; respeitam o cooldown por dominio via
+        # _hidratar_inflight + _hidratar_domain_cooldown (atomicos sob _hidratar_lock).
+        try:
+            n_workers = max(1, int(os.getenv("URURAU_V105_WORKERS", "4") or "4"))
+        except Exception:
+            n_workers = 4
+        for i in range(n_workers):
+            threading.Thread(target=self._v105_hidratador_loop, daemon=True, name=f"v105_worker_{i+1}").start()
+        print(f"[v105][FONTE] Hidratador persistente iniciado com {n_workers} worker(s); texto tem prioridade sobre imagem.", flush=True)
 
     # ── Imagem automática em baixa prioridade (v106) ───────────────────────────
 
@@ -1359,7 +1368,7 @@ class PainelUrurau(tk.Tk):
                 if ok:
                     continue
                 self._v105_hidratar_pauta(pauta, origem=job.get("motivo") or "worker", atualizar_ui=False)
-                time.sleep(float(os.getenv("URURAU_V105_INTERVALO_ENTRE_FONTES", "1.2") or "1.2"))
+                time.sleep(float(os.getenv("URURAU_V105_INTERVALO_ENTRE_FONTES", "0.4") or "0.4"))
             except Exception as e:
                 print(f"[v105][FONTE] erro no hidratador: {e}")
                 time.sleep(2.0)
@@ -1470,6 +1479,21 @@ class PainelUrurau(tk.Tk):
             pauta["fonte_erro_v105"] = erro[:300]
             try:
                 self.db.salvar_pauta(pauta)
+            except Exception:
+                pass
+            # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+            # tambem refresh debounceado em FALHA, para a bolinha mostrar status
+            # atualizado (TXT CURTO / TXT 429 / TXT Ø). Debounce 1.5s para nao
+            # disparar redraw a cada falha. Compartilha o mesmo after_id do OK.
+            try:
+                if hasattr(self, "_v200_refresh_debounce_after_id"):
+                    try:
+                        self.after_cancel(self._v200_refresh_debounce_after_id)
+                    except Exception:
+                        pass
+                self._v200_refresh_debounce_after_id = self.after(
+                    1500, lambda: self._carregar_pautas(forcar=False)
+                )
             except Exception:
                 pass
             # v47.4: texto completo é prioridade editorial. A tentativa normal sobe para 12,
