@@ -956,8 +956,135 @@ class Database:
             finally:
                 conn.close()
 
+    # ── Fila ativa / contadores oficiais ─────────────────────────────────────
+    #
+    # Adicionados em fix/auditoria-fila-scrapling-v136 para consolidar o que
+    # antes vivia em patches concorrentes (V136 FILA_FORCE, V137 FILA_REAL,
+    # V138 FILA_DB). Fonte única da verdade para fila e contadores superiores.
 
-# ── Singleton global ──────────────────────────────────────────────────────────
+    # status que NAO devem aparecer na fila ativa
+    _STATUS_FORA_DA_FILA = (
+        "publicada", "publicado", "descartada", "descartado",
+        "rejeitada", "rejeitado", "bloqueada", "bloqueado",
+        "reprovada", "reprovado", "excluida", "excluido",
+    )
+
+    def query_fila_ativa(self, *, incluir_baixo_score: bool = True,
+                         limite: int = 500) -> list[dict]:
+        """Query oficial da fila ativa (substitui patches de runtime).
+
+        Regras (spec_autorizacao §5 Fase B):
+
+        * Exclui publicadas/descartadas/bloqueadas/reprovadas/excluidas.
+        * Nao cria separador falso com horario atual.
+        * Nao carrega lote generico de 160 registros como solucao visual.
+        * Ordena: pautas validas primeiro (por captacao desc), depois
+          baixo score, depois itens que exigem Aprovar/Reprovar.
+        * Cada dict retornado ja tem o ``dados_json`` decodificado e
+          mesclado (chaves do JSON sobrescrevem colunas conflitantes - assim
+          o alias canonico ``cleaned_source_text`` chega ao chamador).
+
+        Nao chama nenhum patch de runtime e nao depende de polling agressivo.
+        Resultado deterministico para a mesma snapshot do banco.
+        """
+        placeholders = ",".join("?" * len(self._STATUS_FORA_DA_FILA))
+        sql = (
+            "SELECT uid, titulo_origem, link_origem, fonte_nome, canal, "
+            "       score_editorial, status, urgente, "
+            "       captada_em, atualizada_em, dados_json "
+            "FROM pautas "
+            f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
+            "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> '' "
+            "ORDER BY datetime(COALESCE(captada_em, atualizada_em)) DESC "
+            "LIMIT ?"
+        )
+        rows: list[dict] = []
+        with _lock:
+            conn = self._conectar()
+            try:
+                cur = conn.execute(
+                    sql,
+                    tuple(self._STATUS_FORA_DA_FILA) + (int(limite),),
+                )
+                for r in cur.fetchall():
+                    d = dict(r)
+                    try:
+                        extra = json.loads(d.get("dados_json") or "{}")
+                        if isinstance(extra, dict):
+                            # JSON vence em chaves repetidas - e a versao mais
+                            # rica da pauta (carrega cleaned_source_text etc).
+                            d.update(extra)
+                    except Exception:
+                        pass
+                    # garante presenca de _uid (compat com painel)
+                    if d.get("uid") and not d.get("_uid"):
+                        d["_uid"] = d["uid"]
+                    rows.append(d)
+            finally:
+                conn.close()
+
+        # Separa baixo_score para o fim sem precisar de query separada,
+        # mantendo determinismo de ordenacao.
+        normais: list[dict] = []
+        baixo: list[dict] = []
+        for d in rows:
+            st = str(d.get("status") or "").lower()
+            if st == "baixo_score":
+                baixo.append(d)
+            else:
+                normais.append(d)
+        if incluir_baixo_score:
+            return normais + baixo
+        return normais
+
+    def contadores_dashboard(self) -> dict:
+        """Contadores oficiais para os indicadores superiores do painel.
+
+        Substitui leituras avulsas espalhadas pelo painel. Sempre consulta
+        os campos canonicos de status e ignora itens marcados como
+        ``baixo_score`` na contagem de "Pautas ativas".
+        """
+        with _lock:
+            conn = self._conectar()
+            try:
+                placeholders = ",".join("?" * len(self._STATUS_FORA_DA_FILA))
+                ativas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas "
+                    f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
+                    "  AND (status IS NULL OR LOWER(status) <> 'baixo_score') "
+                    "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> ''",
+                    tuple(self._STATUS_FORA_DA_FILA),
+                ).fetchone()[0]
+                baixo = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status)='baixo_score'"
+                ).fetchone()[0]
+                descartadas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status) IN ('descartada','descartado','rejeitada','rejeitado','excluida','excluido')"
+                ).fetchone()[0]
+                bloqueadas = conn.execute(
+                    "SELECT COUNT(*) FROM pautas WHERE LOWER(status) IN ('bloqueada','bloqueado','reprovada','reprovado')"
+                ).fetchone()[0]
+                publicadas = conn.execute(
+                    "SELECT COUNT(*) FROM publicacoes WHERE LOWER(status)='publicada'"
+                ).fetchone()[0]
+                materias = conn.execute(
+                    "SELECT COUNT(*) FROM materias"
+                ).fetchone()[0]
+                total = conn.execute("SELECT COUNT(*) FROM pautas").fetchone()[0]
+                return {
+                    "pautas_ativas": int(ativas),
+                    "baixo_score":   int(baixo),
+                    "publicadas":    int(publicadas),
+                    "materias":      int(materias),
+                    "descartadas":   int(descartadas),
+                    "bloqueadas":    int(bloqueadas),
+                    "total":         int(total),
+                }
+            finally:
+                conn.close()
+
+
+# -- Singleton global ----------------------------------------------------------
 _db_instance: Optional[Database] = None
 
 def get_db(caminho: str = "ururau.db") -> Database:
