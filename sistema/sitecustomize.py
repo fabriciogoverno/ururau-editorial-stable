@@ -26,3 +26,13 @@ except Exception as _e_v136_short:
         print(f"[V136][SHORT_OK][AVISO] patch não aplicado: {_e_v136_short}", flush=True)
     except Exception:
         pass
+
+try:
+    from ururau.ui.fila_visual_fix_v136 import instalar_fila_visual_fix_v136
+    if instalar_fila_visual_fix_v136():
+        print("[V136][FILA_VISUAL] patch consolidado de fila instalado.", flush=True)
+except Exception as _e_v136_fila:
+    try:
+        print(f"[V136][FILA_VISUAL][AVISO] patch não aplicado: {_e_v136_fila}", flush=True)
+    except Exception:
+        pass
