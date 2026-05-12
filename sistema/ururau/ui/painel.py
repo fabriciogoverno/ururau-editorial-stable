@@ -3913,10 +3913,68 @@ class PainelUrurau(tk.Tk):
         pauta = self._pauta_sel
         link  = pauta.get("link_origem", "")
         uid   = pauta.get("uid") or pauta.get("_uid", "")
+        # Pauta ja publicada nunca pode ser redigida de novo (publicacao e definitiva).
         if self.db.pauta_ja_publicada(link, uid):
             messagebox.showerror("Bloqueado", "Esta pauta ja foi publicada."); return
+        # fix/auditoria-fila-scrapling-v136 + spec_claudio_reverter_bloqueio:
+        # NAO bloquear cegamente pauta marcada como descartada/bloqueada.
+        # Se ha texto fonte valido, perguntar se reativa. Falha tecnica nao
+        # pode gerar status final (descartada, bloqueada, etc.).
         if self.db.pauta_foi_descartada(link, uid):
-            messagebox.showerror("Bloqueado", "Esta pauta foi descartada."); return
+            try:
+                from ururau.core.source_text_contract import (
+                    source_text_is_valid, source_text_len,
+                )
+                tem_texto = source_text_is_valid(pauta)
+                chars = source_text_len(pauta)
+            except Exception:
+                tem_texto = False
+                chars = 0
+            if tem_texto:
+                if messagebox.askyesno(
+                    "Pauta descartada com texto valido",
+                    "Esta pauta esta marcada como descartada/bloqueada, mas tem "
+                    f"texto da fonte completo ({chars} chars uteis).\n\n"
+                    "Deseja REATIVAR e redigir?"
+                ):
+                    try:
+                        info = self.db.reativar_pauta_para_redacao(
+                            uid, motivo="texto_fonte_valido"
+                        )
+                        pauta["status"] = info.get("novo_status") or "em_redacao"
+                        self._set_status(
+                            f"Pauta reativada (era '{info.get('status_anterior') or '?'}'). Iniciando redacao..."
+                        )
+                    except Exception as _e_reat:
+                        messagebox.showerror(
+                            "Erro ao reativar",
+                            f"Nao foi possivel reativar a pauta: {_e_reat}"
+                        )
+                        return
+                else:
+                    return
+            else:
+                # Sem texto valido: nao bloqueia em definitivo. Tenta reidratar
+                # via redigir_thread (que ja tem etapa_coleta_texto + v105).
+                if not messagebox.askyesno(
+                    "Pauta descartada sem texto",
+                    "Esta pauta esta marcada como descartada e nao tem texto da "
+                    "fonte suficiente.\n\n"
+                    "Deseja tentar reidratar e redigir mesmo assim?"
+                ):
+                    return
+                try:
+                    info = self.db.reativar_pauta_para_redacao(
+                        uid, motivo="usuario_solicitou_reidratacao",
+                        novo_status="redacao_pendente",
+                    )
+                    pauta["status"] = info.get("novo_status") or "redacao_pendente"
+                except Exception as _e_reat2:
+                    messagebox.showerror(
+                        "Erro ao reativar",
+                        f"Nao foi possivel reativar a pauta: {_e_reat2}"
+                    )
+                    return
         similar = self.db.titulo_similar_ja_publicado(pauta.get("titulo_origem", ""))
         if similar:
             if not messagebox.askyesno("Titulo similar",
@@ -3985,9 +4043,31 @@ class PainelUrurau(tk.Tk):
                 self.after(0, lambda: self._set_status("Falha na redacao [XX]"))
             self.after(0, self._carregar_pautas)
         except Exception as e:
+            # spec_claudio_reverter_bloqueio §6: falha tecnica NAO pode gravar
+            # status final (descartada/bloqueada). Classifica e grava status
+            # recuperavel auxiliar via marcar_status_redacao.
             msg = str(e)
-            self.after(0, lambda msg=msg: self._set_status(f"Erro na redacao: {msg}"))
-            self.after(0, lambda msg=msg: messagebox.showerror("Erro na redacao", msg))
+            low = msg.lower()
+            if any(k in low for k in ("api key", "apikey", "auth", "401", "credencial", "credential", "token")):
+                status_redacao = "erro_credencial_ia"
+                msg_user = f"IA nao executada: erro de autenticacao/credencial. Detalhe: {msg[:200]}"
+            elif any(k in low for k in ("model", "modelo", "404", "not found", "no such model")):
+                status_redacao = "erro_modelo_ia"
+                msg_user = f"IA nao executada: modelo invalido ou indisponivel. Detalhe: {msg[:200]}"
+            elif any(k in low for k in ("connection", "timeout", "network", "dns", "ssl", "tls", "503", "502", "rate")):
+                status_redacao = "erro_rede_ia"
+                msg_user = f"IA nao executada: erro de rede/timeout/rate-limit. Detalhe: {msg[:200]}"
+            else:
+                status_redacao = "erro_ia"
+                msg_user = f"IA nao executada: {msg[:300]}"
+            try:
+                uid_for_log = pauta.get("uid") or pauta.get("_uid") or ""
+                if uid_for_log:
+                    self.db.marcar_status_redacao(uid_for_log, status_redacao, detalhe=msg)
+            except Exception as _e_st:
+                print(f"[REDIGIR][AVISO] nao consegui registrar status_redacao: {_e_st}")
+            self.after(0, lambda mu=msg_user: self._set_status(mu))
+            self.after(0, lambda mu=msg_user: messagebox.showerror("Erro na redacao", mu))
 
     # ── Copydesk ──────────────────────────────────────────────────────────────
 

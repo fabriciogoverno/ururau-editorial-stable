@@ -507,7 +507,15 @@ class Database:
                         (uid,)
                     ).fetchone()
                 if row:
-                    return row["status"] in ("rejeitada", "bloqueada", "excluida")
+                    # Lista expandida (spec_claudio_reverter_bloqueio §6) para
+                    # cobrir TODAS as variantes que indicam pauta sem fila ativa.
+                    return str(row["status"] or "").lower() in (
+                        "rejeitada", "rejeitado",
+                        "bloqueada", "bloqueado",
+                        "excluida", "excluido",
+                        "descartada", "descartado",
+                        "reprovada", "reprovado",
+                    )
                 return False
             finally:
                 conn.close()
@@ -1052,6 +1060,125 @@ class Database:
         if incluir_baixo_score:
             out = out + baixo
         return out
+
+    # Status recuperaveis (spec_claudio_reverter_bloqueio_descartada_redigir).
+    # NUNCA mudar uma pauta para esses por falha tecnica: descartada, descartado,
+    # bloqueada, bloqueado, rejeitada, rejeitado, reprovada, reprovado, excluida.
+    # Em vez disso usar: erro_ia, erro_credencial_ia, erro_modelo_ia, erro_rede_ia,
+    # fonte_insuficiente, redacao_pendente.
+    STATUS_RECUPERAVEIS = (
+        "captada", "em_redacao", "pronta_para_redigir", "redacao_pendente",
+        "erro_ia", "erro_credencial_ia", "erro_modelo_ia", "erro_rede_ia",
+        "fonte_insuficiente", "pendente_fonte", "baixo_score",
+    )
+
+    def reativar_pauta_para_redacao(self, uid: str, motivo: str = "",
+                                    novo_status: str = "em_redacao") -> dict:
+        """Reativa uma pauta marcada como descartada/bloqueada para redigir.
+
+        Pre-condicao: chamador ja validou que ha texto fonte valido OU usuario
+        confirmou explicitamente a reativacao (caso baixo_score).
+
+        Acao:
+          - Le status atual (anterior)
+          - Remove o link de links_bloqueados se estiver la
+          - Grava novo_status (default 'em_redacao')
+          - Log de auditoria com motivo e status_anterior
+
+        Nao apaga a pauta, nao toca em dados_json (preserva todo o trabalho
+        anterior). Devolve dict com status anterior e novo para o chamador
+        exibir feedback.
+        """
+        status_anterior = ""
+        link_atual = ""
+        with _lock:
+            conn = self._conectar()
+            try:
+                row = conn.execute(
+                    "SELECT status, link_origem FROM pautas WHERE uid=? LIMIT 1",
+                    (uid,),
+                ).fetchone()
+                if row:
+                    status_anterior = (row["status"] or "").strip()
+                    link_atual = (row["link_origem"] or "").strip()
+            finally:
+                conn.close()
+
+        # Remove bloqueio definitivo por link, se existir.
+        try:
+            if link_atual:
+                with _lock:
+                    conn = self._conectar()
+                    try:
+                        conn.execute(
+                            "DELETE FROM links_bloqueados WHERE link=?",
+                            (link_atual,),
+                        )
+                        conn.commit()
+                    finally:
+                        conn.close()
+                with _cache_lock:
+                    _links_bloqueados_cache.discard(link_atual)
+        except Exception:
+            pass
+
+        # Aplica novo status.
+        self.atualizar_status_pauta(uid, novo_status)
+
+        # Auditoria.
+        try:
+            self.log_auditoria(
+                uid,
+                "pauta_reativada_para_redacao",
+                {
+                    "motivo": motivo or "texto_fonte_valido",
+                    "status_anterior": status_anterior,
+                    "novo_status": novo_status,
+                    "link_origem": link_atual,
+                },
+            )
+        except Exception:
+            pass
+
+        return {
+            "uid": uid,
+            "status_anterior": status_anterior,
+            "novo_status": novo_status,
+            "motivo": motivo,
+            "link_atual": link_atual,
+        }
+
+    def marcar_status_redacao(self, uid: str, status_redacao: str,
+                              detalhe: str = "") -> None:
+        """Grava status auxiliar de redacao SEM mudar o status principal da pauta.
+
+        Usado para refletir falhas de IA/rede/credencial sem tornar a pauta
+        descartada. Vai para o dados_json sob a chave 'status_redacao_v200'.
+        """
+        try:
+            row = self.buscar_pauta(uid)
+            if not row:
+                return
+            p = dict(row)
+            try:
+                extra = json.loads(p.get("dados_json") or "{}")
+                if isinstance(extra, dict):
+                    p.update(extra)
+            except Exception:
+                pass
+            p["status_redacao_v200"] = status_redacao
+            if detalhe:
+                p["status_redacao_detalhe_v200"] = str(detalhe)[:500]
+            p["atualizada_em"] = self._agora()
+            self.salvar_pauta(p)
+            try:
+                self.log_auditoria(uid, "status_redacao_atualizado",
+                                   {"status_redacao": status_redacao,
+                                    "detalhe": detalhe[:200]})
+            except Exception:
+                pass
+        except Exception:
+            pass
 
     def contadores_dashboard(self) -> dict:
         """Contadores oficiais para os indicadores superiores do painel.

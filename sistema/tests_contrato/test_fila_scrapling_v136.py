@@ -56,8 +56,11 @@ def _make_db() -> db_mod.Database:
 def _pauta(uid: str, *, status: str = "captada", titulo: str = "Pauta teste",
            link: str = "", cleaned: str = "", v134: str = "", v105: str = "",
            extras: dict | None = None) -> dict:
+    # salvar_pauta usa pauta["_uid"] como uid persistido; passar tambem
+    # garante que buscar_pauta(uid) ache a pauta depois.
     p: dict = {
         "uid": uid,
+        "_uid": uid,
         "titulo_origem": titulo,
         "link_origem": link or f"https://example.com/{uid}",
         "status": status,
@@ -390,6 +393,128 @@ class TestOrdenacaoTxtOkNoTopo(unittest.TestCase):
         uids = [p["uid"] for p in self.db.query_fila_ativa()]
         self.assertEqual(uids[-1], "bx_com_texto")
         self.assertLess(uids.index("normal_b"), uids.index("normal_a"))
+
+
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 20-26) Redigir nao bloqueia/descarta por falha tecnica
+# spec_claudio_reverter_bloqueio_descartada_redigir §8
+# ────────────────────────────────────────────────────────────────────────────
+class TestRedigirSemDescarte(unittest.TestCase):
+    def setUp(self):
+        self.db = _make_db()
+
+    def test_reativar_pauta_para_redacao_existe_e_atualiza_status(self):
+        uid = "rt1"
+        self.db.salvar_pauta(_pauta(uid, status="descartada", cleaned=_texto_valido(900)))
+        info = self.db.reativar_pauta_para_redacao(uid, motivo="texto_fonte_valido")
+        self.assertEqual(info["status_anterior"], "descartada")
+        self.assertEqual(info["novo_status"], "em_redacao")
+        p = self.db.buscar_pauta(uid)
+        self.assertEqual(p["status"], "em_redacao")
+
+    def test_redigir_nao_bloqueia_descartada_com_texto_valido(self):
+        # Apos reativacao via reativar_pauta_para_redacao, pauta_foi_descartada
+        # deve retornar False (porque o status foi alterado para em_redacao).
+        uid = "rt2"
+        link = "https://exemplo.com/n2"
+        self.db.salvar_pauta(_pauta(uid, status="descartada", link=link,
+                                    cleaned=_texto_valido(900)))
+        self.assertTrue(self.db.pauta_foi_descartada(link, uid))
+        self.db.reativar_pauta_para_redacao(uid, motivo="texto_fonte_valido")
+        self.assertFalse(self.db.pauta_foi_descartada(link, uid),
+                         "apos reativacao, nao deveria mais aparecer como descartada")
+
+    def test_redigir_reativa_descartada_com_texto_valido(self):
+        # Reativacao tambem remove link da lista de bloqueio (se estiver la).
+        uid = "rt3"
+        link = "https://exemplo.com/n3"
+        self.db.salvar_pauta(_pauta(uid, status="descartada", link=link,
+                                    cleaned=_texto_valido(900)))
+        # Coloca o link no bloqueio (simula barreira por link)
+        self.db.bloquear_link(link, uid=uid, titulo="t", motivo="teste")
+        self.assertTrue(self.db.link_esta_bloqueado(link))
+        self.db.reativar_pauta_para_redacao(uid, motivo="texto_fonte_valido")
+        self.assertFalse(self.db.link_esta_bloqueado(link),
+                         "reativacao deveria liberar o link tambem")
+
+    def test_redigir_nao_descarta_quando_ia_falha(self):
+        # Status principal nunca pode virar descartada por falha de IA;
+        # so via marcar_status_redacao (status auxiliar).
+        uid = "rt4"
+        self.db.salvar_pauta(_pauta(uid, status="captada", cleaned=_texto_valido(900)))
+        # Simula erro de IA
+        self.db.marcar_status_redacao(uid, "erro_credencial_ia",
+                                      detalhe="OpenAI 401 invalid api key")
+        p = self.db.buscar_pauta(uid)
+        # Status principal preservado
+        self.assertEqual(p["status"], "captada")
+        # Status auxiliar gravado
+        import json
+        extra = json.loads(p.get("dados_json") or "{}")
+        self.assertEqual(extra.get("status_redacao_v200"), "erro_credencial_ia")
+        self.assertIn("OpenAI 401", extra.get("status_redacao_detalhe_v200") or "")
+
+    def test_redigir_falha_ia_mantem_status_recuperavel(self):
+        # status_redacao_v200 deve ficar entre os recuperaveis.
+        recuperaveis = {"erro_ia", "erro_credencial_ia", "erro_modelo_ia",
+                        "erro_rede_ia", "fonte_insuficiente", "redacao_pendente"}
+        uid = "rt5"
+        self.db.salvar_pauta(_pauta(uid, cleaned=_texto_valido(900)))
+        for st in recuperaveis:
+            self.db.marcar_status_redacao(uid, st)
+            p = self.db.buscar_pauta(uid)
+            import json
+            extra = json.loads(p.get("dados_json") or "{}")
+            self.assertEqual(extra.get("status_redacao_v200"), st)
+            self.assertEqual(p["status"], "captada",
+                             f"status principal mudou apos marcar {st}")
+
+    def test_redigir_baixo_score_com_texto_valido_pede_aprovacao(self):
+        # Pauta baixo_score com texto valido continua marcada como baixo_score
+        # ate o usuario aprovar explicitamente. O contrato eh_lixo_editorial
+        # nao deve classificar como lixo so por estar em baixo_score quando ha
+        # texto e o titulo nao bate em nenhum padrao.
+        uid = "rt6"
+        self.db.salvar_pauta(_pauta(uid, status="baixo_score",
+                                    titulo="Camara aprova projeto de seguranca",
+                                    cleaned=_texto_valido(900)))
+        p = self.db.buscar_pauta(uid)
+        self.assertEqual(p["status"], "baixo_score")
+        # Importante: get_source_text retorna o texto, mas o painel ainda exige
+        # confirmacao do usuario (aprovada_baixo_score) antes de chamar IA.
+        # Esse teste documenta o invariante de DB.
+        import json
+        extra = json.loads(p.get("dados_json") or "{}")
+        self.assertFalse(extra.get("aprovada_baixo_score"))
+        self.assertFalse(extra.get("aprovada"))
+
+    def test_redigir_sem_texto_marca_fonte_insuficiente_nao_descartada(self):
+        # Quando nao ha texto, o status auxiliar correto e fonte_insuficiente,
+        # nunca descartada.
+        uid = "rt7"
+        self.db.salvar_pauta(_pauta(uid, status="captada"))
+        self.db.marcar_status_redacao(uid, "fonte_insuficiente",
+                                      detalhe="V134 0 chars; V105 0/550")
+        p = self.db.buscar_pauta(uid)
+        self.assertEqual(p["status"], "captada")
+        import json
+        extra = json.loads(p.get("dados_json") or "{}")
+        self.assertEqual(extra.get("status_redacao_v200"), "fonte_insuficiente")
+        self.assertNotIn(p["status"], ("descartada", "bloqueada", "excluida"))
+
+    def test_botao_descartar_continua_descartando_quando_usuario_clica_descartar(self):
+        # Importante: o spec proibe descarte por falha tecnica, mas o usuario
+        # ainda pode descartar manualmente via excluir_pauta/marcar_descartada.
+        uid = "rt8"
+        link = "https://exemplo.com/n8"
+        self.db.salvar_pauta(_pauta(uid, status="captada", link=link))
+        self.db.excluir_pauta(uid, link=link, titulo="t")
+        p = self.db.buscar_pauta(uid)
+        self.assertEqual(p["status"], "excluida")
+        # E pauta_foi_descartada confirma.
+        self.assertTrue(self.db.pauta_foi_descartada(link, uid))
 
 
 if __name__ == "__main__":  # pragma: no cover
