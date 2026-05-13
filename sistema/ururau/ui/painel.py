@@ -1677,7 +1677,9 @@ class PainelUrurau(tk.Tk):
             pass
 
     def _auto_coleta_v94(self):
-        """Dispara a coleta progressiva ao abrir o painel, uma única vez."""
+        """Dispara a coleta progressiva ao abrir o painel + re-agenda
+        periodicamente (default 15 min, configuravel por
+        URURAU_AUTO_COLETA_INTERVALO_MIN — 0 desliga periodica)."""
         if self._auto_coleta_v94_iniciada:
             return
         self._auto_coleta_v94_iniciada = True
@@ -1688,6 +1690,53 @@ class PainelUrurau(tk.Tk):
         except Exception as e:
             print(f"[v100] Auto coleta não iniciada: {e}")
             self._set_status(f"v100: auto coleta não iniciada: {e}")
+        # NOVO (13/05/2026): agenda proxima coleta automatica
+        try:
+            self._agendar_proxima_coleta_periodica()
+        except Exception as _e_agend:
+            print(f"[v200] auto-coleta periodica nao agendada: {_e_agend}")
+
+    def _agendar_proxima_coleta_periodica(self):
+        """Re-agenda a si mesma a cada URURAU_AUTO_COLETA_INTERVALO_MIN minutos.
+
+        Default 15 min. Setar 0 desativa coleta periodica (so on-demand
+        e ao abrir o painel).
+        """
+        try:
+            intervalo_min = int(os.getenv("URURAU_AUTO_COLETA_INTERVALO_MIN", "15"))
+        except Exception:
+            intervalo_min = 15
+        if intervalo_min <= 0:
+            print("[v200] auto-coleta periodica DESATIVADA (URURAU_AUTO_COLETA_INTERVALO_MIN=0).")
+            return
+        ms = max(60_000, intervalo_min * 60_000)  # minimo 1 min
+        try:
+            self.after(ms, self._disparar_coleta_periodica)
+            try:
+                from zoneinfo import ZoneInfo
+                from datetime import datetime as _dt, timedelta as _td
+                prox = (_dt.now(ZoneInfo("America/Sao_Paulo"))
+                        + _td(minutes=intervalo_min)).strftime("%H:%M")
+                print(f"[v200] proxima coleta automatica agendada para {prox} "
+                      f"(intervalo {intervalo_min} min).")
+            except Exception:
+                print(f"[v200] proxima coleta em {intervalo_min} min.")
+        except Exception as e:
+            print(f"[v200] falha ao agendar coleta periodica: {e}")
+
+    def _disparar_coleta_periodica(self):
+        """Callback do after() — coleta se nao houver outra em andamento."""
+        try:
+            if getattr(self, "_coleta_em_andamento", False):
+                print("[v200] coleta periodica adiada: ja ha coleta em andamento.")
+            else:
+                print("[v200] coleta periodica disparada.")
+                self._acao_coletar(silencioso=True)
+        except Exception as e:
+            print(f"[v200] coleta periodica falhou: {e}")
+        finally:
+            # Re-agenda a proxima
+            self._agendar_proxima_coleta_periodica()
 
     def _configurar_janela(self):
         self.title("Ururau — Robô Editorial v108")
@@ -3408,7 +3457,16 @@ class PainelUrurau(tk.Tk):
                 except Exception:
                     seq_atual = 1
                 seq_path.write_text(str(seq_atual), encoding="utf-8")
-                hora_lote = time.strftime("%H:%M")
+                # Fix 13/05/2026: hora_lote em horario de Brasilia (timezone
+                # America/Sao_Paulo), independente do relogio do sistema (que
+                # pode estar em UTC em alguns ambientes). Sem isso, o label
+                # mostrava 22:15 quando o usuario via 19:15 em SP.
+                try:
+                    from zoneinfo import ZoneInfo
+                    from datetime import datetime as _dt
+                    hora_lote = _dt.now(ZoneInfo("America/Sao_Paulo")).strftime("%H:%M")
+                except Exception:
+                    hora_lote = time.strftime("%H:%M")
                 self._v123_lote_atual = {
                     "coleta_lote_id_v123": f"coleta_{seq_atual}_{int(time.time())}",
                     "coleta_lote_ordem_v123": seq_atual,

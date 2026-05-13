@@ -24,6 +24,10 @@ set URURAU_WEBP_TARGET_HEIGHT=675
 set URURAU_WEBP_ALLOW_CANVAS=1
 set URURAU_WEBP_PRESERVE_ORIGINAL=1
 set URURAU_WEBP_USE_CWEBP=0
+REM auto-coleta periodica (13/05/2026): 15 min default. 0 desativa.
+set URURAU_AUTO_COLETA_INTERVALO_MIN=15
+REM garantir timezone Brasilia mesmo se sistema estiver em UTC
+set TZ=America/Sao_Paulo
 
 
 echo ==========================================
