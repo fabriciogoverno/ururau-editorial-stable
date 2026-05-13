@@ -550,10 +550,24 @@ def _estrategia_densidade_paragrafos(soup: BeautifulSoup, tentativas: list) -> d
     """
     Estratégia F: article/main/content por densidade de parágrafos.
     Retorna dict com dados extraídos ou None se falhar.
+
+    CORRECAO (fix/extracao-causa-raiz-sem-bloqueio):
+    Antes de aplicar os seletores, REMOVE do soup os elementos
+    contaminadores tipicos (nav, header, footer, aside, .sidebar,
+    .related, .newsletter, .login, ads). Sem isso, sites como RJNEWS
+    em que o <article> ou <main> envolve a pagina inteira retornavam
+    home/listagem/login/rodape misturado como se fosse o artigo.
     """
     metodo = "densidade-paragrafos"
     logger.info("%s tentativa=%d metodo=%s", PREFIX, len(tentativas) + 1, metodo)
     try:
+        # PRE-LIMPEZA: trabalhar em uma copia limpa do soup.
+        try:
+            from ururau.coleta.extracao_limpa_v200 import limpar_html_para_extracao
+            soup_clean = limpar_html_para_extracao(soup) or soup
+        except Exception:
+            soup_clean = soup
+        soup = soup_clean
         melhor_container = None
         melhor_count = 0
         melhor_sel = ""

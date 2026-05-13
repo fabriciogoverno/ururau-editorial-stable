@@ -569,10 +569,10 @@ class FilaPautas(tk.Frame):
             badges.append(("TXT 429", "#78350f", "#fde68a"))
         elif st_fonte == "curta":
             badges.append(("TXT CURTO", "#92400e", "#fde68a"))
-        elif st_fonte == "contaminada":
-            # spec_scrapling_artigo_unico §10: visivel mas nao TXT OK
-            _mot = str(p.get("status_fonte_motivo") or "fonte_contaminada")
-            badges.append((f"FONTE: {_mot.upper()[:14]}", "#7c2d12", "#fecaca"))
+        elif st_fonte in ("contaminada", "aviso_extracao"):
+            # NOVO: aviso amarelo (nao bloqueante). Usuario decide no Redigir.
+            _mot = str(p.get("status_fonte_motivo") or "extracao_com_aviso")
+            badges.append((f"AVISO: {_mot.upper()[:14]}", "#854d0e", "#fef3c7"))
         else:
             badges.append(("TXT Ø", "#7f1d1d", "#fecaca"))
         # spec_webp_upload_ururau §10: badge de status WebP.
@@ -1464,32 +1464,81 @@ class PainelUrurau(tk.Tk):
                     val_unico = {"ok": True, "status": "ok", "estrategia": "v134",
                                  "score_coerencia": 1.0, "multiassunto": False,
                                  "boilerplate": [], "motivo": "validador_off"}
+                # NOVO comportamento (spec do usuario 12/05/2026):
+                # NAO bloquear automaticamente. Em vez disso, tentar EXTRAIR
+                # DE NOVO pelo HTML original com o pipeline limpo
+                # (extracao_limpa_v200). Se houver HTML em cache, usa.
+                # Se a reextracao sair limpa, troca o texto. Se nao houver
+                # melhora, marca aviso_extracao (NAO bloqueante) — Redigir
+                # vai PERGUNTAR ao usuario antes de chamar a IA.
                 if not val_unico["ok"]:
-                    # spec §10: pauta CONTINUA na fila com motivo. NAO grava
-                    # cleaned_source_text. NAO chama IA. Permite Reextrair.
-                    pauta["status_fonte_v105"] = "contaminada"
-                    pauta["status_fonte_motivo"] = val_unico["status"]
-                    pauta["status_fonte_detalhe"] = val_unico["motivo"]
-                    pauta["source_extraction_status"] = val_unico["status"]
-                    pauta["source_extraction_strategy"] = val_unico["estrategia"]
-                    pauta["source_extraction_score"] = val_unico["score_coerencia"]
-                    pauta["source_extraction_reason"] = val_unico["motivo"]
-                    pauta["source_original_url"] = link
-                    pauta["source_final_url"] = can_url
-                    pauta["source_canonical_url"] = (val_unico.get("canonical") or {}).get("canonical_norm") or ""
+                    texto_alternativo = None
+                    estrategia_alt = ""
+                    score_alt = 0.0
                     try:
-                        self.db.salvar_pauta(pauta)
-                    except Exception:
-                        pass
-                    print(
-                        f"[V200][EXTRACAO] FONTE_CONTAMINADA ({val_unico['status']}): "
-                        f"{(pauta.get('titulo_origem') or '')[:80]} | motivo={val_unico['motivo'][:120]}"
-                    )
-                    if atualizar_ui:
-                        self.after(0, lambda v=val_unico: self._set_status(
-                            f"Fonte contaminada: {v['status']} — {v['motivo'][:80]}"
-                        ))
-                    return False
+                        html_cache = (getattr(res, "html", "") or
+                                      getattr(res, "raw_html", "") or
+                                      pauta.get("raw_html") or "")
+                        if html_cache:
+                            from ururau.coleta.extracao_limpa_v200 import (
+                                extrair_article_de_html,
+                            )
+                            alt = extrair_article_de_html(
+                                html_cache,
+                                url_pauta=link,
+                                titulo_pauta=str(pauta.get("titulo_origem") or ""),
+                            )
+                            if alt["ok"]:
+                                # revalida o resultado da reextracao
+                                from ururau.coleta.extrator_artigo_unico import (
+                                    validar_extracao_artigo_unico,
+                                )
+                                alt_val = validar_extracao_artigo_unico(
+                                    alt["texto"],
+                                    titulo_pauta=str(pauta.get("titulo_origem") or ""),
+                                    url_pauta=link,
+                                    canonical_url=can_url, og_url=can_url,
+                                    estrategia=alt["estrategia"],
+                                    min_chars=min_ok,
+                                )
+                                if alt_val["ok"]:
+                                    texto_alternativo = alt["texto"]
+                                    estrategia_alt = alt["estrategia"]
+                                    score_alt = alt["score"]
+                                    val_unico = alt_val
+                                    txt = texto_alternativo
+                                    util = len(texto_alternativo)
+                    except Exception as _e_alt:
+                        print(f"[V200][REEXTRACAO][AVISO] {_e_alt}")
+
+                    if texto_alternativo:
+                        # reextracao deu certo — segue fluxo normal abaixo
+                        print(
+                            f"[V200][REEXTRACAO] OK via {estrategia_alt} "
+                            f"score={score_alt:.2f}: "
+                            f"{(pauta.get('titulo_origem') or '')[:60]}"
+                        )
+                    else:
+                        # NAO bloquear. Marcar aviso e SEGUIR injetando o texto
+                        # (mesmo que esteja com aviso). O Redigir vai perguntar
+                        # antes de chamar a IA. Decisao e do usuario.
+                        pauta["status_fonte_v105"] = "aviso_extracao"
+                        pauta["status_fonte_motivo"] = val_unico["status"]
+                        pauta["status_fonte_detalhe"] = val_unico["motivo"]
+                        pauta["source_extraction_status"] = val_unico["status"]
+                        pauta["source_extraction_strategy"] = val_unico["estrategia"]
+                        pauta["source_extraction_score"] = val_unico["score_coerencia"]
+                        pauta["source_extraction_reason"] = val_unico["motivo"]
+                        pauta["source_original_url"] = link
+                        pauta["source_final_url"] = can_url
+                        pauta["source_canonical_url"] = (val_unico.get("canonical") or {}).get("canonical_norm") or ""
+                        print(
+                            f"[V200][EXTRACAO] AVISO ({val_unico['status']}) — "
+                            "texto preservado, Redigir pedira autorizacao: "
+                            f"{(pauta.get('titulo_origem') or '')[:80]} | "
+                            f"motivo={val_unico['motivo'][:120]}"
+                        )
+                        # SEGUE para o injetar — texto permanece na pauta
                 self._injetar_fonte_longa_v96(pauta, txt, origem=f"v105_{origem}")
                 pauta["status_fonte_v105"] = "ok"
                 pauta["source_extraction_status"] = "ok"
@@ -3969,15 +4018,23 @@ class PainelUrurau(tk.Tk):
                 messagebox.showwarning("Redigir",
                     f"Pauta classificada como lixo editorial ({motivo}). "
                     "Use Aprovar manualmente se quiser forcar o Redigir."); return
-            # spec_scrapling_artigo_unico §10: Redigir NAO roda com fonte contaminada.
-            if str(ps.get("status_fonte_v105") or "").lower() == "contaminada":
-                _mot = str(ps.get("status_fonte_motivo") or "fonte_contaminada")
-                _det = str(ps.get("status_fonte_detalhe") or "")[:120]
-                messagebox.showwarning("Fonte contaminada",
-                    f"A fonte da pauta esta contaminada ({_mot}). {_det}\n\n"
-                    "Use Reextrair fonte (F5/Atualizar dispara nova tentativa) "
-                    "antes de Redigir.")
-                return
+            # NOVO (spec do usuario): nunca bloquear automatico. Se a extracao
+            # gerou aviso, perguntar autorizacao do usuario antes de chamar IA.
+            _st_f = str(ps.get("status_fonte_v105") or "").lower()
+            if _st_f in ("contaminada", "aviso_extracao"):
+                _mot = str(ps.get("status_fonte_motivo") or "extracao_com_aviso")
+                _det = str(ps.get("status_fonte_detalhe") or "")[:160]
+                if not messagebox.askyesno(
+                    "Aviso de extracao",
+                    f"A extracao da fonte sinalizou: {_mot}.\n\n{_det}\n\n"
+                    "Voce pode:\n"
+                    "- Clicar SIM para continuar a redacao mesmo assim "
+                    "(a IA vai usar o texto atual);\n"
+                    "- Clicar NAO para cancelar e usar F5/Atualizar para "
+                    "reextrair a fonte.\n\n"
+                    "Continuar mesmo assim?"
+                ):
+                    return
         except Exception as _e_guard:
             print(f"[REDIGIR][GUARD][AVISO] guard nao aplicado: {_e_guard}")
         # v46.7: permite fallback local, mas avisa claramente no painel.

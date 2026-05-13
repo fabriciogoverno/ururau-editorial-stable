@@ -170,16 +170,21 @@ class TestExtracaoArtigoUnicoRJNEWS(unittest.TestCase):
         self.assertEqual(r2["estrategia"], "jsonld_articlebody")
 
     def test_nao_grava_cleaned_source_text_quando_multiassunto(self):
-        # Verificacao estatica: painel.py grava status_fonte_v105='contaminada'
-        # e NAO chama _injetar_fonte_longa_v96 quando val_unico['ok'] e False.
+        # POLITICA ATUALIZADA (12/05/2026): em vez de bloquear, o hidratador
+        # tenta REEXTRAIR pelo HTML original (extracao_limpa_v200). Se ainda
+        # falhar, marca aviso_extracao (NAO contaminada) e PRESERVA o texto.
+        # Quem decide e o usuario no Redigir.
         painel = (SISTEMA / "ururau" / "ui" / "painel.py").read_text(
             encoding="utf-8", errors="ignore"
         )
-        self.assertIn("status_fonte_v105\"] = \"contaminada\"", painel)
-        # E o injetar so vem DEPOIS do bloco de contaminada (que tem return)
-        idx_contaminada = painel.find("status_fonte_v105\"] = \"contaminada\"")
-        idx_injetar = painel.find("_injetar_fonte_longa_v96(pauta, txt, origem=f\"v105_{origem}\")")
-        self.assertGreater(idx_injetar, idx_contaminada)
+        # Estado novo deve estar presente
+        self.assertIn("aviso_extracao", painel)
+        # Hidratador chama o extrator limpo antes de marcar aviso
+        self.assertIn("extracao_limpa_v200", painel)
+        self.assertIn("extrair_article_de_html", painel)
+        # E o status atual nao mais usa contaminada como bloqueio terminal
+        # (o status pode existir mas o caminho passa por askyesno).
+        self.assertIn("REEXTRACAO", painel)
 
     def test_pauta_contaminada_permanece_na_fila(self):
         # painel marca status auxiliar mas mantem a pauta utilizavel (sem
@@ -196,11 +201,14 @@ class TestExtracaoArtigoUnicoRJNEWS(unittest.TestCase):
             self.assertNotIn(proibido, bloco, f"trecho proibido '{proibido}' apos contaminada")
 
     def test_redigir_bloqueia_fonte_contaminada_sem_descartar(self):
+        # POLITICA ATUALIZADA: Redigir nao bloqueia automaticamente.
+        # Em vez disso, mostra messagebox.askyesno e pede autorizacao.
         painel = (SISTEMA / "ururau" / "ui" / "painel.py").read_text(
             encoding="utf-8", errors="ignore"
         )
-        self.assertIn("A fonte da pauta esta contaminada", painel)
-        self.assertIn("Reextrair fonte", painel)
+        self.assertIn("Aviso de extracao", painel)
+        self.assertIn("Continuar mesmo assim", painel)
+        self.assertIn("askyesno", painel)
 
     def test_detecta_titulos_relacionados_no_meio_da_fonte(self):
         # texto com 3+ titulos curtos isolados intercalados
