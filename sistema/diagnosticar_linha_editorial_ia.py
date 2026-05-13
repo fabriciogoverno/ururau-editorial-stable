@@ -18,6 +18,9 @@ def main() -> dict:
     out: dict = {
         "linha_editorial_encontrada": False,
         "arquivos_auditados": [],
+        "regras_duplicadas": 0,
+        "regras_conflitantes": 0,
+        "boilerplate_filter_ativo": False,
         "redigir_usa_linha_editorial": False,
         "copydesk_usa_linha_editorial": False,
         "termos_proibidos_total": 0,
@@ -61,6 +64,26 @@ def main() -> dict:
         out["copydesk_usa_linha_editorial"] = True  # build_prompt_copydesk e usado
     except Exception as e:
         out["erro_ia_service"] = str(e)
+
+    # Boilerplate filter ativo?
+    try:
+        from ururau.editorial import validador_boilerplate
+        out["boilerplate_filter_ativo"] = hasattr(
+            validador_boilerplate, "limpar_boilerplate_fonte"
+        )
+        out["arquivos_auditados"].append(validador_boilerplate.__file__)
+    except Exception:
+        pass
+
+    # Duplicacoes e conflitos: motor_gpt_spec_v2 deve delegar para o canonico.
+    try:
+        from ururau.editorial.motor_gpt_spec_v2 import TERMOS_PROIBIDOS as _TP_motor
+        from ururau.editorial.regras_editoriais_ururau import TERMOS_PROIBIDOS_UNIFICADOS as _TP_can
+        if list(_TP_motor) != list(_TP_can):
+            out["regras_duplicadas"] += 1
+            out["regras_conflitantes"] += 1
+    except Exception:
+        pass
 
     print(json.dumps(out, ensure_ascii=False, indent=2))
     return out

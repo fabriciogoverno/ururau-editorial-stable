@@ -92,4 +92,77 @@ def auditar_copydesk(pacote: dict | None, fonte_texto: str,
     }
 
 
-__all__ = ["auditar_copydesk"]
+__all__ = ["auditar_copydesk", "validar_tudo_antes_de_salvar"]
+
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pipeline canonico de validacao final (spec §15)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def validar_tudo_antes_de_salvar(pacote: dict | None, fonte_texto: str,
+                                 *, palavra_chave: str = "",
+                                 exigir_paragrafos: bool = True) -> dict:
+    """Pipeline obrigatorio antes de salvar materia como pronta.
+
+    Roda em ordem:
+      1. validar_fonte_limpa  (boilerplate critico na fonte -> bloqueia)
+      2. validar_json_editorial (campos minimos do pacote)
+      3. validar_factualidade (datas, aspas, nomes, valores)
+      4. validar_cronologia  (datas do gerado existem na fonte)
+      5. validar_seo / paragrafos / travessao / termos
+      6. validar_boilerplate no corpo da materia gerada
+
+    Devolve:
+        {
+          "ok": bool,
+          "etapas": {nome: subaud},
+          "primeiro_motivo_bloqueio": str | "",
+          "problemas": list[str],
+        }
+    """
+    try:
+        from .validador_boilerplate import (
+            fonte_tem_boilerplate_critico, detectar_boilerplate,
+        )
+    except Exception:
+        def fonte_tem_boilerplate_critico(t, **kw): return False
+        def detectar_boilerplate(t): return []
+
+    etapas: dict = {}
+    problemas: list[str] = []
+    motivo = ""
+
+    # 1) fonte com boilerplate critico
+    if fonte_tem_boilerplate_critico(fonte_texto or ""):
+        etapas["fonte_limpa"] = {"ok": False, "motivo": "FONTE_COM_BOILERPLATE_CRITICO"}
+        problemas.append("FONTE_COM_BOILERPLATE_CRITICO")
+        motivo = motivo or "FONTE_COM_BOILERPLATE_CRITICO"
+    else:
+        etapas["fonte_limpa"] = {"ok": True}
+
+    # 2-5) auditoria combinada (factual + seo + termos)
+    aud = auditar_copydesk(pacote or {}, fonte_texto or "",
+                            palavra_chave=palavra_chave)
+    etapas["copydesk"] = aud
+    if not aud["copydesk_ok"]:
+        problemas.extend(aud["problemas"])
+        motivo = motivo or (aud.get("motivo_bloqueio") or "COPYDESK_REPROVADO")
+
+    # 6) boilerplate no corpo gerado
+    corpo = str((pacote or {}).get("corpo_materia") or "")
+    bp_corpo = detectar_boilerplate(corpo)
+    etapas["boilerplate_corpo"] = {
+        "ok": not bp_corpo,
+        "padroes": bp_corpo,
+    }
+    if bp_corpo:
+        problemas.append("BOILERPLATE_NA_MATERIA:" + ",".join(bp_corpo[:5]))
+        motivo = motivo or "BOILERPLATE_NA_MATERIA"
+
+    return {
+        "ok": not problemas,
+        "etapas": etapas,
+        "primeiro_motivo_bloqueio": motivo,
+        "problemas": problemas,
+    }

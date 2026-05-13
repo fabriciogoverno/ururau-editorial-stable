@@ -272,6 +272,24 @@ def executar_ia_redigir(pauta: dict, texto_fonte: str,
     o resultado tras res['auditoria_copydesk'] com o relatorio.
     """
     cfg = carregar_config_ia()
+    # spec_auditoria_global §12: limpar boilerplate ANTES da IA, sem perder o
+    # texto original (mantemos cache para auditoria pos).
+    texto_fonte_original = texto_fonte
+    try:
+        from ururau.editorial.validador_boilerplate import (
+            limpar_boilerplate_fonte, fonte_tem_boilerplate_critico,
+        )
+        if fonte_tem_boilerplate_critico(texto_fonte or ""):
+            # bloqueio explicito antes da IA
+            base = _resposta_base("redigir", cfg)
+            base["erro_tipo"] = "FONTE_COM_BOILERPLATE_CRITICO"
+            base["erro_msg"] = "Fonte e majoritariamente boilerplate (login/newsletter/publicidade). Recoletar."
+            base["publicar_bloqueado"] = True
+            return base
+        _limp = limpar_boilerplate_fonte(texto_fonte or "")
+        texto_fonte = _limp["texto_limpo"] or (texto_fonte or "")
+    except Exception:
+        pass
     # detecta editoria para regras especificas no prompt
     try:
         from ururau.editorial.regras_editoriais_ururau import categorizar_editoria
@@ -293,11 +311,17 @@ def executar_ia_redigir(pauta: dict, texto_fonte: str,
     # Auditoria pos-IA + regeneracao opcional.
     if res.get("ok") and isinstance(res.get("conteudo"), dict):
         try:
-            from ururau.editorial.validador_copydesk import auditar_copydesk
+            from ururau.editorial.validador_copydesk import (
+                auditar_copydesk, validar_tudo_antes_de_salvar,
+            )
             from ururau.editorial.linha_editorial_ururau import (
                 build_prompt_regeneracao,
             )
+            # Pipeline completo (factual + seo + termos + boilerplate na materia)
+            pipeline = validar_tudo_antes_de_salvar(res["conteudo"], texto_fonte or "")
             aud = auditar_copydesk(res["conteudo"], texto_fonte or "")
+            aud["pipeline"] = pipeline
+            aud["copydesk_ok"] = aud["copydesk_ok"] and pipeline["ok"]
             res["auditoria_copydesk"] = aud
             if not aud["copydesk_ok"]:
                 # Tenta regenerar UMA vez.
