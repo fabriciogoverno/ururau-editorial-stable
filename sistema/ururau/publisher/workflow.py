@@ -665,6 +665,32 @@ class WorkflowPublicacao:
                 self._log(uid, 'canal_final_v47_23', f'Canal final: {canal_v4723}', sucesso=True)
             except Exception as _e_canal_v4723:
                 self._log(uid, 'canal_final_v47_23', f'Falha ao corrigir canal: {_e_canal_v4723}', sucesso=False)
+            # Pos-processamento SEO/redacao apos gerar_materia (caminho legado).
+            try:
+                from ururau.editorial.pos_processador_redacao import (
+                    aplicar_metricas_seo_google,
+                )
+                md_dict = materia.to_dict() if hasattr(materia, "to_dict") else dict(materia)
+                fonte_text = (pauta.get("cleaned_source_text")
+                              or pauta.get("texto_fonte_v134")
+                              or pauta.get("texto_fonte") or "")
+                pp = aplicar_metricas_seo_google(md_dict, fonte_texto=fonte_text)
+                pacote = pp["pacote"]
+                # aplica de volta os campos corrigidos no objeto materia
+                for k in ("titulo_seo", "titulo_capa", "subtitulo_curto",
+                          "legenda_curta", "retranca", "tags", "fonte",
+                          "credito_foto", "corpo_materia"):
+                    if k in pacote and hasattr(materia, k):
+                        setattr(materia, k, pacote[k])
+                if pacote.get("corpo_materia") and hasattr(materia, "conteudo"):
+                    materia.conteudo = pacote["corpo_materia"]
+                if pp["correcoes"]:
+                    self._log(uid, "pos_processador",
+                              f"correcoes: {', '.join(pp['correcoes'])}",
+                              sucesso=True)
+            except Exception as _e_pp:
+                self._log(uid, "pos_processador",
+                          f"Falha: {_e_pp}", sucesso=False)
             # v96: se a redação gerou corpo curto/um parágrafo apesar de fonte
             # longa, reescreve imediatamente com o mesmo regenerador do Copydesk.
             try:
