@@ -68,6 +68,16 @@ _PADROES_INLINE: tuple[tuple[re.Pattern, str], ...] = (
     (re.compile(r"voce gostou do conteudo\?", re.I), "engagement_cta"),
     (re.compile(r"compartilhe esta materia", re.I), "compartilhe_inline"),
     (re.compile(r"siga.*no (?:instagram|facebook|twitter|x|telegram|whatsapp|threads)", re.I), "social_inline"),
+    # spec_scrapling_artigo_unico §8.3 — padroes RJNEWS / portais
+    (re.compile(r"para recuperar a senha", re.I), "recuperar_senha"),
+    (re.compile(r"digite seu e[\-\s]?mail", re.I), "digite_email"),
+    (re.compile(r"enviaremos um c(?:o|ó)digo", re.I), "envia_codigo"),
+    (re.compile(r"participe ativamente do (?:nosso )?portal", re.I), "participe_portal"),
+    (re.compile(r"comente,?\s*d(?:e|ê)\s+e\s+receba\s+likes", re.I), "comente_receba_likes"),
+    (re.compile(r"marque (?:nosso )?portal como fonte preferencial", re.I), "fonte_preferencial"),
+    (re.compile(r"todos os direitos reservados", re.I), "direitos_reservados"),
+    (re.compile(r"receba as principais not(?:i|í)cias em seu e[\-\s]?mail", re.I), "receba_principais_noticias"),
+    (re.compile(r"©\s*\d{4}", re.I), "copyright_year"),
 )
 
 
