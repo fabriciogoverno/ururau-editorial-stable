@@ -154,9 +154,11 @@ class TestIaServiceContratoRetorno(unittest.TestCase):
 # ──────────────────────────── prompts ──────────────────────────────────
 class TestPromptsObrigatorios(unittest.TestCase):
     def test_prompt_contem_regras_editoriais(self):
-        prompt = ia_service._build_prompt_sistema()
-        for chave in ("nao inventar", "investiga", "titulo_seo", "JSON",
-                       "Termos proibidos"):
+        # Agora o prompt e montado por linha_editorial_ururau.build_prompt_redigir.
+        # Verifica chaves estaveis da nova base.
+        prompt = ia_service._build_prompt_sistema(pauta={"titulo_origem":"x"}, fonte_texto="x")
+        for chave in ("nao invente", "investiga", "titulo_seo", "JSON",
+                       "termos proibidos", "anti-alucinacao"):
             self.assertIn(chave.lower(), prompt.lower(),
                           f"prompt nao menciona regra: {chave}")
 
