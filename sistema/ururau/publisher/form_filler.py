@@ -684,21 +684,73 @@ async def preencher_e_publicar(
         await _preencher_campo(page, "creditosfoto", credito_img)
 
         # ── Imagem (upload do arquivo) ────────────────────────────────────────
+        # spec_webp_upload_ururau: TODO upload e WebP <= 80 KB.
+        # JPG/PNG e bloqueado; o conversor preserva o original e gera um .webp.
         if imagem and imagem.caminho_imagem:
             p = Path(imagem.caminho_imagem)
             if not p.exists():
                 p = Path("imagens") / p.name
             if p.exists():
                 try:
-                    el_file = await page.query_selector('input[name="img"], input[type="file"]')
+                    from ururau.imaging.webp_converter import (
+                        converter_para_webp_ururau, validar_webp_ururau,
+                        DEFAULT_MAX_BYTES,
+                    )
+                    pauta_uid = (getattr(materia, "uid", "") or getattr(materia, "_uid", "")
+                                 or getattr(materia, "pauta_uid", "") or "")
+                    out_dir = Path("imagens") / "webp"
+                    conv = converter_para_webp_ururau(
+                        p, output_dir=out_dir,
+                        pauta_uid=pauta_uid,
+                        preserve_original=True,
+                    )
+                    if not conv.get("ok"):
+                        # spec §3.6: nao fingir sucesso; nao publicar com JPG.
+                        msg = (f"[FORM][WEBP] BLOQUEADO: conversao WebP falhou "
+                               f"({conv.get('erro_tipo')}): {conv.get('erro')}")
+                        print(msg)
+                        # tenta espelhar erro no objeto da pauta para o painel ler
+                        try:
+                            setattr(imagem, "imagem_webp_status", "falhou")
+                            setattr(imagem, "imagem_webp_erro", conv.get("erro_tipo") or "")
+                        except Exception:
+                            pass
+                        raise RuntimeError(
+                            f"WEBP_OBRIGATORIO_FALHOU: {conv.get('erro_tipo')}"
+                        )
+                    webp_path = Path(conv["output_path"])
+                    # double-check antes de subir
+                    val = validar_webp_ururau(webp_path)
+                    if not val.get("ok"):
+                        raise RuntimeError(
+                            f"WEBP_VALIDACAO_FALHOU: {val.get('erro')}"
+                        )
+                    try:
+                        setattr(imagem, "imagem_webp_path", str(webp_path))
+                        setattr(imagem, "imagem_webp_size", conv["size_bytes"])
+                        setattr(imagem, "imagem_webp_width", conv["width"])
+                        setattr(imagem, "imagem_webp_height", conv["height"])
+                        setattr(imagem, "imagem_webp_quality", conv["quality"])
+                        setattr(imagem, "imagem_webp_mime", "image/webp")
+                        setattr(imagem, "imagem_webp_status", "ok")
+                        setattr(imagem, "imagem_webp_method", conv["method"])
+                    except Exception:
+                        pass
+
+                    el_file = await page.query_selector(
+                        'input[name="img"], input[type="file"]'
+                    )
                     if el_file:
-                        await el_file.set_input_files(str(p))
+                        await el_file.set_input_files(str(webp_path))
                         await page.wait_for_timeout(1500)
-                        print(f"[FORM] Imagem: {p.name}")
+                        print(f"[FORM][WEBP] OK {conv['size_bytes']} B "
+                              f"({conv['width']}x{conv['height']} q={conv['quality']} "
+                              f"method={conv['method']}): {webp_path.name}")
                     else:
                         print("[FORM] Input de imagem não encontrado.")
                 except Exception as e:
-                    print(f"[FORM] Upload imagem: {e}")
+                    print(f"[FORM][WEBP] Upload imagem: {e}")
+                    raise
             else:
                 print(f"[FORM] Imagem não encontrada: {imagem.caminho_imagem}")
 

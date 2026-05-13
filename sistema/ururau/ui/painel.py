@@ -571,6 +571,20 @@ class FilaPautas(tk.Frame):
             badges.append(("TXT CURTO", "#92400e", "#fde68a"))
         else:
             badges.append(("TXT Ø", "#7f1d1d", "#fecaca"))
+        # spec_webp_upload_ururau §10: badge de status WebP.
+        _webp_status = str(p.get("imagem_webp_status") or "").lower()
+        _webp_size = p.get("imagem_webp_size") or 0
+        if _webp_status == "ok" and _webp_size:
+            try:
+                _kb = max(1, int(_webp_size) // 1024)
+            except Exception:
+                _kb = "?"
+            badges.append((f"WebP: OK {_kb}KB", "#14532d", "#86efac"))
+        elif _webp_status == "falhou":
+            badges.append(("WebP: falhou", "#7f1d1d", "#fecaca"))
+        elif _webp_status in ("pendente", ""):
+            if p.get("imagem_caminho") or p.get("imagem_url"):
+                badges.append(("WebP: pendente", "#1e3a5f", "#7dd3fc"))
         sc_risco = p.get("score_risco", 0) or 0
         if sc_risco >= LIMIAR_RISCO_MAXIMO:
             badges.append(("RISCO", COR_VERMELHO, "white"))
@@ -1071,16 +1085,29 @@ class PainelUrurau(tk.Tk):
         return str(pauta.get("uid") or pauta.get("_uid") or "")
 
     def _v105_texto_fonte_util(self, pauta: dict) -> tuple[bool, int, str]:
-        texto = (
-            pauta.get("cleaned_source_text") or pauta.get("fonte_aba_texto") or
-            pauta.get("leitura_fonte_texto") or pauta.get("dossie") or pauta.get("texto_fonte") or ""
-        )
+        # fix/auditoria-fila-scrapling-v136: contrato oficial de texto da fonte.
+        # Cadeia canonica: cleaned_source_text -> v134 -> texto_fonte -> v105 -> raw -> dossie.
+        # Nao sobrescreve texto valido com vazio (regra garantida em set_source_text).
         try:
-            from ururau.coleta.limpeza_texto_v81 import texto_util_chars
-            util = int(texto_util_chars(str(texto)))
+            from ururau.core.source_text_contract import get_source_text, texto_util_chars as _tuc, min_valid as _mv
+            texto = get_source_text(pauta) or pauta.get("fonte_aba_texto") or pauta.get("leitura_fonte_texto") or ""
+            util = int(_tuc(str(texto)))
+            # Respeita o minimo do projeto (default 900 nesta base) se for maior que 550.
+            minimo = max(int(_mv()), int(self._v105_min_chars_fonte()))
+            return util >= minimo, util, str(texto or "")
         except Exception:
-            util = len(str(texto or "").strip())
-        return util >= self._v105_min_chars_fonte(), util, str(texto or "")
+            # Fallback inline (modo defensivo): preserva o comportamento anterior
+            # caso o contrato nao esteja disponivel por algum motivo de import.
+            texto = (
+                pauta.get("cleaned_source_text") or pauta.get("fonte_aba_texto") or
+                pauta.get("leitura_fonte_texto") or pauta.get("dossie") or pauta.get("texto_fonte") or ""
+            )
+            try:
+                from ururau.coleta.limpeza_texto_v81 import texto_util_chars
+                util = int(texto_util_chars(str(texto)))
+            except Exception:
+                util = len(str(texto or "").strip())
+            return util >= self._v105_min_chars_fonte(), util, str(texto or "")
 
     def _v105_parse_pauta_db(self, row: dict) -> dict:
         d = dict(row or {})
@@ -1109,8 +1136,17 @@ class PainelUrurau(tk.Tk):
         if self._hidratar_worker_started:
             return
         self._hidratar_worker_started = True
-        threading.Thread(target=self._v105_hidratador_loop, daemon=True).start()
-        print("[v105][FONTE] Hidratador persistente iniciado; texto tem prioridade sobre imagem.")
+        # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+        # hidratador paralelo. Default 4 workers (configuravel via URURAU_V105_WORKERS).
+        # Cada worker tem seu proprio loop; respeitam o cooldown por dominio via
+        # _hidratar_inflight + _hidratar_domain_cooldown (atomicos sob _hidratar_lock).
+        try:
+            n_workers = max(1, int(os.getenv("URURAU_V105_WORKERS", "4") or "4"))
+        except Exception:
+            n_workers = 4
+        for i in range(n_workers):
+            threading.Thread(target=self._v105_hidratador_loop, daemon=True, name=f"v105_worker_{i+1}").start()
+        print(f"[v105][FONTE] Hidratador persistente iniciado com {n_workers} worker(s); texto tem prioridade sobre imagem.", flush=True)
 
     # ── Imagem automática em baixa prioridade (v106) ───────────────────────────
 
@@ -1346,7 +1382,7 @@ class PainelUrurau(tk.Tk):
                 if ok:
                     continue
                 self._v105_hidratar_pauta(pauta, origem=job.get("motivo") or "worker", atualizar_ui=False)
-                time.sleep(float(os.getenv("URURAU_V105_INTERVALO_ENTRE_FONTES", "1.2") or "1.2"))
+                time.sleep(float(os.getenv("URURAU_V105_INTERVALO_ENTRE_FONTES", "0.4") or "0.4"))
             except Exception as e:
                 print(f"[v105][FONTE] erro no hidratador: {e}")
                 time.sleep(2.0)
@@ -1411,6 +1447,21 @@ class PainelUrurau(tk.Tk):
                 except Exception:
                     pass
                 print(f"[v106][FONTE] OK {util} chars ({origem}): {(pauta.get('titulo_origem') or '')[:80]}")
+                # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+                # ao terminar uma hidratacao com sucesso, agenda re-aplicacao do
+                # filtro/ordem para que a pauta suba para o grupo "TXT OK" no topo.
+                # Debounce de 800ms para nao redesenhar a UI em rajada.
+                try:
+                    if hasattr(self, "_v200_refresh_debounce_after_id"):
+                        try:
+                            self.after_cancel(self._v200_refresh_debounce_after_id)
+                        except Exception:
+                            pass
+                    self._v200_refresh_debounce_after_id = self.after(
+                        800, lambda: self._carregar_pautas(forcar=False)
+                    )
+                except Exception as _e_v200:
+                    print(f"[FILA][CANONICO][AVISO] refresh pos-hidratacao falhou: {_e_v200}")
                 # v106: depois do texto OK, agenda imagem automaticamente em baixa prioridade.
                 try:
                     img_url = str(getattr(res, "imagem_url", "") or "").strip()
@@ -1442,6 +1493,21 @@ class PainelUrurau(tk.Tk):
             pauta["fonte_erro_v105"] = erro[:300]
             try:
                 self.db.salvar_pauta(pauta)
+            except Exception:
+                pass
+            # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+            # tambem refresh debounceado em FALHA, para a bolinha mostrar status
+            # atualizado (TXT CURTO / TXT 429 / TXT Ø). Debounce 1.5s para nao
+            # disparar redraw a cada falha. Compartilha o mesmo after_id do OK.
+            try:
+                if hasattr(self, "_v200_refresh_debounce_after_id"):
+                    try:
+                        self.after_cancel(self._v200_refresh_debounce_after_id)
+                    except Exception:
+                        pass
+                self._v200_refresh_debounce_after_id = self.after(
+                    1500, lambda: self._carregar_pautas(forcar=False)
+                )
             except Exception:
                 pass
             # v47.4: texto completo é prioridade editorial. A tentativa normal sobe para 12,
@@ -1718,10 +1784,20 @@ class PainelUrurau(tk.Tk):
     def _atualizar_stats_async(self):
         def _t():
             try:
-                s = self.db.estatisticas()
-                txt = (f"Pautas: {s['total_pautas']}  |  "
-                       f"Publicadas: {s['total_publicadas']}  |  "
-                       f"Materias: {s['total_materias']}")
+                # fix/auditoria-fila-scrapling-v136: usa contadores oficiais
+                # (excluem baixo_score de "Pautas" e separam descartadas/bloqueadas).
+                # Fallback para estatisticas() se a versao do DB nao tiver os contadores.
+                try:
+                    c = self.db.contadores_dashboard()
+                    txt = (f"Pautas: {c['pautas_ativas']}  |  "
+                           f"Publicadas: {c['publicadas']}  |  "
+                           f"Materias: {c['materias']}  |  "
+                           f"Baixo score: {c['baixo_score']}")
+                except Exception:
+                    s = self.db.estatisticas()
+                    txt = (f"Pautas: {s['total_pautas']}  |  "
+                           f"Publicadas: {s['total_publicadas']}  |  "
+                           f"Materias: {s['total_materias']}")
                 def _update_stats_safe():
                     try:
                         if hasattr(self, "_lbl_stats") and self._lbl_stats.winfo_exists():
@@ -2140,24 +2216,36 @@ class PainelUrurau(tk.Tk):
 
     def _carregar_thread(self):
         try:
-            conn = self.db._conectar()
+            # fix/auditoria-fila-scrapling-v136: usa query oficial em vez de SQL
+            # solto. Mantem ordenacao por captacao DESC, exclui publicadas/descartadas/
+            # bloqueadas, e ja desempacota dados_json para o cache.
             try:
-                rows = conn.execute(
-                    "SELECT uid, titulo_origem, status, urgente, "
-                    "score_editorial, dados_json, fonte_nome, "
-                    "captada_em, atualizada_em "
-                    "FROM pautas ORDER BY atualizada_em DESC LIMIT 500"
-                ).fetchall()
-                cache = []
-                for row in rows:
-                    d = dict(row)
-                    try:
-                        extra = json.loads(d.get("dados_json") or "{}")
-                        d.update(extra)
-                    except Exception:
-                        pass
-                    cache.append(d)
-
+                cache = self.db.query_fila_ativa(incluir_baixo_score=True, limite=500)
+            except Exception as _e_qfa:
+                print(f"[FILA][CANONICO][AVISO] query_fila_ativa indisponivel ({_e_qfa}); usando fallback legado.")
+                conn = self.db._conectar()
+                try:
+                    rows = conn.execute(
+                        "SELECT uid, titulo_origem, status, urgente, "
+                        "score_editorial, dados_json, fonte_nome, "
+                        "captada_em, atualizada_em "
+                        "FROM pautas ORDER BY atualizada_em DESC LIMIT 500"
+                    ).fetchall()
+                    cache = []
+                    for row in rows:
+                        d = dict(row)
+                        try:
+                            extra = json.loads(d.get("dados_json") or "{}")
+                            d.update(extra)
+                        except Exception:
+                            pass
+                        cache.append(d)
+                finally:
+                    conn.close()
+            # fix/auditoria-fila-scrapling-v136: a conexao SQLite vivia aqui apenas
+            # para a query bruta. Agora a query oficial roda em query_fila_ativa.
+            # Mantemos try/finally para nao quebrar a indentacao do bloco janela.
+            try:
                 # v99: a fila mostra somente matérias publicadas dentro da janela
                 # editorial configurada, em horário de Brasília, mais recentes primeiro.
                 # Não usa captada_em para aprovar pauta antiga: a regra é publicação na fonte.
@@ -2202,21 +2290,37 @@ class PainelUrurau(tk.Tk):
 
                 cache.sort(key=_chave_data, reverse=True)
             finally:
-                conn.close()
+                pass  # conn ja nao e necessario; query_fila_ativa fechou.
 
             def _ok():
                 self._pautas_cache    = cache
                 self._carregando_lista = False
                 self._aplicar_filtro()
-                # v105: toda pauta recém-listada entra na fila de hidratação textual, mesmo sem clique.
-                for _p in cache[: self._env_int("URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH", 50)]:
-                    self._v105_agendar_hidratacao(_p, prioridade=False, motivo="refresh_fila")
+                # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
+                # enfileirar TODAS as pautas sem texto valido. Antes, o default era
+                # cache[:50] e o usuario relatou que so as primeiras 50 hidratavam
+                # sozinhas; ele precisava clicar nas demais. Agora hidrata em rajadas
+                # mas continua respeitando o cooldown por dominio do _v105_hidratar_pauta.
+                limite = self._env_int("URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH", 999)
+                count_pendentes = 0
+                for _p in cache:
                     try:
                         _ok_txt, _util_txt, _ = self._v105_texto_fonte_util(_p)
-                        if _ok_txt and not self._v106_imagem_ok(_p):
-                            self._v106_agendar_imagem(_p, motivo="refresh_fila_texto_ok", delay=3.0)
                     except Exception:
-                        pass
+                        _ok_txt = False
+                    if not _ok_txt:
+                        if count_pendentes >= limite:
+                            break
+                        count_pendentes += 1
+                        self._v105_agendar_hidratacao(_p, prioridade=False, motivo="refresh_fila")
+                    else:
+                        try:
+                            if not self._v106_imagem_ok(_p):
+                                self._v106_agendar_imagem(_p, motivo="refresh_fila_texto_ok", delay=3.0)
+                        except Exception:
+                            pass
+                if count_pendentes:
+                    print(f"[FILA][CANONICO] enfileiradas {count_pendentes} pauta(s) sem texto valido para hidratacao automatica.")
                 self._atualizar_stats_async()
                 self._set_status(f"{len(cache)} pautas na fila — ordem: mais recentes primeiro; texto completo em hidratação persistente; imagem depois do texto. (F5/Atualizar recarrega e aplica fontes)")
             self.after(0, _ok)
@@ -3786,6 +3890,31 @@ class PainelUrurau(tk.Tk):
     def _acao_redigir(self):
         if not self._pauta_sel:
             messagebox.showwarning("Redigir", "Selecione uma pauta primeiro."); return
+        # fix/auditoria-fila-scrapling-v136: guard oficial do Redigir.
+        # Bloqueia: separador, publicada/descartada/bloqueada/reprovada,
+        # baixo_score nao aprovado, e item de "lixo editorial" (gols/charge/etc).
+        # A validacao de >=550 chars uteis acontece dentro de _redigir_thread,
+        # apos rehidratacao explicita; aqui filtramos o que NUNCA deve passar.
+        try:
+            from ururau.core.source_text_contract import eh_lixo_editorial
+            ps = dict(self._pauta_sel or {})
+            if ps.get("_separador_coleta_v123") or str(ps.get("status") or "").lower() == "_separador":
+                messagebox.showwarning("Redigir", "Item selecionado e um separador visual, nao uma pauta."); return
+            st = str(ps.get("status") or "").lower()
+            if st in {"publicada","publicado","descartada","descartado","rejeitada","rejeitado",
+                      "bloqueada","bloqueado","reprovada","reprovado","excluida","excluido"}:
+                messagebox.showwarning("Redigir", f"Pauta esta com status '{st}' e nao pode ser redigida."); return
+            if st == "baixo_score" and not (ps.get("aprovada_baixo_score") or ps.get("aprovada")):
+                messagebox.showwarning("Redigir",
+                    "Esta pauta esta em baixo score e ainda nao foi aprovada. "
+                    "Use Aprovar antes de Redigir."); return
+            lixo, motivo = eh_lixo_editorial(ps)
+            if lixo and motivo not in {"baixo_score", "quarentena"}:
+                messagebox.showwarning("Redigir",
+                    f"Pauta classificada como lixo editorial ({motivo}). "
+                    "Use Aprovar manualmente se quiser forcar o Redigir."); return
+        except Exception as _e_guard:
+            print(f"[REDIGIR][GUARD][AVISO] guard nao aplicado: {_e_guard}")
         # v46.7: permite fallback local, mas avisa claramente no painel.
         if not self.client:
             aviso = "IA OpenAI indisponível: redigindo por fallback local e marcando diagnóstico."
@@ -3798,10 +3927,68 @@ class PainelUrurau(tk.Tk):
         pauta = self._pauta_sel
         link  = pauta.get("link_origem", "")
         uid   = pauta.get("uid") or pauta.get("_uid", "")
+        # Pauta ja publicada nunca pode ser redigida de novo (publicacao e definitiva).
         if self.db.pauta_ja_publicada(link, uid):
             messagebox.showerror("Bloqueado", "Esta pauta ja foi publicada."); return
+        # fix/auditoria-fila-scrapling-v136 + spec_claudio_reverter_bloqueio:
+        # NAO bloquear cegamente pauta marcada como descartada/bloqueada.
+        # Se ha texto fonte valido, perguntar se reativa. Falha tecnica nao
+        # pode gerar status final (descartada, bloqueada, etc.).
         if self.db.pauta_foi_descartada(link, uid):
-            messagebox.showerror("Bloqueado", "Esta pauta foi descartada."); return
+            try:
+                from ururau.core.source_text_contract import (
+                    source_text_is_valid, source_text_len,
+                )
+                tem_texto = source_text_is_valid(pauta)
+                chars = source_text_len(pauta)
+            except Exception:
+                tem_texto = False
+                chars = 0
+            if tem_texto:
+                if messagebox.askyesno(
+                    "Pauta descartada com texto valido",
+                    "Esta pauta esta marcada como descartada/bloqueada, mas tem "
+                    f"texto da fonte completo ({chars} chars uteis).\n\n"
+                    "Deseja REATIVAR e redigir?"
+                ):
+                    try:
+                        info = self.db.reativar_pauta_para_redacao(
+                            uid, motivo="texto_fonte_valido"
+                        )
+                        pauta["status"] = info.get("novo_status") or "em_redacao"
+                        self._set_status(
+                            f"Pauta reativada (era '{info.get('status_anterior') or '?'}'). Iniciando redacao..."
+                        )
+                    except Exception as _e_reat:
+                        messagebox.showerror(
+                            "Erro ao reativar",
+                            f"Nao foi possivel reativar a pauta: {_e_reat}"
+                        )
+                        return
+                else:
+                    return
+            else:
+                # Sem texto valido: nao bloqueia em definitivo. Tenta reidratar
+                # via redigir_thread (que ja tem etapa_coleta_texto + v105).
+                if not messagebox.askyesno(
+                    "Pauta descartada sem texto",
+                    "Esta pauta esta marcada como descartada e nao tem texto da "
+                    "fonte suficiente.\n\n"
+                    "Deseja tentar reidratar e redigir mesmo assim?"
+                ):
+                    return
+                try:
+                    info = self.db.reativar_pauta_para_redacao(
+                        uid, motivo="usuario_solicitou_reidratacao",
+                        novo_status="redacao_pendente",
+                    )
+                    pauta["status"] = info.get("novo_status") or "redacao_pendente"
+                except Exception as _e_reat2:
+                    messagebox.showerror(
+                        "Erro ao reativar",
+                        f"Nao foi possivel reativar a pauta: {_e_reat2}"
+                    )
+                    return
         similar = self.db.titulo_similar_ja_publicado(pauta.get("titulo_origem", ""))
         if similar:
             if not messagebox.askyesno("Titulo similar",
@@ -3853,26 +4040,62 @@ class PainelUrurau(tk.Tk):
                 materia = wf.etapa_pacote_editorial(uid, materia)
                 wf.etapa_verificacao_risco(uid, pauta, materia)
                 wf.etapa_persistir_materia(uid, pauta, materia)
+                # spec_claudio_ia_real: so concluir se houve chamada real a IA.
                 try:
                     gj_ia = dict(getattr(materia, "generated_article_json", {}) or {})
                     modo_ia = getattr(materia, "modo_geracao", "") or gj_ia.get("modo_geracao") or "sem_telemetria_ia"
                     status_ia = getattr(materia, "ia_status", "") or gj_ia.get("ia_status") or "sem_telemetria_ia"
                     origem_ia = getattr(materia, "ia_texto_final_origem", "") or gj_ia.get("ia_texto_final_origem") or ("openai" if modo_ia == "openai_gpt4mini" else "fallback_local")
                     openai_status = getattr(materia, "ia_openai_status", "") or gj_ia.get("ia_openai_status") or ""
-                    extra_openai = f" | OpenAI: {openai_status}" if openai_status and openai_status != status_ia else ""
-                    msg_ia = f"Redação concluída | IA: {modo_ia} / {status_ia} | origem={origem_ia}{extra_openai}"
+                    ia_chamada_v200 = bool(modo_ia and modo_ia not in {"fallback_local", "sem_telemetria_ia", ""})
                 except Exception:
-                    msg_ia = "Redação concluída | IA: sem diagnóstico"
-                self.after(0, lambda msg_ia=msg_ia: self._set_status(msg_ia))
-                self.after(0, lambda msg_ia=msg_ia: messagebox.showinfo(
-                    "Redacao Concluida", f"Materia gerada. {msg_ia}. Use Preview antes de publicar."))
+                    modo_ia = ""
+                    status_ia = "sem_telemetria_ia"
+                    ia_chamada_v200 = False
+                if ia_chamada_v200:
+                    modelo_label = modo_ia or "gpt-4.1-mini"
+                    msg_ia = f"Redacao concluida com IA | Modelo: {modelo_label} | Status: {status_ia}"
+                    self.after(0, lambda mi=msg_ia: self._set_status(mi))
+                    self.after(0, lambda mi=msg_ia, modelo=modelo_label: messagebox.showinfo(
+                        "Redacao concluida",
+                        f"Materia redigida com IA apos validacao da fonte. Modelo: {modelo}. Use Preview antes de publicar."))
+                else:
+                    msg_alerta = f"Rascunho local sem IA | modo={modo_ia or 'desconhecido'} | status={status_ia}"
+                    self.after(0, lambda ma=msg_alerta: self._set_status(ma))
+                    self.after(0, lambda: messagebox.showwarning(
+                        "Rascunho local sem IA",
+                        "A IA nao foi executada (sem credencial, erro de modelo ou rede). "
+                        "O conteudo gerado e rascunho local e NAO deve ser publicado. "
+                        "Configure OPENAI_API_KEY e OPENAI_MODEL=gpt-4.1-mini e clique Redigir novamente."))
             else:
                 self.after(0, lambda: self._set_status("Falha na redacao [XX]"))
             self.after(0, self._carregar_pautas)
         except Exception as e:
+            # spec_claudio_reverter_bloqueio §6: falha tecnica NAO pode gravar
+            # status final (descartada/bloqueada). Classifica e grava status
+            # recuperavel auxiliar via marcar_status_redacao.
             msg = str(e)
-            self.after(0, lambda msg=msg: self._set_status(f"Erro na redacao: {msg}"))
-            self.after(0, lambda msg=msg: messagebox.showerror("Erro na redacao", msg))
+            low = msg.lower()
+            if any(k in low for k in ("api key", "apikey", "auth", "401", "credencial", "credential", "token")):
+                status_redacao = "erro_credencial_ia"
+                msg_user = f"IA nao executada: erro de autenticacao/credencial. Detalhe: {msg[:200]}"
+            elif any(k in low for k in ("model", "modelo", "404", "not found", "no such model")):
+                status_redacao = "erro_modelo_ia"
+                msg_user = f"IA nao executada: modelo invalido ou indisponivel. Detalhe: {msg[:200]}"
+            elif any(k in low for k in ("connection", "timeout", "network", "dns", "ssl", "tls", "503", "502", "rate")):
+                status_redacao = "erro_rede_ia"
+                msg_user = f"IA nao executada: erro de rede/timeout/rate-limit. Detalhe: {msg[:200]}"
+            else:
+                status_redacao = "erro_ia"
+                msg_user = f"IA nao executada: {msg[:300]}"
+            try:
+                uid_for_log = pauta.get("uid") or pauta.get("_uid") or ""
+                if uid_for_log:
+                    self.db.marcar_status_redacao(uid_for_log, status_redacao, detalhe=msg)
+            except Exception as _e_st:
+                print(f"[REDIGIR][AVISO] nao consegui registrar status_redacao: {_e_st}")
+            self.after(0, lambda mu=msg_user: self._set_status(mu))
+            self.after(0, lambda mu=msg_user: messagebox.showerror("Erro na redacao", mu))
 
     # ── Copydesk ──────────────────────────────────────────────────────────────
 

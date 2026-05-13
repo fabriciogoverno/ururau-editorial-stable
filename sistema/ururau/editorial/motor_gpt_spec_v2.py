@@ -11,7 +11,12 @@ ESTRUTURA: mínimo de 4 parágrafos reais quando houver informação suficiente;
 AUTENTICIDADE: não copie ordem dos parágrafos da fonte; não copie frases longas; não faça resumo; não invente fato, cargo, valor, data, órgão, acusação ou declaração; não transforme investigação em condenação.
 PROIBIDO: acende o alerta; chama atenção; ganha destaque; reforça a importância; vale destacar; vale ressaltar; diante desse cenário; em meio a; traz à tona; reacende o debate; joga luz sobre; autoridades seguem acompanhando; medidas cabíveis; até o fechamento desta matéria. Também é proibido usar travessão no corpo.
 """
-TERMOS_PROIBIDOS=['acende o alerta','acendeu o alerta','sinal de alerta','chama atenção','chamou atenção','ganha destaque','ganhou destaque','é destaque','reforça a importância','reforça o compromisso','reforça a necessidade','destaca a importância','evidencia a importância','mostra a importância','vale destacar','vale ressaltar','é importante destacar','cabe destacar','nesse sentido','desta forma','dessa forma','diante desse cenário','em meio a','o caso evidencia','o caso mostra','o caso reforça','traz à tona','reacende o debate','joga luz sobre','coloca em xeque','no centro das atenções','segue dando o que falar','movimenta os bastidores','promete movimentar','população fica em alerta','autoridades seguem acompanhando','medidas cabíveis','providências cabíveis','até o fechamento desta matéria','até a publicação desta reportagem']
+# spec_auditoria_global §9: delegar para fonte canonica unica.
+try:
+    from .regras_editoriais_ururau import TERMOS_PROIBIDOS_UNIFICADOS as _TPU
+    TERMOS_PROIBIDOS = list(_TPU)
+except Exception:
+    TERMOS_PROIBIDOS=['acende o alerta','acendeu o alerta','sinal de alerta','chama atenção','chamou atenção','ganha destaque','ganhou destaque','é destaque','reforça a importância','reforça o compromisso','reforça a necessidade','destaca a importância','evidencia a importância','mostra a importância','vale destacar','vale ressaltar','é importante destacar','cabe destacar','nesse sentido','desta forma','dessa forma','diante desse cenário','em meio a','o caso evidencia','o caso mostra','o caso reforça','traz à tona','reacende o debate','joga luz sobre','coloca em xeque','no centro das atenções','segue dando o que falar','movimenta os bastidores','promete movimentar','população fica em alerta','autoridades seguem acompanhando','medidas cabíveis','providências cabíveis','até o fechamento desta matéria','até a publicação desta reportagem']
 def env_bool(k,d=True):
     v=os.getenv(k); return d if v is None else str(v).strip().lower() in {'1','true','yes','sim','on'}
 def normalizar_texto(t):

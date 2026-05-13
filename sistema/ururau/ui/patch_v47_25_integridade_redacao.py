@@ -26,9 +26,41 @@ def aplicar_patch_v47_25(ns):
         if self.db.pauta_ja_publicada(link, uid):
             messagebox.showerror('Bloqueado', 'Esta pauta ja foi publicada.')
             return
+        # fix/auditoria-fila-scrapling-v136 + spec_claudio_reverter_bloqueio:
+        # nao bloqueia mais cegamente quando pauta_foi_descartada. Delega
+        # decisao ao painel.py canonico via fallback: se houver texto valido,
+        # reativa; senao, pede confirmacao para tentar reidratar.
         if self.db.pauta_foi_descartada(link, uid):
-            messagebox.showerror('Bloqueado', 'Esta pauta foi descartada.')
-            return
+            try:
+                from ururau.core.source_text_contract import source_text_is_valid, source_text_len
+                _tem_txt = source_text_is_valid(pauta)
+                _chars = source_text_len(pauta)
+            except Exception:
+                _tem_txt = False
+                _chars = 0
+            if _tem_txt:
+                if not messagebox.askyesno(
+                    'Pauta descartada com texto valido',
+                    f'Esta pauta esta marcada como descartada, mas tem texto fonte '
+                    f'completo ({_chars} chars uteis).\n\nReativar e redigir?'
+                ):
+                    return
+                try:
+                    self.db.reativar_pauta_para_redacao(uid, motivo='v47_25_texto_fonte_valido')
+                except Exception as _e_reat:
+                    messagebox.showerror('Erro ao reativar', str(_e_reat))
+                    return
+            else:
+                if not messagebox.askyesno(
+                    'Pauta descartada sem texto',
+                    'Pauta descartada e sem texto valido. Tentar reidratar e redigir?'
+                ):
+                    return
+                try:
+                    self.db.reativar_pauta_para_redacao(uid, motivo='v47_25_reidratacao_usuario', novo_status='redacao_pendente')
+                except Exception as _e_reat2:
+                    messagebox.showerror('Erro ao reativar', str(_e_reat2))
+                    return
         similar = self.db.titulo_similar_ja_publicado(pauta.get('titulo_origem',''))
         if similar:
             if not messagebox.askyesno('Titulo similar', f"Publicado recentemente:\n'{similar[:80]}'\nRedigir mesmo assim?"):
