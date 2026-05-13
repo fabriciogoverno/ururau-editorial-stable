@@ -50,6 +50,20 @@ PREFIX = "[v90][EXTRACT]"
 
 
 
+# Etapa 3+4 do plano premium (13/05/2026): aprende qual estrategia
+# funciona melhor para cada dominio e re-prioriza a ordem.
+try:
+    from ururau.coleta.pipeline_inteligente_v200 import (
+        registrar_resultado as _pi_registrar,
+        ordem_recomendada_para_url as _pi_ordem,
+    )
+    _PIPELINE_INTELIGENTE_OK = True
+except Exception:
+    _PIPELINE_INTELIGENTE_OK = False
+    def _pi_registrar(*a, **kw): pass
+    def _pi_ordem(url, ordem_default=None): return list(ordem_default or ())
+
+
 def _url_invalida_para_materia_v91b(url: str) -> tuple[bool, str]:
     if not url or not isinstance(url, str):
         return True, "url_vazia"
