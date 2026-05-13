@@ -57,8 +57,33 @@ def aplicar_patch_v47_26(ns):
             except Exception:
                 pass
             wf.etapa_persistir_materia(uid, pauta, materia)
-            self.after(0, lambda: self._set_status('Redação concluída com fonte validada antes da IA.'))
-            self.after(0, lambda: messagebox.showinfo('Redação concluída', 'Matéria gerada com fonte validada antes da IA. Use Preview antes de publicar.'))
+            # spec_claudio_ia_real §4: mensagem deve refletir que houve chamada
+            # real a IA, com o modelo usado. Se nao houver telemetria de IA, nao
+            # marcar como 'concluida'.
+            try:
+                _gj_ia = dict(getattr(materia, 'generated_article_json', {}) or {})
+                _modo_ia = getattr(materia, 'modo_geracao', '') or _gj_ia.get('modo_geracao') or ''
+                _ia_status = getattr(materia, 'ia_status', '') or _gj_ia.get('ia_status') or ''
+                _ia_chamada = bool(_modo_ia and _modo_ia not in {'fallback_local', 'sem_telemetria_ia', ''})
+            except Exception:
+                _modo_ia = ''
+                _ia_status = ''
+                _ia_chamada = False
+            if _ia_chamada:
+                _modelo_label = _modo_ia or 'gpt-4.1-mini'
+                self.after(0, lambda: self._set_status(f'Redacao concluida com IA. Modelo: {_modelo_label}.'))
+                self.after(0, lambda: messagebox.showinfo(
+                    'Redacao concluida',
+                    f'Materia redigida com IA apos validacao da fonte. Modelo: {_modelo_label}. Use Preview antes de publicar.'
+                ))
+            else:
+                self.after(0, lambda: self._set_status('Rascunho local gerado SEM IA. Nao publicar sem passar pela IA/Copydesk.'))
+                self.after(0, lambda: messagebox.showwarning(
+                    'Rascunho local sem IA',
+                    'A IA nao foi executada (sem credencial, erro de modelo ou rede). '
+                    'O conteudo gerado e rascunho local e NAO deve ser publicado. '
+                    'Configure OPENAI_API_KEY e OPENAI_MODEL=gpt-4.1-mini, clique Redigir novamente.'
+                ))
             self.after(0, self._carregar_pautas)
         except Exception as e:
             msg = str(e)
