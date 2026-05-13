@@ -16,6 +16,14 @@ REM hidratacao paralela e mais rapida (spec_claudio_hidratacao_continua):
 set URURAU_V105_WORKERS=4
 set URURAU_V105_INTERVALO_ENTRE_FONTES=0.4
 set URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH=999
+REM webp obrigatorio antes do CMS (spec_webp_upload_ururau):
+set URURAU_IMAGE_FORMAT=webp
+set URURAU_WEBP_MAX_BYTES=81920
+set URURAU_WEBP_TARGET_WIDTH=900
+set URURAU_WEBP_TARGET_HEIGHT=675
+set URURAU_WEBP_ALLOW_CANVAS=1
+set URURAU_WEBP_PRESERVE_ORIGINAL=1
+set URURAU_WEBP_USE_CWEBP=0
 
 
 echo ==========================================
