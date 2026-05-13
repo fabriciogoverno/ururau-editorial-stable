@@ -571,6 +571,20 @@ class FilaPautas(tk.Frame):
             badges.append(("TXT CURTO", "#92400e", "#fde68a"))
         else:
             badges.append(("TXT Ø", "#7f1d1d", "#fecaca"))
+        # spec_webp_upload_ururau §10: badge de status WebP.
+        _webp_status = str(p.get("imagem_webp_status") or "").lower()
+        _webp_size = p.get("imagem_webp_size") or 0
+        if _webp_status == "ok" and _webp_size:
+            try:
+                _kb = max(1, int(_webp_size) // 1024)
+            except Exception:
+                _kb = "?"
+            badges.append((f"WebP: OK {_kb}KB", "#14532d", "#86efac"))
+        elif _webp_status == "falhou":
+            badges.append(("WebP: falhou", "#7f1d1d", "#fecaca"))
+        elif _webp_status in ("pendente", ""):
+            if p.get("imagem_caminho") or p.get("imagem_url"):
+                badges.append(("WebP: pendente", "#1e3a5f", "#7dd3fc"))
         sc_risco = p.get("score_risco", 0) or 0
         if sc_risco >= LIMIAR_RISCO_MAXIMO:
             badges.append(("RISCO", COR_VERMELHO, "white"))
