@@ -2460,9 +2460,14 @@ class PainelUrurau(tk.Tk):
 
         saida: list[dict] = []
         ultimo = None
+        labels_inseridos: set[str] = set()
         for p in itens:
             label = _label(p)
-            if label != ultimo:
+            if label != ultimo and label not in labels_inseridos:
+                # spec do usuario (13/05/2026): se o mesmo label aparecer em
+                # blocos nao adjacentes (porque ordenacao agrupou pautas TXT
+                # OK e moveu algumas), inserimos o separador SO uma vez por
+                # label. Bloco repetido nao gera separador duplicado.
                 qtd = counts.get(label, 0)
                 saida.append({
                     "_separador_coleta_v123": True,
@@ -2472,6 +2477,7 @@ class PainelUrurau(tk.Tk):
                     "_subtitulo_separador_v123": "Separador visual. A numeração não interfere nas pautas nem na publicação.",
                     "status": "_separador",
                 })
+                labels_inseridos.add(label)
                 ultimo = label
             saida.append(p)
         return saida

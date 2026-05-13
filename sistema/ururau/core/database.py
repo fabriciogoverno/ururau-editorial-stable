@@ -1031,32 +1031,74 @@ class Database:
             finally:
                 conn.close()
 
-        # Separa em tres grupos preservando ordenacao por data DESC dentro de
-        # cada um (a query ja veio nessa ordem):
-        #   1) com texto da fonte valido (>= MIN_VALID chars uteis) -> sobem
-        #   2) sem texto valido (em hidratacao / pendentes)
-        #   3) baixo_score -> sempre no fim
-        # Pedido do usuario (12/05/2026): "matérias que já chegam a 100% deveriam
-        # ficar em cima na fila, e à medida que as outras forem ajustando aí sim
-        # ajustar por data".
+        # Agrupamento por COLETA (pedido do usuario 13/05/2026): cada lote
+        # de coleta vira um bloco. Mais novo em cima. Dentro de cada bloco,
+        # TXT OK primeiro, pendentes depois. baixo_score isolado no fim.
         try:
             from ururau.core.source_text_contract import source_text_is_valid
         except Exception:
             def source_text_is_valid(p):
                 t = (p or {}).get("cleaned_source_text") or ""
                 return len(str(t).strip()) >= 550
-        com_texto: list[dict] = []
-        pendentes: list[dict] = []
+
+        # 1) separa baixo_score em buffer dedicado
         baixo: list[dict] = []
+        ativos: list[dict] = []
         for d in rows:
             st = str(d.get("status") or "").lower()
             if st == "baixo_score":
                 baixo.append(d)
-            elif source_text_is_valid(d):
-                com_texto.append(d)
             else:
-                pendentes.append(d)
-        out = com_texto + pendentes
+                ativos.append(d)
+
+        # 2) agrupa ativos por coleta_lote_label_v123. Cada grupo ganha como
+        #    chave de ordenacao o MAIOR captada_em do grupo (= coleta mais
+        #    recente fica no topo, conforme pedido do usuario).
+        def _label(p: dict) -> str:
+            v = (p.get("coleta_lote_label_v123") or
+                 p.get("coleta_lote") or
+                 p.get("grupo_coleta") or "")
+            v = str(v).strip()
+            return v or "Coletas anteriores"
+
+        grupos: dict[str, list[dict]] = {}
+        max_captada_por_label: dict[str, str] = {}
+        for d in ativos:
+            lab = _label(d)
+            grupos.setdefault(lab, []).append(d)
+            cap = str(d.get("captada_em") or d.get("atualizada_em") or "")
+            if cap and cap > max_captada_por_label.get(lab, ""):
+                max_captada_por_label[lab] = cap
+
+        # Labels ordenadas: primeiro pelo MAX captada_em do grupo desc;
+        # 'Coletas anteriores' (sem label) sempre por ultimo.
+        def _peso(lab: str) -> tuple[int, str]:
+            antigo = 1 if lab == "Coletas anteriores" else 0
+            # inverte string para DESC virar ascendente
+            return (antigo, max_captada_por_label.get(lab, ""))
+
+        ordem_labels = sorted(grupos.keys(),
+                               key=lambda l: _peso(l), reverse=True)
+        # Como reverse=True, 'antigo=1' fica no topo. Corrige:
+        ordem_labels = sorted(
+            grupos.keys(),
+            key=lambda l: (
+                0 if l == "Coletas anteriores" else 1,
+                max_captada_por_label.get(l, ""),
+            ),
+            reverse=True,
+        )
+
+        # 3) dentro de cada grupo: TXT OK primeiro, pendentes depois.
+        out: list[dict] = []
+        for lab in ordem_labels:
+            com_txt = [d for d in grupos[lab] if source_text_is_valid(d)]
+            sem_txt = [d for d in grupos[lab] if not source_text_is_valid(d)]
+            out.extend(com_txt)
+            out.extend(sem_txt)
+
+        # 4) baixo_score no fim, agrupado tambem (mesma ordem, mas como bloco
+        #    unico — nao quebra por coleta porque eles ja foram revisados).
         if incluir_baixo_score:
             out = out + baixo
         return out
