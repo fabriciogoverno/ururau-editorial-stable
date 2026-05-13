@@ -1003,12 +1003,41 @@ def extrair_materia_v90(
         )
         return _aplicar_criterio_aceite(resultado, url, tentativas, dominio)
 
-    # --- ETAPA 7: Nenhuma estratégia funcionou ---
+    # --- ETAPA 7: BYPASS PAYWALL antes de declarar falha ---
+    # Tenta carregar a MESMA URL via outras vias publicas: Googlebot UA,
+    # AMP, Wayback, Google Cache, archive.ph, no-cookies. So acessa
+    # caminhos PUBLICOS (sem inventar conteudo).
+    try:
+        from ururau.coleta.bypass_paywall_v200 import (
+            tentar_bypass_paywall, BYPASS_DISPONIVEL,
+        )
+        if BYPASS_DISPONIVEL:
+            logger.info("%s tentando bypass de paywall para url=%s", PREFIX, url)
+            bp = tentar_bypass_paywall(url, titulo_pauta="")
+            tentativas.append({"metodo": "bypass_paywall",
+                                "estrategias": bp.get("tentativas", []),
+                                "ok": bp.get("ok", False),
+                                "estrategia_vencedora": bp.get("estrategia", "")})
+            if bp.get("ok") and bp.get("texto"):
+                resultado = _resultado_ok(
+                    url=url, url_final=bp.get("url_final") or url,
+                    titulo="", texto=bp["texto"], imagem="", autor="",
+                    data="", metodo="bypass_" + (bp.get("estrategia") or ""),
+                    motivo="extraido via bypass de paywall",
+                    tentativas=tentativas,
+                )
+                return _aplicar_criterio_aceite(resultado, url, tentativas, dominio)
+    except Exception as _e_bypass:
+        logger.warning("%s bypass paywall falhou: %s", PREFIX, _e_bypass)
+        tentativas.append({"metodo": "bypass_paywall", "ok": False,
+                           "erro": str(_e_bypass)[:120]})
+
+    # --- ETAPA 8: Nenhuma estrategia (incluindo bypass) funcionou ---
     logger.error("%s Todas as estrategias falharam para url=%s", PREFIX, url)
     if dominio:
-        registrar_falha(dominio, "todas as estrategias falharam")
+        registrar_falha(dominio, "todas as estrategias falharam (incluindo bypass)")
     return _resultado_bloqueado(
         url_final,
-        "Nenhuma estrategia de extracao conseguiu obter conteudo valido",
+        "Nenhuma estrategia de extracao conseguiu obter conteudo valido (incluindo bypass)",
         tentativas,
     )
