@@ -569,6 +569,10 @@ class FilaPautas(tk.Frame):
             badges.append(("TXT 429", "#78350f", "#fde68a"))
         elif st_fonte == "curta":
             badges.append(("TXT CURTO", "#92400e", "#fde68a"))
+        elif st_fonte == "contaminada":
+            # spec_scrapling_artigo_unico §10: visivel mas nao TXT OK
+            _mot = str(p.get("status_fonte_motivo") or "fonte_contaminada")
+            badges.append((f"FONTE: {_mot.upper()[:14]}", "#7c2d12", "#fecaca"))
         else:
             badges.append(("TXT Ø", "#7f1d1d", "#fecaca"))
         # spec_webp_upload_ururau §10: badge de status WebP.
@@ -1437,8 +1441,60 @@ class PainelUrurau(tk.Tk):
                 util = len(txt)
             min_ok = self._v105_min_chars_fonte()
             if getattr(res, "sucesso", False) and util >= min_ok:
+                # spec_scrapling_artigo_unico_sem_mistura: antes de gravar o
+                # texto como cleaned_source_text, validar que e UM artigo,
+                # nao agregado de home/listagem/relacionadas/login/rodape.
+                try:
+                    from ururau.coleta.extrator_artigo_unico import (
+                        validar_extracao_artigo_unico,
+                    )
+                    can_url = (getattr(res, "url", "") or link)
+                    val_unico = validar_extracao_artigo_unico(
+                        txt,
+                        titulo_pauta=str(pauta.get("titulo_origem") or ""),
+                        url_pauta=link,
+                        canonical_url=can_url,
+                        og_url=can_url,
+                        estrategia=str(getattr(res, "estrategia", "v134")
+                                       or "v134"),
+                        min_chars=min_ok,
+                    )
+                except Exception as _e_val:
+                    print(f"[V200][EXTRACAO][AVISO] validador indisponivel: {_e_val}")
+                    val_unico = {"ok": True, "status": "ok", "estrategia": "v134",
+                                 "score_coerencia": 1.0, "multiassunto": False,
+                                 "boilerplate": [], "motivo": "validador_off"}
+                if not val_unico["ok"]:
+                    # spec §10: pauta CONTINUA na fila com motivo. NAO grava
+                    # cleaned_source_text. NAO chama IA. Permite Reextrair.
+                    pauta["status_fonte_v105"] = "contaminada"
+                    pauta["status_fonte_motivo"] = val_unico["status"]
+                    pauta["status_fonte_detalhe"] = val_unico["motivo"]
+                    pauta["source_extraction_status"] = val_unico["status"]
+                    pauta["source_extraction_strategy"] = val_unico["estrategia"]
+                    pauta["source_extraction_score"] = val_unico["score_coerencia"]
+                    pauta["source_extraction_reason"] = val_unico["motivo"]
+                    pauta["source_original_url"] = link
+                    pauta["source_final_url"] = can_url
+                    pauta["source_canonical_url"] = (val_unico.get("canonical") or {}).get("canonical_norm") or ""
+                    try:
+                        self.db.salvar_pauta(pauta)
+                    except Exception:
+                        pass
+                    print(
+                        f"[V200][EXTRACAO] FONTE_CONTAMINADA ({val_unico['status']}): "
+                        f"{(pauta.get('titulo_origem') or '')[:80]} | motivo={val_unico['motivo'][:120]}"
+                    )
+                    if atualizar_ui:
+                        self.after(0, lambda v=val_unico: self._set_status(
+                            f"Fonte contaminada: {v['status']} — {v['motivo'][:80]}"
+                        ))
+                    return False
                 self._injetar_fonte_longa_v96(pauta, txt, origem=f"v105_{origem}")
                 pauta["status_fonte_v105"] = "ok"
+                pauta["source_extraction_status"] = "ok"
+                pauta["source_extraction_strategy"] = val_unico["estrategia"]
+                pauta["source_extraction_score"] = val_unico["score_coerencia"]
                 pauta["fonte_chars_v105"] = util
                 pauta["fonte_erro_v105"] = ""
                 pauta["fonte_url_final_v105"] = getattr(res, "url", "") or link
@@ -3913,6 +3969,15 @@ class PainelUrurau(tk.Tk):
                 messagebox.showwarning("Redigir",
                     f"Pauta classificada como lixo editorial ({motivo}). "
                     "Use Aprovar manualmente se quiser forcar o Redigir."); return
+            # spec_scrapling_artigo_unico §10: Redigir NAO roda com fonte contaminada.
+            if str(ps.get("status_fonte_v105") or "").lower() == "contaminada":
+                _mot = str(ps.get("status_fonte_motivo") or "fonte_contaminada")
+                _det = str(ps.get("status_fonte_detalhe") or "")[:120]
+                messagebox.showwarning("Fonte contaminada",
+                    f"A fonte da pauta esta contaminada ({_mot}). {_det}\n\n"
+                    "Use Reextrair fonte (F5/Atualizar dispara nova tentativa) "
+                    "antes de Redigir.")
+                return
         except Exception as _e_guard:
             print(f"[REDIGIR][GUARD][AVISO] guard nao aplicado: {_e_guard}")
         # v46.7: permite fallback local, mas avisa claramente no painel.
