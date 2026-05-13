@@ -135,6 +135,34 @@ ANTI-ALUCINACAO (INEGOCIAVEL):
 - Aspas: so use trecho LITERAL da fonte. Se nao houver aspa direta verificavel
   na fonte, NAO use aspas.
 
+METRICAS SEO GOOGLE (obrigatorias):
+- titulo_seo: cabe em 89 chars E TERMINA A FRASE; nunca cortar em numero
+  isolado ('R$ 13'), em preposicao ('de', 'para', 'em') ou em vergil. Se
+  for citar valor monetario com unidade, escreva a unidade completa
+  ('R$ 13 bilhoes', nao 'R$ 13').
+- titulo_capa: cabe em 60 chars; sem cortar; foco na palavra-chave.
+- subtitulo_curto: factual; nao repete o titulo; menciona o numero/valor
+  principal e o autor da declaracao.
+- legenda_curta: descreve a imagem em ate 120 chars, sem ser frase de
+  release.
+- tags: separadas por VIRGULA, sem hashtag, mistura de local +
+  personagem + tema + editoria.
+- corpo_materia: PARAGRAFO 1 = lead 5W (quem, o que, quando, onde, por
+  que/como). Cada paragrafo no maximo 650 chars. Minimo 4 paragrafos.
+- credito_foto: ate 6 palavras, sem 'Foto:'/'Imagem:' prefixo.
+
+NAO REPITA FRASES (anti-loop GPT):
+- Cada sentenca deve aparecer UMA UNICA VEZ no corpo.
+- Nao copie partes literais da fonte uma atras da outra.
+- Se voce ja afirmou 'X informou que Y' nao reescreva 'X informou que Y'
+  na mesma materia.
+
+ASPAS E PONTUACAO:
+- Use APENAS aspas retas: "exemplo de fala". Nunca aspas tipograficas.
+- Nao escreva ' , frase , ' como se fosse aspa.
+- Sem ',,' (virgula duplicada) e sem ' .' (espaco antes de ponto).
+- Sem travessao no corpo.
+
 TERMOS PROIBIDOS (bloqueados no pos-processamento; evite):
 %TERMOS%
 

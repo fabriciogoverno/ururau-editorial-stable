@@ -308,6 +308,27 @@ def executar_ia_redigir(pauta: dict, texto_fonte: str,
     res["acao"] = "redigir"
     res["editoria"] = editoria
 
+    # Pos-processamento OBRIGATORIO: conserta defeitos tipicos do GPT
+    # (dedup de frases, aspas tipograficas, pontuacao, titulo SEO truncado).
+    # Roda ANTES da auditoria editorial — o validador deve ver o pacote ja
+    # corrigido.
+    if res.get("ok") and isinstance(res.get("conteudo"), dict):
+        try:
+            from ururau.editorial.pos_processador_redacao import (
+                aplicar_metricas_seo_google,
+            )
+            pp = aplicar_metricas_seo_google(
+                res["conteudo"], fonte_texto=texto_fonte or "",
+                palavra_chave="",
+            )
+            res["conteudo"] = pp["pacote"]
+            res["pos_processador"] = {
+                "correcoes": pp["correcoes"],
+                "diagnostico": pp["diagnostico"],
+            }
+        except Exception as _e_pp:
+            res["pos_processador"] = {"erro": str(_e_pp)}
+
     # Auditoria pos-IA + regeneracao opcional.
     if res.get("ok") and isinstance(res.get("conteudo"), dict):
         try:
