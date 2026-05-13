@@ -138,7 +138,24 @@ def _erro_classificado(exc: Exception) -> tuple[str, str]:
     return "erro_ia_generico", msg
 
 
-def _build_prompt_sistema(regras_extras: list[str] | None = None) -> str:
+def _build_prompt_sistema(regras_extras: list[str] | None = None,
+                          pauta: dict | None = None,
+                          fonte_texto: str = "",
+                          editoria: str | None = None) -> str:
+    """Constroi prompt-sistema consolidado.
+
+    Se a linha editorial centralizada estiver disponivel
+    (ururau.editorial.linha_editorial_ururau.build_prompt_redigir), usa-a;
+    senao cai no prompt minimo legado (compativel com a branch anterior).
+    """
+    try:
+        from ururau.editorial.linha_editorial_ururau import build_prompt_redigir
+        base = build_prompt_redigir(pauta or {}, fonte_texto or "", editoria)
+        if regras_extras:
+            base += "\n\nRegras adicionais:\n- " + "\n- ".join(regras_extras)
+        return base
+    except Exception:
+        pass
     base = (
         "Voce e o redator-chefe do portal jornalistico Ururau. "
         "Receba o texto integral da fonte e produza materia em portugues do Brasil. "
@@ -178,13 +195,16 @@ def _build_prompt_user_redigir(texto_fonte: str, pauta: dict | None) -> str:
     )
 
 
-def _build_prompt_user_copydesk(materia: dict) -> str:
-    bruto = json.dumps(materia, ensure_ascii=False, default=str)[:14000]
+def _build_prompt_user_copydesk(materia: dict, fonte_texto: str = "") -> str:
+    bruto = json.dumps(materia, ensure_ascii=False, default=str)[:12000]
+    extra = ""
+    if fonte_texto:
+        extra = "\n\nFONTE INTEGRAL (validada):\n" + str(fonte_texto)[:12000]
     return (
         "Voce esta no Copydesk. Refine a materia abaixo aplicando as regras "
         "editoriais do Ururau. Retorne JSON com os mesmos campos. "
         "Nao invente. Nao mude o sentido. Remova termos proibidos.\n\n"
-        f"{bruto}"
+        f"{bruto}{extra}"
     )
 
 
@@ -245,12 +265,67 @@ def _call_openai(prompt_sistema: str, prompt_user: str, cfg: dict) -> dict:
 
 def executar_ia_redigir(pauta: dict, texto_fonte: str,
                         regras_extras: list[str] | None = None) -> dict:
-    """Chama IA real para redigir. Retorno padronizado."""
+    """Chama IA real para redigir. Retorno padronizado.
+
+    Pos-IA, valida o pacote contra a fonte (factual + SEO + termos proibidos).
+    Se reprovar, tenta UMA regeneracao com prompt corretivo. Em ambos os casos,
+    o resultado tras res['auditoria_copydesk'] com o relatorio.
+    """
     cfg = carregar_config_ia()
-    prompt_sistema = _build_prompt_sistema(regras_extras)
+    # detecta editoria para regras especificas no prompt
+    try:
+        from ururau.editorial.regras_editoriais_ururau import categorizar_editoria
+        editoria = categorizar_editoria(
+            titulo=(pauta or {}).get("titulo_origem") or "",
+            fonte_texto=texto_fonte or "",
+            link=(pauta or {}).get("link_origem") or "",
+        )
+    except Exception:
+        editoria = "geral"
+    prompt_sistema = _build_prompt_sistema(regras_extras, pauta=pauta,
+                                            fonte_texto=texto_fonte,
+                                            editoria=editoria)
     prompt_user = _build_prompt_user_redigir(texto_fonte or "", pauta)
     res = _call_openai(prompt_sistema, prompt_user, cfg)
     res["acao"] = "redigir"
+    res["editoria"] = editoria
+
+    # Auditoria pos-IA + regeneracao opcional.
+    if res.get("ok") and isinstance(res.get("conteudo"), dict):
+        try:
+            from ururau.editorial.validador_copydesk import auditar_copydesk
+            from ururau.editorial.linha_editorial_ururau import (
+                build_prompt_regeneracao,
+            )
+            aud = auditar_copydesk(res["conteudo"], texto_fonte or "")
+            res["auditoria_copydesk"] = aud
+            if not aud["copydesk_ok"]:
+                # Tenta regenerar UMA vez.
+                user_regen = build_prompt_regeneracao(
+                    res["conteudo"], aud["problemas"], texto_fonte or ""
+                )
+                res2 = _call_openai(prompt_sistema, user_regen, cfg)
+                if res2.get("ok") and isinstance(res2.get("conteudo"), dict):
+                    aud2 = auditar_copydesk(res2["conteudo"], texto_fonte or "")
+                    res2["auditoria_copydesk"] = aud2
+                    res2["editoria"] = editoria
+                    res2["acao"] = "redigir"
+                    # Se 2a tentativa passou, troca; senao mantem a primeira mas
+                    # marca publicar_bloqueado=True.
+                    if aud2["copydesk_ok"]:
+                        res = res2
+                    else:
+                        res["publicar_bloqueado"] = True
+                        res["erro_tipo"] = res.get("erro_tipo") or "VALIDACAO_EDITORIAL_REPROVADA"
+                        res["erro_msg"] = (res.get("erro_msg") or "") + " | regen falhou: " + ";".join(aud2["problemas"][:4])
+                else:
+                    res["publicar_bloqueado"] = True
+                    res["erro_tipo"] = res.get("erro_tipo") or "VALIDACAO_EDITORIAL_REPROVADA"
+                    res["erro_msg"] = (res.get("erro_msg") or "") + " | regen falhou na chamada"
+        except Exception as _e_aud:
+            res["auditoria_copydesk"] = {"copydesk_ok": False,
+                                          "problemas": [f"validador_falhou:{_e_aud}"],
+                                          "motivo_bloqueio": "validador_indisponivel"}
     _registrar_log({
         "timestamp": _agora_iso(),
         "acao": "redigir",
@@ -270,12 +345,45 @@ def executar_ia_redigir(pauta: dict, texto_fonte: str,
 
 
 def executar_ia_copydesk(materia: dict,
-                         regras_extras: list[str] | None = None) -> dict:
+                         regras_extras: list[str] | None = None,
+                         fonte_texto: str = "") -> dict:
+    """Copydesk usa prompt mais rigoroso e nao inventa."""
     cfg = carregar_config_ia()
-    prompt_sistema = _build_prompt_sistema(regras_extras)
-    prompt_user = _build_prompt_user_copydesk(materia or {})
+    try:
+        from ururau.editorial.linha_editorial_ururau import (
+            build_prompt_copydesk, build_prompt_user_copydesk,
+        )
+        from ururau.editorial.regras_editoriais_ururau import categorizar_editoria
+        from ururau.editorial.validador_copydesk import auditar_copydesk
+        # pre-auditoria para incluir lista de problemas no prompt
+        pre = auditar_copydesk(materia or {}, fonte_texto or "")
+        editoria = categorizar_editoria(
+            titulo=(materia or {}).get("titulo_seo") or "",
+            fonte_texto=fonte_texto or "",
+        )
+        prompt_sistema = build_prompt_copydesk(materia or {}, fonte_texto or "",
+                                                editoria=editoria,
+                                                problemas=pre["problemas"])
+        prompt_user = build_prompt_user_copydesk(materia or {}, fonte_texto or "")
+    except Exception:
+        prompt_sistema = _build_prompt_sistema(regras_extras)
+        prompt_user = _build_prompt_user_copydesk(materia or {})
+        pre = None
     res = _call_openai(prompt_sistema, prompt_user, cfg)
     res["acao"] = "copydesk"
+    if pre is not None:
+        res["auditoria_copydesk_pre"] = pre
+    # auditoria pos-resposta
+    try:
+        if res.get("ok") and isinstance(res.get("conteudo"), dict):
+            from ururau.editorial.validador_copydesk import auditar_copydesk
+            res["auditoria_copydesk"] = auditar_copydesk(
+                res["conteudo"], fonte_texto or "",
+            )
+            if not res["auditoria_copydesk"]["copydesk_ok"]:
+                res["publicar_bloqueado"] = True
+    except Exception:
+        pass
     _registrar_log({
         "timestamp": _agora_iso(),
         "acao": "copydesk",
