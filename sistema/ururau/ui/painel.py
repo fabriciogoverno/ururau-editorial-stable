@@ -3220,7 +3220,18 @@ class PainelUrurau(tk.Tk):
                     or parse_data_br_ou_iso(pauta.get("data_pub_fonte_br") or "")
                     or parse_data_br_ou_iso(pauta.get("data_pub_fonte") or "")
                 )
-                ok_janela, motivo_janela, idade_janela = dentro_da_janela(dt_pub_v99)
+                # v200: respeita a janela ja aplicada pelo coletor (oficial=12h, regional=24h).
+                _janela_pauta_v200 = pauta.get("_janela_aplicada_v200_horas")
+                try:
+                    _janela_pauta_v200 = int(_janela_pauta_v200) if _janela_pauta_v200 else None
+                except Exception:
+                    _janela_pauta_v200 = None
+                if _janela_pauta_v200 and _janela_pauta_v200 > 0:
+                    ok_janela, motivo_janela, idade_janela = dentro_da_janela(dt_pub_v99, janela_horas=_janela_pauta_v200)
+                    _limite_log = _janela_pauta_v200
+                else:
+                    ok_janela, motivo_janela, idade_janela = dentro_da_janela(dt_pub_v99)
+                    _limite_log = janela_publicacao_horas()
                 if not ok_janela:
                     permitir_excecao_final_v123 = (
                         pauta.get("_excecao_fora_janela_v123")
@@ -3229,7 +3240,7 @@ class PainelUrurau(tk.Tk):
                     if permitir_excecao_final_v123:
                         print(f"[v123][JANELA][EXCECAO] mantendo pauta fora da janela ({motivo_janela}, idade={idade_janela:.2f}h): {(pauta.get('titulo_origem') or '')[:90]}")
                     else:
-                        print(f"[v100][JANELA] ignorada ({motivo_janela}, idade={idade_janela:.2f}h, limite={janela_publicacao_horas()}h): {(pauta.get('titulo_origem') or '')[:90]}")
+                        print(f"[v100][JANELA] ignorada ({motivo_janela}, idade={idade_janela:.2f}h, limite={_limite_log}h): {(pauta.get('titulo_origem') or '')[:90]}")
                         stats_v128["fora_janela"] = stats_v128.get("fora_janela", 0) + 1
                         continue
                 pauta["_idade_pub_horas_v99"] = round(float(idade_janela), 2)
