@@ -66,11 +66,22 @@ except Exception:
 def _parsear_feed_resiliente_v200(url_feed: str):
     """Parser de feed que aplica fallback de URL e fetch resiliente.
 
-    1. Se URL for de endpoint oficial quebrado, substitui por GNews site:filter.
-    2. Se dominio tem timeout cronico, usa http_fetch_v109 com timeout maior.
-    3. Se ainda falhar, tenta Wayback Machine antes de retornar feed vazio.
+    1. **V200_2**: se URL estiver na blocklist (chronic fail), pula imediato.
+    2. Se URL for de endpoint oficial quebrado, substitui por GNews site:filter.
+    3. Se dominio tem timeout cronico, usa http_fetch_v109 com timeout maior.
+    4. Se ainda falhar, tenta Wayback Machine antes de retornar feed vazio.
     Retorna o objeto feed do feedparser (com .entries possivelmente vazio).
     """
+    # V200_2: blocklist de URLs em cooldown cronico (skip imediato)
+    try:
+        from ururau.coleta.fontes_blocklist_v200 import eh_url_bloqueada
+        _bloq, _mot = eh_url_bloqueada(url_feed)
+        if _bloq:
+            print(f"[RSS v200_2][BLOCKLIST] skip {url_feed[:80]} ({_mot})")
+            return feedparser.parse("")
+    except Exception:
+        pass
+
     url_efetiva = url_feed
     motivo_sub = ""
     if _v200_substituir_url and _v200_fallback_habilitado and _v200_fallback_habilitado():
@@ -1043,3 +1054,4 @@ def obter_termos_radar_audiencia_v88():
     except Exception as e:
         print(f"[v88][RADAR] indisponivel: {e}")
         return []
+

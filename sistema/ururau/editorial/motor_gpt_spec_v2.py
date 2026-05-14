@@ -44,7 +44,32 @@ def corpo_de(p): return str(p.get('corpo_materia') or p.get('conteudo') or p.get
 @dataclass
 class AuditoriaMotor:
     ok:bool; problemas:list[str]; similaridade:float; paragrafos:int
+def _corrigir_corpo_mecanico_v200_2(pacote:dict[str,Any])->list[str]:
+    """V200_2 (14/05/2026): corrige mecanicamente parágrafo único e termos
+    proibidos ANTES de auditar. Evita loops de regerar com o GPT que
+    raramente conserta esses defeitos. Modifica `pacote` in-place.
+    Retorna lista de correcoes aplicadas (para log)."""
+    if not env_bool('URURAU_MOTOR_AUTO_CORRIGIR_V200_2', True):
+        return []
+    try:
+        from ururau.editorial.pos_processador_redacao import corrigir_corpo_motor_v2
+    except Exception:
+        return []
+    correcoes_total: list[str] = []
+    for k in ('corpo_materia', 'conteudo', 'texto', 'texto_final'):
+        v = pacote.get(k)
+        if isinstance(v, str) and v.strip():
+            novo, correcoes = corrigir_corpo_motor_v2(v)
+            if novo != v:
+                pacote[k] = novo
+                correcoes_total.extend(correcoes)
+    return correcoes_total
+
 def auditar_pacote_motor(pacote:dict[str,Any], fonte:str='')->AuditoriaMotor:
+    # V200_2: corrige mecanicamente ANTES de auditar (parágrafo único + termos proibidos)
+    correcoes_pre = _corrigir_corpo_mecanico_v200_2(pacote)
+    if correcoes_pre:
+        print('[MOTOR_V2][AUTO_CORRIGIDO]', '|'.join(correcoes_pre))
     problemas=[]; corpo=corpo_de(pacote); ps=paragrafos_reais(corpo)
     if len(ps)==1 and len(corpo)>350: problemas.append('Corpo em parágrafo único')
     if len(ps)<4 and len(corpo)>900: problemas.append(f'Corpo com poucos parágrafos ({len(ps)}); mínimo esperado: 4')

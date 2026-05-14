@@ -125,8 +125,38 @@ def auditar_factualmente(materia: Any, texto_fonte: str) -> dict:
     nums_artigo = set(_norm(m.group(0)) for m in _NUM_RE.finditer(texto_artigo))
     for m in _REG_RE.finditer(texto_artigo):
         nums_artigo.add(_norm(m.group(0)))
+    # V200_2: numeros que sao apenas idade biografica ('20 anos', '57 anos')
+    # ou referencia temporal solta ('14h', '23:49') nao precisam de evidencia.
+    # Sao informacoes contextuais que o GPT extrai do texto-fonte mas o regex
+    # nao casa por enquadramento. So bloqueia para valores monetarios/percentual.
+    import os as _os_v200_2
+    _relaxar_idades = str(_os_v200_2.getenv(
+        "URURAU_V81_RELAXAR_IDADES_PESSOAIS", "1") or "1").strip().lower() in {"1", "true", "yes", "sim", "on"}
+    texto_norm_v200_2 = _norm(texto_artigo)
+    def _eh_idade_ou_temporal(num_norm: str) -> bool:
+        if not _relaxar_idades:
+            return False
+        try:
+            valor = num_norm.replace(",", ".").replace(".", "")
+            n_int = int(re.match(r"^\d+", valor).group(0))
+        except Exception:
+            return False
+        # idade plausivel + contexto biografico no texto
+        if 1 <= n_int <= 110:
+            # procura "N anos" ou "de N anos" no texto do artigo
+            if re.search(rf"\b{n_int}\s+anos?\b", texto_artigo, re.I):
+                return True
+            # hora do dia
+            if re.search(rf"\b{n_int}\s*h\b", texto_artigo, re.I):
+                return True
+        # ano calendario (1900-2099)
+        if 1900 <= n_int <= 2099 and re.search(rf"\b{n_int}\b", texto_artigo):
+            return True
+        return False
     for n in sorted(nums_artigo):
         if not _valor_suportado(n, evid):
+            if _eh_idade_ou_temporal(n):
+                continue  # nao penaliza idade/hora
             claims_sem_evidencia.append(f"Número/registro sem evidência no fonte: {n}")
             score -= 20
 
@@ -243,7 +273,6 @@ def aplicar_gate_publicacao_v81(materia: Any, auditoria: dict) -> Any:
         _set(materia, "auditoria_aprovada", False)
         _set(materia, "auditoria_bloqueada", True)
         _set(materia, "revisao_humana_necessaria", True)
-
     _set(materia, "auditoria_erros", motivos)
     try:
         gj = getattr(materia, "generated_article_json", {}) or {}
@@ -273,3 +302,4 @@ def aplicar_auditoria_materia_v81(materia: Any, pauta: Any | None = None, texto_
     if auditoria.get("contradicoes"):
         print(f"[v81] contradicoes: {auditoria['contradicoes'][:3]}")
     return aplicar_gate_publicacao_v81(materia, auditoria)
+

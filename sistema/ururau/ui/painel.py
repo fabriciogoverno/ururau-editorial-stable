@@ -1519,7 +1519,63 @@ class PainelUrurau(tk.Tk):
                             f"{(pauta.get('titulo_origem') or '')[:60]}"
                         )
                     else:
-                        # NAO bloquear. Marcar aviso e SEGUIR injetando o texto
+                        # GATE V200_2: se a estrategia foi rss_fallback E o
+                        # detector V200 disparou mistura grave (>=4 titulos
+                        # internos OU score_coerencia < 0.20), BLOQUEAR a pauta
+                        # antes de injetar — evita publicar materia contaminada.
+                        _bloquear_misturado = False
+                        try:
+                            _bloquear_env = str(os.getenv(
+                                "URURAU_V200_BLOQUEAR_MULTIASSUNTO_RSS_FALLBACK",
+                                "1") or "1").strip().lower() in {"1", "true", "yes", "sim", "on"}
+                        except Exception:
+                            _bloquear_env = True
+                        _estrat_atual = str(getattr(res, "estrategia", "")
+                                            or val_unico.get("estrategia", "")
+                                            or "").lower()
+                        _eh_rss_fallback = ("rss_fallback" in _estrat_atual
+                                            or "rss_fallback" in str(val_unico.get("estrategia", "")).lower())
+                        _titulos_rel = len(val_unico.get("titulos_relacionados") or [])
+                        _score_coer = float(val_unico.get("score_coerencia") or 1.0)
+                        _eh_misturado_grave = (
+                            _titulos_rel >= 4
+                            or _score_coer < 0.20
+                            or val_unico.get("status") == "multiassunto"
+                        )
+                        if _bloquear_env and _eh_rss_fallback and _eh_misturado_grave:
+                            _bloquear_misturado = True
+
+                        if _bloquear_misturado:
+                            # MARCAR como FALHA explicita — nao injetar.
+                            pauta["status_fonte_v105"] = "rejeitada_misturado"
+                            pauta["status_fonte_motivo"] = "multiassunto_rss_fallback"
+                            pauta["status_fonte_detalhe"] = (
+                                f"titulos_internos={_titulos_rel} "
+                                f"score_coer={_score_coer:.2f}"
+                            )
+                            pauta["source_extraction_status"] = "rejeitada_misturado"
+                            pauta["source_extraction_strategy"] = val_unico["estrategia"]
+                            pauta["source_extraction_score"] = _score_coer
+                            pauta["source_extraction_reason"] = val_unico["motivo"]
+                            pauta["fonte_erro_v105"] = (
+                                "Conteúdo misturado detectado em rss_fallback "
+                                f"({_titulos_rel} títulos internos). "
+                                "Pauta NÃO injetada — RSS contaminado pela fonte."
+                            )
+                            try:
+                                self.db.salvar_pauta(pauta)
+                            except Exception:
+                                pass
+                            print(
+                                f"[V200][BLOQUEIO] rss_fallback misturado REJEITADO: "
+                                f"{(pauta.get('titulo_origem') or '')[:80]} | "
+                                f"titulos_internos={_titulos_rel} score={_score_coer:.2f}"
+                            )
+                            if atualizar_ui:
+                                self.after(0, lambda: self._v105_status_fonte_ui(
+                                    "RSS misturado bloqueado", COR_VERMELHO))
+                            return False
+                        # SENAO: NAO bloquear. Marcar aviso e SEGUIR injetando o texto
                         # (mesmo que esteja com aviso). O Redigir vai perguntar
                         # antes de chamar a IA. Decisao e do usuario.
                         pauta["status_fonte_v105"] = "aviso_extracao"

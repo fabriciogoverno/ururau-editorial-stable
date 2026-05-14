@@ -456,6 +456,128 @@ def aplicar_metricas_seo_google(pacote: dict | None,
     }
 
 
+# ─────────────────── 8) Auto-split de paragrafo unico (V200_2) ────────────
+
+_SUBSTITUICOES_TERMOS_PROIBIDOS_V200_2 = (
+    (r"\bo caso evidencia\b[^\.\!\?]*[\.\!\?]\s*", ""),
+    (r"\bo caso mostra\b[^\.\!\?]*[\.\!\?]\s*", ""),
+    (r"\bo caso reforca\b[^\.\!\?]*[\.\!\?]\s*", ""),
+    (r"\bo caso reforça\b[^\.\!\?]*[\.\!\?]\s*", ""),
+    (r"\btraz\s+à\s+tona\b", "expoe"),
+    (r"\breacende o debate\b", "retoma a discussao"),
+    (r"\bjoga luz sobre\b", "evidencia"),
+    (r"\bcoloca em xeque\b", "questiona"),
+    (r"\bvale destacar\b", ""),
+    (r"\bvale ressaltar\b", ""),
+    (r"\bé importante destacar\b", ""),
+    (r"\bcabe destacar\b", ""),
+    (r"\bnesse sentido,?\s*", ""),
+    (r"\bdesta forma,?\s*", ""),
+    (r"\bdessa forma,?\s*", ""),
+    (r"\bdiante desse cenario,?\s*", ""),
+    (r"\bdiante desse cenário,?\s*", ""),
+    (r"\bem meio a\b", "durante"),
+    (r"\bacende[u]?\s+(?:o|um)\s+alerta\b", "preocupa"),
+    (r"\bsinal de alerta\b", "preocupacao"),
+    (r"\bchama[ru]?\s+atenção\b", "destaca-se"),
+    (r"\bganha[u]?\s+destaque\b", "ganhou notoriedade"),
+    (r"\bé destaque\b", "tem repercussao"),
+    (r"\breforça a importância\b", "confirma a relevancia"),
+    (r"\breforça o compromisso\b", "confirma o compromisso"),
+    (r"\breforça a necessidade\b", "confirma a necessidade"),
+    (r"\bdestaca a importância\b", "indica a relevancia"),
+    (r"\bevidencia a importância\b", "indica a relevancia"),
+    (r"\bmostra a importância\b", "indica a relevancia"),
+    (r"\bno centro das atenções\b", "em evidencia"),
+    (r"\bsegue dando o que falar\b", "continua repercutindo"),
+    (r"\bmovimenta os bastidores\b", "repercute"),
+    (r"\bpromete movimentar\b", "deve repercutir"),
+    (r"\bpopulação fica em alerta\b", "populacao esta atenta"),
+    (r"\bautoridades seguem acompanhando\b", "autoridades acompanham"),
+    (r"\bmedidas cabíveis\b", "providencias"),
+    (r"\bprovidências cabíveis\b", "providencias"),
+    (r"\baté o fechamento desta matéria\b", "ate a publicacao"),
+    (r"\baté a publicação desta reportagem\b", "ate a publicacao"),
+)
+
+
+def remover_termos_proibidos(texto):
+    """Substitui termos proibidos e devolve (texto_limpo, lista_removidos)."""
+    if not texto:
+        return texto, []
+    removidos = []
+    out = texto
+    for rx_src, sub in _SUBSTITUICOES_TERMOS_PROIBIDOS_V200_2:
+        rx = re.compile(rx_src, re.IGNORECASE)
+        if rx.search(out):
+            removidos.append(rx_src)
+            out = rx.sub(sub, out)
+    out = re.sub(r"\s+([,\.;:])", r"\1", out)
+    out = re.sub(r"\s{2,}", " ", out)
+    out = re.sub(r",\s*,+", ",", out)
+    out = out.replace(" — ", ", ").replace(" – ", ", ")
+    out = out.replace("—", "").replace("–", "")
+    return out.strip(), removidos
+
+
+def _split_em_sentencas_v200_2(texto):
+    if not texto:
+        return []
+    partes = re.split(r"(?<=[\.\!\?])\s+(?=[A-ZÁ-Ú0-9])", texto.strip())
+    return [p.strip() for p in partes if p.strip()]
+
+
+def dividir_paragrafo_unico(texto, alvo_paragrafos=4, max_chars_paragrafo=600):
+    """Se o corpo for paragrafo unico (ou poucos), divide em N paragrafos."""
+    if not texto:
+        return texto
+    pars_atuais = [p.strip() for p in re.split(r"\n\s*\n+", texto) if p.strip()]
+    if (len(pars_atuais) >= alvo_paragrafos
+            and all(len(p) <= max_chars_paragrafo for p in pars_atuais)):
+        return texto
+    sentencas = []
+    for p in pars_atuais or [texto]:
+        sentencas.extend(_split_em_sentencas_v200_2(p))
+    if not sentencas or len(sentencas) <= 1:
+        return texto
+    alvo_sent_por_par = max(1, round(len(sentencas) / alvo_paragrafos))
+    paragrafos = []
+    buffer = []
+    for s in sentencas:
+        candidato = (" ".join(buffer + [s])).strip()
+        if (len(buffer) >= alvo_sent_por_par
+                or len(candidato) > max_chars_paragrafo):
+            if buffer:
+                paragrafos.append(" ".join(buffer).strip())
+                buffer = [s]
+            else:
+                paragrafos.append(s)
+                buffer = []
+        else:
+            buffer.append(s)
+    if buffer:
+        paragrafos.append(" ".join(buffer).strip())
+    paragrafos = [p for p in paragrafos if p.strip()]
+    return "\n\n".join(paragrafos) if paragrafos else texto
+
+
+def corrigir_corpo_motor_v2(corpo, alvo_paragrafos=4, max_chars_paragrafo=600):
+    """Aplica remover_termos_proibidos + dividir_paragrafo_unico."""
+    correcoes = []
+    if not corpo:
+        return corpo, correcoes
+    corpo_novo, removidos = remover_termos_proibidos(corpo)
+    if removidos:
+        correcoes.append("removeu_" + str(len(removidos)) + "_termos_proibidos")
+    corpo_dividido = dividir_paragrafo_unico(
+        corpo_novo, alvo_paragrafos=alvo_paragrafos,
+        max_chars_paragrafo=max_chars_paragrafo,
+    )
+    if corpo_dividido != corpo_novo:
+        correcoes.append("dividiu_paragrafo_unico")
+    return corpo_dividido, correcoes
+
+
 __all__ = [
     "aplicar_metricas_seo_google",
     "deduplicar_frases_repetidas",
@@ -464,4 +586,8 @@ __all__ = [
     "garantir_titulo_seo_completo",
     "primeiro_paragrafo_tem_lead_5w",
     "normalizar_tags",
+    "remover_termos_proibidos",
+    "dividir_paragrafo_unico",
+    "corrigir_corpo_motor_v2",
 ]
+
