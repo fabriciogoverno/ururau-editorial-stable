@@ -408,6 +408,36 @@ _AUTOCURA_CACHE: dict[str, dict[str, Any]] = {}
 _AUTOCURA_LOCK = threading.Lock()
 
 
+def _dominio_responde(url: str, timeout: int = 6) -> bool:
+    """V200_2: probe rapido — a raiz do dominio responde algo util?
+
+    Evita rodar o diagnostico completo (~30 requisicoes) numa fonte 100%
+    morta (DNS-fail, raiz 404, timeout). Devolve False se nem a raiz
+    responde, True caso contrario.
+    """
+    try:
+        import urllib.request
+        import urllib.error
+        from urllib.parse import urlparse as _up
+        p = _up(str(url or "").strip())
+        raiz = f"{p.scheme or 'https'}://{p.netloc}/"
+        req = urllib.request.Request(
+            raiz,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; UrurauBot/200)"},
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            status = getattr(resp, "status", None) or resp.getcode()
+            return bool(status and int(status) < 500)
+    except urllib.error.HTTPError as e:
+        # 4xx na raiz: site existe mas nao serve nada util — ainda vale
+        # tentar o diagnostico so se nao for 404 puro.
+        return getattr(e, "code", 500) not in (404, 410)
+    except Exception:
+        # DNS-fail, timeout, conexao recusada -> dominio morto
+        return False
+
+
 def auto_curar_fonte_v200(url: str, nome: str = "", grupo: str = "",
                           *, log: Callable[[str], None] | None = None,
                           max_itens: int | None = None) -> dict[str, Any]:
@@ -439,8 +469,18 @@ def auto_curar_fonte_v200(url: str, nome: str = "", grupo: str = "",
                  f"({len(cached.get('pautas') or [])} pautas)")
             return cached
 
-    _log(f"[AUTOCURA_V200] {dom}: feed vazio/falho — rodando diagnostico inline...")
     saida: dict[str, Any] = {"ok": False, "pautas": [], "estrategia": "-", "motivo": ""}
+
+    # V200_2: probe rapido — se nem a raiz do dominio responde, nao gasta
+    # ~30 requisicoes rodando o diagnostico completo numa fonte morta.
+    if not _dominio_responde(url):
+        saida["motivo"] = "dominio_nao_responde (probe rapido) — diagnostico pulado"
+        _log(f"[AUTOCURA_V200] {dom}: dominio morto no probe — pulando diagnostico completo")
+        with _AUTOCURA_LOCK:
+            _AUTOCURA_CACHE[dom] = saida
+        return saida
+
+    _log(f"[AUTOCURA_V200] {dom}: feed vazio/falho — rodando diagnostico inline...")
 
     try:
         # 1) diagnostico + aplicacao do perfil

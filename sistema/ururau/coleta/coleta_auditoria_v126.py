@@ -35,16 +35,30 @@ def _diag_http_basico_v128(url: str, timeout: int = 8) -> dict:
             ctype = resp.headers.get("Content-Type", "")
             clen = resp.headers.get("Content-Length", "")
             sample = resp.read(4096) or b""
-            txt = sample[:600].decode("utf-8", errors="ignore").lower()
+            # V200_2: olha a amostra inteira (nao so 600 chars). Feeds com
+            # <?xml-stylesheet?>, BOM ou comentarios longos antes do <rss>
+            # nao eram detectados e caiam em DESCONHECIDO mesmo sendo RSS.
+            txt = sample.decode("utf-8", errors="ignore").lower()
+            ctype_low = (ctype or "").lower()
             kind = "DESCONHECIDO"
-            if "<rss" in txt or "<feed" in txt or "</channel>" in txt:
+            if "<rss" in txt or "<feed" in txt or "</channel>" in txt or "<rdf" in txt:
                 kind = "FEED_RSS_ATOM"
             elif "<urlset" in txt or "<sitemapindex" in txt:
                 kind = "SITEMAP_XML"
             elif "<html" in txt or "<!doctype html" in txt:
                 kind = "HTML"
-            elif "json" in ctype.lower():
+            elif "json" in ctype_low:
                 kind = "JSON"
+            # V200_2: fallback pelo Content-Type quando a amostra nao bastou
+            # (resposta 206/Range corta o conteudo antes do <rss>).
+            if kind == "DESCONHECIDO" and ctype_low:
+                if "rss" in ctype_low or "atom" in ctype_low:
+                    kind = "FEED_RSS_ATOM"
+                elif "xml" in ctype_low:
+                    if "sitemap" in (url or "").lower():
+                        kind = "SITEMAP_XML"
+                    else:
+                        kind = "FEED_RSS_ATOM"
             return {
                 "status_http": int(status) if status is not None else "",
                 "content_type": ctype,

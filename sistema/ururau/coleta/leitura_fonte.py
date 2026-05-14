@@ -314,6 +314,22 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
     if not url:
         return ResultadoLeitura(sucesso=False, erro="URL não informada")
 
+    # V200_2: blocklist de URLs em cooldown cronico (band/melhores-momentos,
+    # mls-melhores-gols, charge-do-aroeira, cpi-do-banco-master etc). Antes
+    # essas URLs mortas eram tentadas centenas de vezes por V110/V86/v90,
+    # poluindo o log e travando a hidratacao. Agora pula na hora.
+    try:
+        from ururau.coleta.fontes_blocklist_v200 import eh_url_bloqueada
+        _bloq, _mot = eh_url_bloqueada(url)
+        if _bloq:
+            print(f"[LEITURA_FONTE][v200_2][BLOCKLIST] skip {url[:80]} ({_mot})")
+            return ResultadoLeitura(
+                url=url, sucesso=False,
+                erro=f"URL em blocklist v200_2 ({_mot})",
+            )
+    except Exception:
+        pass
+
     # Verifica cache
     agora = time.time()
     if not forcar_refresh and url in _cache:
