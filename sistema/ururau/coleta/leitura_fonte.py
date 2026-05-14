@@ -357,14 +357,16 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
     except Exception as _e_proxy_pre_v134:
         print(f"[V134][READER_PROXY] prioridade falhou: {_e_proxy_pre_v134}", flush=True)
 
-    # V200_2: SCRAPLING como PRIMEIRA tentativa na hidratacao do painel.
-    # Ate aqui, o Scrapling (com bypass de paywall/anti-bot) so era usado
-    # em scraping.extrair_dossie_completo — caminho do workflow, NUNCA a
-    # hidratacao do painel (aba Fonte / fila). Agora a leitura de fonte
-    # tenta o Scrapling primeiro e so cai na cascata v104/v110/v86 se ele
-    # nao trouxer texto suficiente. Desativavel: URURAU_SCRAPLING_NA_LEITURA_FONTE=0
+    # V200_3: SCRAPLING e OPT-IN, NAO o caminho padrao.
+    # O StealthyFetcher abre um navegador headless por materia, o que
+    # transformava cada coleta em 35+ minutos. A cascata v104/v110/v86
+    # (HTTP puro, rapida) volta a ser a primeira tentativa. O Scrapling
+    # fica disponivel como fallback, ativavel com
+    # URURAU_SCRAPLING_NA_LEITURA_FONTE=1.
+    # Quando ativado, o Scrapling roda antes da cascata e so cai nela se
+    # nao trouxer texto suficiente. Padrao: desativado (caminho rapido).
     try:
-        if os.getenv("URURAU_SCRAPLING_NA_LEITURA_FONTE", "1").strip().lower() not in {"0", "false", "nao", "n\u00e3o", "off"}:
+        if os.getenv("URURAU_SCRAPLING_NA_LEITURA_FONTE", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
             from ururau.coleta.scraping import extrair_dossie_completo
             from ururau.coleta.limpeza_texto_v81 import texto_util_chars as _tuc_scr
             _min_scr = int(os.getenv("URURAU_SCRAPLING_MIN_CHARS", os.getenv("URURAU_MIN_CHARS_TEXTO_FONTE", "900")) or "900")
