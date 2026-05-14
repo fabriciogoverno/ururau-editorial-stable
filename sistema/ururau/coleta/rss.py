@@ -125,7 +125,32 @@ def _parsear_feed_resiliente_v200(url_feed: str):
             pass
         return feedparser.parse("")  # feed vazio
 
-    return feedparser.parse(url_efetiva)
+    # V200_3: caminho normal tambem passa por fetch com TIMEOUT DURO.
+    # Antes era feedparser.parse(url_efetiva) direto — o fetch interno do
+    # feedparser nao tem timeout, entao um unico feed morto/lento travava
+    # a coleta inteira por tempo indefinido. Agora todo feed tem teto.
+    try:
+        from ururau.coleta.http_fetch_v109 import fetch_rss_v109
+        _to = int(os.getenv("URURAU_RSS_FEED_TIMEOUT", "12") or "12")
+        try:
+            from ururau.coleta.fontes_blocklist_v200 import (
+                timeout_recomendado_para_dominio as _to_dom,
+            )
+            _to = _to_dom(url_efetiva, default=_to)
+        except Exception:
+            pass
+        _rt = int(os.getenv("URURAU_RSS_FEED_RETRIES", "2") or "2")
+        r = fetch_rss_v109(
+            url_efetiva, timeout=_to, max_retries=_rt,
+            referer="https://www.google.com/",
+        )
+        if r.ok and r.text:
+            return feedparser.parse(r.text)
+        print(f"[RSS v200_3][FEED_TIMEOUT/FALHA] {url_efetiva[:80]}: {r.erro}")
+        return feedparser.parse("")
+    except Exception as _e_feed:
+        print(f"[RSS v200_3][FEED_ERR] {url_efetiva[:80]}: {_e_feed}")
+        return feedparser.parse("")
 
 
 # ── Carregadores de config externos ───────────────────────────────────────────
@@ -547,6 +572,45 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
     except Exception:
         pass
 
+    # V200_3: PREFETCH PARALELO dos feeds. Antes a coleta percorria as ~59
+    # fontes uma a uma, em sequencia — um feed lento segurava a fila inteira.
+    # Agora todos os feeds sao baixados em paralelo (ThreadPool), cada um com
+    # timeout duro (ver _parsear_feed_resiliente_v200). O loop abaixo so
+    # processa o resultado ja em cache. Desativavel: URURAU_RSS_PREFETCH_PARALELO=0
+    _feeds_prefetch: dict[str, object] = {}
+    try:
+        if os.getenv("URURAU_RSS_PREFETCH_PARALELO", "1").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            _urls_feed: list[str] = []
+            _vistos_uf: set[str] = set()
+            for _f in fontes_config:
+                if _f.get("ativo", True) is False:
+                    continue
+                _u = _f.get("url", "")
+                if _u and _u not in _vistos_uf:
+                    _vistos_uf.add(_u)
+                    _urls_feed.append(_u)
+            if _urls_feed:
+                _workers = max(2, min(
+                    int(os.getenv("URURAU_RSS_PREFETCH_WORKERS", "12") or "12"),
+                    len(_urls_feed),
+                ))
+                print(f"[RSS v200_3] prefetch paralelo de {len(_urls_feed)} feeds ({_workers} workers)...")
+                _t_pf = time.time()
+                with ThreadPoolExecutor(max_workers=_workers) as _ex:
+                    _fut = {_ex.submit(_parsear_feed_resiliente_v200, _u): _u for _u in _urls_feed}
+                    for _f_done in as_completed(_fut):
+                        _u = _fut[_f_done]
+                        try:
+                            _feeds_prefetch[_u] = _f_done.result()
+                        except Exception as _e_pf:
+                            print(f"[RSS v200_3][PREFETCH_ERR] {_u[:70]}: {_e_pf}")
+                print(f"[RSS v200_3] prefetch concluido em {time.time() - _t_pf:.1f}s "
+                      f"({len(_feeds_prefetch)}/{len(_urls_feed)} feeds)")
+    except Exception as _e_pf_geral:
+        print(f"[RSS v200_3] prefetch paralelo indisponivel, seguindo sequencial: {_e_pf_geral}")
+        _feeds_prefetch = {}
+
     for fonte in fontes_config:
         if fonte.get("ativo", True) is False:
             continue
@@ -565,7 +629,11 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
             continue
 
         try:
-            feed = _parsear_feed_resiliente_v200(url_feed)
+            # V200_3: usa o feed ja baixado no prefetch paralelo; se nao
+            # estiver no cache (prefetch desligado ou falhou), busca agora.
+            feed = _feeds_prefetch.get(url_feed)
+            if feed is None:
+                feed = _parsear_feed_resiliente_v200(url_feed)
             entradas = feed.get("entries", [])
             print(f"[RSS] {nome_fonte}: {len(entradas)} entradas")
 
