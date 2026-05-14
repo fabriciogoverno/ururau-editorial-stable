@@ -322,7 +322,28 @@ def listar_candidatas_imagem(
         })
 
     if imagem_preferencial:
-        add(imagem_preferencial, "imagem_preferencial_extracao", credito_preferencial or "Reprodução", False, 100)
+        # V200_2: nao aceitar logo/favicon/sprite/SVG como imagem
+        # preferencial. Era o bug do 'logo_branca.sv' do Senado virando
+        # imagem de dezenas de pautas e falhando em 'cannot identify image'.
+        _pref_low = str(imagem_preferencial).lower()
+        _pref_path = ""
+        try:
+            from urllib.parse import urlparse as _up
+            _pref_path = _up(imagem_preferencial).path.lower()
+        except Exception:
+            _pref_path = _pref_low
+        _pref_ruim = (
+            _pref_path.endswith((".svg", ".sv", ".ico", ".gif"))
+            or any(b in _pref_low for b in (
+                "logo", "favicon", "sprite", "pixel", "avatar",
+                "banner", "selo", "publicidade", "marca-dagua"))
+        )
+        if _pref_ruim:
+            print(f"[BUSCA_IMG][v200_2] imagem_preferencial descartada "
+                  f"(logo/svg/icone): {str(imagem_preferencial)[:90]}")
+        else:
+            add(imagem_preferencial, "imagem_preferencial_extracao",
+                credito_preferencial or "Reprodução", False, 100)
 
     if url_pagina:
         try:

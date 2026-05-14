@@ -77,9 +77,22 @@ def baixar_imagem(
     """
     _garantir_pasta(destino_dir)
 
+    # V200_2: rejeita upfront URLs que NUNCA serao imagem raster valida
+    # (SVG, logos, favicons, sprites, icones). Era a causa do bug do
+    # 'logo_branca.sv' do Senado virando imagem de dezenas de pautas e
+    # estourando como 'cannot identify image file' (4214 bytes).
+    _url_low = (url or "").lower()
+    _path_low = urlparse(url).path.lower()
+    _RUINS_IMG = ("logo", "favicon", "sprite", "pixel", "avatar",
+                  "banner", "selo", "marca-dagua", "marca_dagua")
+    if (_path_low.endswith((".svg", ".sv", ".ico", ".gif"))
+            or any(b in _url_low for b in _RUINS_IMG)):
+        print(f"[IMG][v200_2] URL nao e imagem raster valida, pulando: {url[:90]}")
+        return None
+
     # Determina extensão a partir da URL ou padrão
-    caminho_url = urlparse(url).path.lower()
-    for ext in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
+    caminho_url = _path_low
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
         if caminho_url.endswith(ext):
             extensao = ext
             break
@@ -103,9 +116,39 @@ def baixar_imagem(
             _registrar_429(url)
         resp.raise_for_status()
 
+        # V200_2: valida Content-Type ANTES de gravar. Se o servidor
+        # devolveu HTML/SVG/JSON em vez de imagem, nem grava o arquivo.
+        _ctype = str(resp.headers.get("Content-Type", "")).lower()
+        if _ctype and "image/" not in _ctype:
+            if any(t in _ctype for t in ("svg", "html", "json", "xml", "text/")):
+                print(f"[IMG][v200_2] Content-Type nao-imagem ({_ctype}); pulando: {url[:80]}")
+                return None
+
+        primeiro_bloco = b""
         with open(caminho, "wb") as f:
             for chunk in resp.iter_content(chunk_size=8192):
+                if not primeiro_bloco:
+                    primeiro_bloco = chunk[:16]
                 f.write(chunk)
+
+        # V200_2: confere magic bytes — JPEG(FFD8) / PNG(89504E47) /
+        # GIF(GIF8) / WEBP(RIFF...WEBP) / BMP(BM). Se for '<svg'/'<!DO'/'<htm'
+        # ou vazio, descarta o arquivo invalido.
+        _mb = primeiro_bloco[:4]
+        _ok_magic = (
+            _mb[:2] == b"\xff\xd8"                      # JPEG
+            or _mb[:4] == b"\x89PNG"                    # PNG
+            or _mb[:3] == b"GIF"                        # GIF
+            or _mb[:2] == b"BM"                         # BMP
+            or _mb[:4] == b"RIFF"                       # WEBP (RIFF)
+        )
+        if not _ok_magic:
+            try:
+                Path(caminho).unlink(missing_ok=True)
+            except Exception:
+                pass
+            print(f"[IMG][v200_2] conteudo nao e imagem (magic={_mb!r}); descartado: {url[:80]}")
+            return None
 
         print(f"[IMG] Imagem baixada: {caminho}")
         return caminho
