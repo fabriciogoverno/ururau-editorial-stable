@@ -2515,15 +2515,12 @@ class PainelUrurau(tk.Tk):
             finally:
                 pass  # conn ja nao e necessario; query_fila_ativa fechou.
 
-            def _ok():
-                self._pautas_cache    = cache
-                self._carregando_lista = False
-                self._aplicar_filtro()
-                # fix/auditoria-fila-scrapling-v136 + spec_claudio_hidratacao_continua:
-                # enfileirar TODAS as pautas sem texto valido. Antes, o default era
-                # cache[:50] e o usuario relatou que so as primeiras 50 hidratavam
-                # sozinhas; ele precisava clicar nas demais. Agora hidrata em rajadas
-                # mas continua respeitando o cooldown por dominio do _v105_hidratar_pauta.
+            def _enfileirar_hidratacao_v200_2():
+                # V200_2 FIX DO CONGELAMENTO: este loop percorre ate 500 pautas
+                # chamando _v105_texto_fonte_util + agendamento. Ele NAO toca
+                # nenhum widget Tkinter. Antes rodava DENTRO de _ok(), na thread
+                # da interface — com a fila cheia, o painel travava ('Nao esta
+                # respondendo'). Agora roda aqui, na thread de fundo.
                 limite = self._env_int("URURAU_V105_MAX_ENFILEIRAR_POR_REFRESH", 999)
                 count_pendentes = 0
                 for _p in cache:
@@ -2544,9 +2541,23 @@ class PainelUrurau(tk.Tk):
                             pass
                 if count_pendentes:
                     print(f"[FILA][CANONICO] enfileiradas {count_pendentes} pauta(s) sem texto valido para hidratacao automatica.")
+
+            def _ok():
+                # V200_2: _ok() agora so faz o que PRECISA da thread da UI:
+                # publicar o cache, redesenhar a fila e atualizar status.
+                # O loop pesado de enfileiramento saiu daqui.
+                self._pautas_cache    = cache
+                self._carregando_lista = False
+                self._aplicar_filtro()
                 self._atualizar_stats_async()
                 self._set_status(f"{len(cache)} pautas na fila — ordem: mais recentes primeiro; texto completo em hidratação persistente; imagem depois do texto. (F5/Atualizar recarrega e aplica fontes)")
             self.after(0, _ok)
+            # V200_2: enfileira hidratacao/imagem FORA da thread da UI (este
+            # metodo, _carregar_thread, ja roda em background).
+            try:
+                _enfileirar_hidratacao_v200_2()
+            except Exception as _e_enf_v200_2:
+                print(f"[FILA][CANONICO][AVISO] enfileiramento v200_2 falhou: {_e_enf_v200_2}")
         except Exception as e:
             self._carregando_lista = False
             msg = str(e)
