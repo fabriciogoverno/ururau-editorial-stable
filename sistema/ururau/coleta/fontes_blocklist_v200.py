@@ -25,24 +25,29 @@ from urllib.parse import urlparse
 
 # Padroes literais (substring case-insensitive) que sempre falham
 _PADROES_LITERAIS: tuple[str, ...] = (
-    # Band Esportes: feeds antigos 404
-    "band.com.br/esportes/futebol/melhores-momentos",
-    "band.com.br/esportes/futebol/mls-melhores-gols",
-    "band.com.br/esportes/futebol/mls-melhores-defesas",
-    "band.com.br/esportes/futebol/al-ittihad-damac",
     # Tira-Teima / Charge / Quizzes — paginas estaticas sem RSS
     "charge-do-aroeira",
     "cpi-do-banco-master",
     "frase-do-dia",
-    # m.www subdominios morrendo DNS
-    "m.www.band.com.br",
+    # campos.rj.gov.br: o endpoint exibirNoticia.php esta 100% morto
+    # (todos os id_noticia retornam 404). Log da Coleta 82-83: 188 retries.
+    "campos.rj.gov.br/exibirnoticia.php",
+    "campos.rj.gov.br/exibirnoticia",
 )
 
 # Regex (case-insensitive) — para padroes mais sofisticados
 _PADROES_REGEX: tuple[re.Pattern, ...] = (
-    # band.com.br noticias secao melhores-momentos (padrao de URL)
-    re.compile(r"band\.com\.br/.*?/(?:melhores-momentos|melhores-gols|melhores-defesas)", re.I),
-    # tudo que era xml fixo de jogos especificos (al-ittihad, etc)
+    # V200_2: band.com.br/esportes/... — a secao de esportes inteira
+    # devolve 404 nas URLs vindas do feed (estrutura de URL mudou no
+    # site). Log da Coleta 82-83: 76 retries em al-ittihad, mls-*,
+    # new-england, bastidores, charlotte, melhores-momentos etc.
+    re.compile(r"band\.com\.br/esportes/", re.I),
+    # V200_2: subdominios 'm.' (mobile) — sempre dao DNS NameResolutionError
+    # (m.www.band.com.br, m.campos.rj.gov.br, m.agendadopoder.com.br...).
+    re.compile(r"https?://m\.[a-z0-9.-]+", re.I),
+    # campos.rj.gov.br exibirNoticia em qualquer variante de querystring
+    re.compile(r"campos\.rj\.gov\.br/(?:amp/)?exibirnoticia", re.I),
+    # jogos especificos antigos (al-ittihad, etc)
     re.compile(r"/al-ittihad-(?:damac|hilal)-\d{4}", re.I),
 )
 

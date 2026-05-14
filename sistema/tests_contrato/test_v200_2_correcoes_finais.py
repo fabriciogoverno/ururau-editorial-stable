@@ -20,7 +20,8 @@ class BlocklistFontesV200Tests(unittest.TestCase):
             "https://www.band.com.br/esportes/futebol/mls-melhores-gols/rss"
         )
         self.assertTrue(bloq)
-        self.assertIn("mls", motivo)
+        # V200_2: agora a secao de esportes inteira do band e bloqueada
+        self.assertIn("band", motivo.lower())
 
     def test_al_ittihad_damac_bloqueada(self):
         from ururau.coleta.fontes_blocklist_v200 import eh_url_bloqueada

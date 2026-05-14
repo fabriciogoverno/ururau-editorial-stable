@@ -1181,6 +1181,19 @@ class PainelUrurau(tk.Tk):
             return
         if self._v106_imagem_ok(pauta):
             return
+        # V200_2: se a pauta ja estourou o hard cap de tentativas de imagem,
+        # NAO reagendar. Antes, schedulers como texto_ok/refresh_fila/
+        # varredura_persistente reagendavam a mesma pauta sem checar o
+        # status, e o contador subia ate 400+ ('sem imagem apos limite
+        # (402/32)') — pura perda de tempo na coleta.
+        try:
+            _st_img = str(pauta.get("imagem_status") or "")
+            _tent_img = int(pauta.get("imagem_tentativas_v106") or 0)
+            _hard_img = self._env_int("URURAU_V47_IMAGEM_HARD_CAP_TENTATIVAS", 32)
+            if _st_img == "sem_imagem_max_tentativas" or _tent_img >= _hard_img:
+                return
+        except Exception:
+            pass
         uid = self._v106_uid_pauta(pauta)
         link = str(pauta.get("link_origem") or "").strip()
         if not uid and not link:
