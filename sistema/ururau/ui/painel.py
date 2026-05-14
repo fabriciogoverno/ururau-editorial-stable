@@ -3846,9 +3846,22 @@ class PainelUrurau(tk.Tk):
             if resumo_total["inseridas"] < limites["max_total"]:
                 self.after(0, lambda: self._set_status("v123: fase XML/Sitemap — lendo sitemaps configurados..."))
                 try:
-                    from ururau.coleta.sitemap_xml_coletor_v123 import coletar_sitemaps_configurados_v123
-                    lote_xml = coletar_sitemaps_configurados_v123()
-                    print(f"[XML/SITEMAP v124] lote integrado ao botão Coletar: {len(lote_xml)} pauta(s) bruta(s)")
+                    # v200: coletor recursivo (sitemap_index) + sanitizador de entidades
+                    try:
+                        from ururau.coleta.sitemap_xml_coletor_v200 import (
+                            coletar_sitemaps_configurados_v200,
+                            obter_diagnostico_sitemap_v200,
+                        )
+                        lote_xml = coletar_sitemaps_configurados_v200()
+                        _diag_sitemap = obter_diagnostico_sitemap_v200()
+                        _versao_sitemap = "v200"
+                    except Exception as _e_v200:
+                        print(f"[XML/SITEMAP v200] indisponivel, fallback v123: {_e_v200}")
+                        from ururau.coleta.sitemap_xml_coletor_v123 import coletar_sitemaps_configurados_v123, obter_diagnostico_sitemap_v128
+                        lote_xml = coletar_sitemaps_configurados_v123()
+                        _diag_sitemap = obter_diagnostico_sitemap_v128()
+                        _versao_sitemap = "v123"
+                    print(f"[XML/SITEMAP {_versao_sitemap}] lote integrado ao botão Coletar: {len(lote_xml)} pauta(s) bruta(s)")
                     inseridas_xml_v126 = self._v94_salvar_lote_progressivo(
                         lote_xml, resumo_total, contagem_fonte, limites, "XML/Sitemap"
                     )
@@ -3860,8 +3873,8 @@ class PainelUrurau(tk.Tk):
                             tipo="xml_sitemap",
                             encontradas=len(lote_xml or []),
                             enviadas_fila=inseridas_xml_v126,
-                            observacao="Sitemaps processados em lote com diagnóstico v128 por sitemap e funil.",
-                            diagnostico={**self._v128_diag_lote("XML/Sitemap"), "sitemap_detalhe": __import__("ururau.coleta.sitemap_xml_coletor_v123", fromlist=["obter_diagnostico_sitemap_v128"]).obter_diagnostico_sitemap_v128()},
+                            observacao=f"Sitemaps processados em lote com {_versao_sitemap} (recursivo + sanitizador).",
+                            diagnostico={**self._v128_diag_lote("XML/Sitemap"), "sitemap_detalhe": _diag_sitemap},
                         )
                 except Exception as e:
                     print(f"[XML/SITEMAP v123] falha ignorada: {e}")
@@ -7868,10 +7881,25 @@ def _filtrar_fontes_rss_sem_especiais_v129_1(fontes: list[dict]) -> tuple[list[d
 def _carregar_fontes_especiais_v129() -> list[dict]:
     try:
         from ururau.coleta.linha_editorial_v129 import carregar_fontes_especiais_v129
-        return carregar_fontes_especiais_v129(criar_se_ausente=True)
+        fontes = carregar_fontes_especiais_v129(criar_se_ausente=True)
     except Exception as e:
         print(f"[ESPECIAIS v129] Falha ao carregar fontes especiais: {e}")
         return []
+    # v200: aplica fallback automatico para endpoints oficiais quebrados (404/302-loop/HTML).
+    try:
+        from ururau.coleta.fontes_oficiais_fallback_v200 import (
+            aplicar_fallback_em_fontes_especiais,
+            habilitado as _fb_habilitado,
+        )
+        if _fb_habilitado():
+            antes = [(f.get("nome"), f.get("url")) for f in fontes]
+            fontes = aplicar_fallback_em_fontes_especiais(fontes, janela_horas=24)
+            for (n0, u0), f in zip(antes, fontes):
+                if f.get("url") != u0:
+                    print(f"[FALLBACK v200] {n0}: {u0} -> {f.get('url')}  motivo={f.get('_fallback_motivo_v200','')}")
+    except Exception as e:
+        print(f"[FALLBACK v200] desabilitado (erro): {e}")
+    return fontes
 
 
 def _carregar_fontes_especiais_v129_texto() -> str:
@@ -8634,7 +8662,7 @@ try:
     from ururau.ui.patch_v47_22_monitor_stop_painel import aplicar_patch_v47_22
     aplicar_patch_v47_22(globals())
 except Exception as _e_v47_22:
-    print(f'[v47.22] Patch stop monitor não aplicado: {_e_v47_22}')
+    print(f'[v47.22] patch stop monitor nao aplicado: {_e_v47_22}')
 
 
 # v47.23 - parada segura monitor painel
@@ -8645,7 +8673,7 @@ except Exception as _e_v47_23:
     print(f'[v47.23] patch stop monitor nao aplicado: {_e_v47_23}')
 
 
-# v47.25 — integridade pauta/fonte/materia no Redigir e Preview
+# v47.25 - integridade pauta/fonte/materia no Redigir e Preview
 try:
     from ururau.ui.patch_v47_25_integridade_redacao import aplicar_patch_v47_25
     aplicar_patch_v47_25(globals())
@@ -8653,7 +8681,7 @@ except Exception as _e_v47_25:
     print(f'[v47.25] patch integridade redacao nao aplicado: {_e_v47_25}')
 
 
-# v47.26 — fonte correta antes da IA
+# v47.26 - fonte correta antes da IA
 try:
     from ururau.ui.patch_v47_26_fonte_antes_ia import aplicar_patch_v47_26
     aplicar_patch_v47_26(globals())
@@ -8661,17 +8689,17 @@ except Exception as _e_v47_26:
     print(f'[v47.26] patch fonte antes IA nao aplicado: {_e_v47_26}')
 
 
-# v47.27 — bloqueia preview contaminado ja persistido
+# v47.27 - bloqueia preview contaminado ja persistido
 try:
     from ururau.ui.patch_v47_27_preview_guard import aplicar_patch_v47_27
     aplicar_patch_v47_27(globals())
 except Exception as _e_v47_27:
     print(f'[v47.27] patch preview contaminado nao aplicado: {_e_v47_27}')
 
-# v47.32 — aba Auditor IA integrada ao painel principal
+
+# v47.32 - aba Auditor IA integrada ao painel principal
 try:
     from ururau.ui.patch_auditor_ia_tab_v47_32 import aplicar_patch_auditor_ia_tab_v47_32
     aplicar_patch_auditor_ia_tab_v47_32(globals())
 except Exception as _e_v47_32:
     print(f'[v47.32] patch Auditor IA nao aplicado: {_e_v47_32}')
-

@@ -1,10 +1,5 @@
 """
-datas_v100.py/v99 — normalização única de datas de publicação de fontes.
-
-Objetivo:
-- interpretar corretamente datas de RSS/Google News em UTC/GMT;
-- converter tudo para America/Sao_Paulo antes de exibir/salvar;
-- bloquear pautas sem data confiável, futuras ou publicadas fora da janela editorial.
+datas_v100.py/v99 - normalizacao unica de datas de publicacao de fontes.
 """
 from __future__ import annotations
 
@@ -19,11 +14,67 @@ TZ_UTC = ZoneInfo("UTC")
 
 
 def janela_publicacao_horas(default: int = 4) -> int:
-    """Janela editorial de coleta: somente matérias publicadas nas últimas N horas."""
     try:
         return max(1, int(os.getenv("URURAU_V100_JANELA_PUBLICACAO_HORAS", os.getenv("URURAU_V99_JANELA_PUBLICACAO_HORAS", os.getenv("URURAU_JANELA_PUBLICACAO_HORAS", str(default))))))
     except Exception:
         return default
+
+
+_DOMINIOS_REGIONAIS_JANELA_AMPLA = {
+    "nfnoticias.com.br", "www.nfnoticias.com.br",
+    "tribunanf.com.br", "www.tribunanf.com.br",
+    "jornaldesabado.com.br", "www.jornaldesabado.com.br",
+    "j3news.com", "www.j3news.com",
+    "sfnoticias.com.br", "www.sfnoticias.com.br",
+    "odebateon.com.br", "www.odebateon.com.br",
+    "parahybano.com.br", "www.parahybano.com.br",
+    "campos.rj.gov.br", "www.campos.rj.gov.br",
+}
+
+
+def janela_para_fonte_v200(fonte=None, url_feed: str = "", nome_fonte: str = "") -> int:
+    """Janela em horas adequada para a fonte."""
+    base = janela_publicacao_horas()
+    try:
+        url_l = (url_feed or "").lower()
+        nome_l = (nome_fonte or "").lower()
+        fonte = fonte or {}
+        host = ""
+        try:
+            from urllib.parse import urlparse
+            host = urlparse(url_l).netloc
+        except Exception:
+            host = ""
+        is_regional = bool(
+            fonte.get("regional_prioritaria")
+            or fonte.get("regional_prioritaria_v1304")
+            or fonte.get("tipo") in ("rss_regional_prioritario_v1304", "regional_v1305", "regional_config_v1305", "auto_v131_regionais", "auto_v1325_regionais")
+            or fonte.get("tipo_coleta") in ("rss_regional_prioritario_v1304", "regional_v1305")
+            or host in _DOMINIOS_REGIONAIS_JANELA_AMPLA
+            or "nfnoticias" in nome_l
+            or "tribuna nf" in nome_l
+            or "tribunanf" in nome_l
+        )
+        if is_regional:
+            try:
+                return max(base, int(os.getenv("URURAU_V200_JANELA_REGIONAL_HORAS", "24")))
+            except Exception:
+                return max(base, 24)
+        is_oficial = bool(
+            fonte.get("bypass_score")
+            or ".gov.br" in url_l
+            or ".jus.br" in url_l
+            or ".leg.br" in url_l
+            or ".mp.br" in url_l
+        )
+        if is_oficial:
+            try:
+                return max(base, int(os.getenv("URURAU_V200_JANELA_OFICIAL_HORAS", "12")))
+            except Exception:
+                return max(base, 12)
+    except Exception:
+        pass
+    return base
 
 
 def tolerancia_futuro_minutos(default: int = 10) -> int:
@@ -33,47 +84,28 @@ def tolerancia_futuro_minutos(default: int = 10) -> int:
         return default
 
 
-def _dt_br_naive(dt: _dt.datetime) -> _dt.datetime:
-    """Converte datetime para horário de Brasília sem tzinfo, compatível com o restante do projeto."""
+def _dt_br_naive(dt):
     if dt.tzinfo is None:
         return dt.replace(tzinfo=None)
     return dt.astimezone(TZ_BR).replace(tzinfo=None)
 
 
-def normalizar_data_publicacao(entry: dict[str, Any]) -> tuple[Optional[_dt.datetime], str, str]:
-    """
-    Retorna (dt_br_naive, data_original, metodo).
-
-    Regras:
-    1. Se published/updated tem timezone (GMT, +0000, -0300 etc.), converte para Brasília.
-    2. Se published/updated não tem timezone, trata como Brasília, exceto quando ficar no futuro.
-    3. Se a data sem timezone ficar até ~5h no futuro, assume que era UTC mal declarado e converte.
-    4. Se só existir published_parsed/updated_parsed, trata como UTC, pois feedparser costuma normalizar time tuples.
-    """
+def normalizar_data_publicacao(entry):
     raw = str(entry.get("published") or entry.get("updated") or entry.get("pubDate") or "").strip()
-
-    # 1) Preferir a string original, porque ela contém offset quando o feed informa corretamente.
     if raw:
         try:
             parsed = parsedate_to_datetime(raw)
             if parsed.tzinfo is not None:
                 return _dt_br_naive(parsed), raw, "raw_tz_to_br"
-
-            # Sem tzinfo: inicialmente considera Brasília.
             dt_local = parsed.replace(tzinfo=None)
             agora = _dt.datetime.now(TZ_BR).replace(tzinfo=None)
             diff_min = (dt_local - agora).total_seconds() / 60
-
-            # Se ficou no futuro por margem compatível com UTC→BRT, corrige.
             if diff_min > tolerancia_futuro_minutos() and diff_min <= 330:
                 dt_corr = dt_local.replace(tzinfo=TZ_UTC).astimezone(TZ_BR).replace(tzinfo=None)
                 return dt_corr, raw, "raw_naive_assumido_utc_to_br"
-
             return dt_local, raw, "raw_naive_br"
         except Exception:
             pass
-
-    # 2) Fallback em tuples do feedparser. Geralmente representam UTC normalizado.
     tp = entry.get("published_parsed") or entry.get("updated_parsed")
     if tp:
         try:
@@ -81,19 +113,18 @@ def normalizar_data_publicacao(entry: dict[str, Any]) -> tuple[Optional[_dt.date
             return _dt_br_naive(dt_utc), raw, "tuple_utc_to_br"
         except Exception:
             pass
-
     return None, raw, "sem_data"
 
 
-def formatar_br(dt: Optional[_dt.datetime]) -> str:
+def formatar_br(dt):
     return dt.strftime("%d/%m/%Y %H:%M") if dt else ""
 
 
-def ordenar_iso(dt: Optional[_dt.datetime]) -> str:
+def ordenar_iso(dt):
     return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else ""
 
 
-def parse_data_br_ou_iso(valor: str) -> Optional[_dt.datetime]:
+def parse_data_br_ou_iso(valor: str):
     s = (valor or "").strip()
     if not s:
         return None
@@ -111,8 +142,7 @@ def parse_data_br_ou_iso(valor: str) -> Optional[_dt.datetime]:
     return None
 
 
-def dentro_da_janela(dt_pub: Optional[_dt.datetime], agora: Optional[_dt.datetime] = None, janela_horas: Optional[int] = None) -> tuple[bool, str, float]:
-    """Valida se a publicação está dentro da janela v99."""
+def dentro_da_janela(dt_pub, agora=None, janela_horas=None):
     if dt_pub is None:
         return False, "sem_data_publicacao", 999999.0
     agora = agora or _dt.datetime.now(TZ_BR).replace(tzinfo=None)
@@ -121,5 +151,5 @@ def dentro_da_janela(dt_pub: Optional[_dt.datetime], agora: Optional[_dt.datetim
         return False, "data_publicacao_futura", idade_horas
     janela = janela_horas or janela_publicacao_horas()
     if idade_horas > janela:
-        return False, f"fora_da_janela_{janela}h", idade_horas
+        return False, "fora_da_janela_" + str(janela) + "h", idade_horas
     return True, "ok", idade_horas
