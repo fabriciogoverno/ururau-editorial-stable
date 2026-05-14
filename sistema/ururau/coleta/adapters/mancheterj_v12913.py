@@ -276,7 +276,14 @@ def _coletar_feeds(urls: list[str], agora: _dt.datetime, max_itens: int) -> list
     for url in urls:
         d = {"url": url, "status": "", "entradas": 0, "aceitas_janela": 0, "fallback_fora_janela": 0, "erro": ""}
         try:
-            feed = feedparser.parse(url)
+            # V200_3: feedparser.parse(url) faz fetch SEM timeout e trava o
+            # ciclo. Roteia pelo HTTP resiliente com timeout duro.
+            try:
+                from ururau.coleta.http_fetch_v109 import fetch_rss_v109 as _frss_mrj
+                _rmrj = _frss_mrj(url, timeout=12, max_retries=2)
+                feed = feedparser.parse(_rmrj.text) if (_rmrj.ok and _rmrj.text) else feedparser.parse("")
+            except Exception:
+                feed = feedparser.parse("")
             entradas = feed.get("entries", []) or []
             d["entradas"] = len(entradas)
             for entry in entradas[:30]:

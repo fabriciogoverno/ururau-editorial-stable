@@ -111,7 +111,16 @@ def descobrir_por_google_news_terms(fonte: dict, max_por_termo: int = 5) -> list
     base = "https://news.google.com/rss/search?q={query}&hl=pt-BR&gl=BR&ceid=BR:pt-419"
     for termo in fonte.get("google_news_terms", [])[: int(os.getenv("URURAU_V88_MAX_TERMOS_POR_FONTE", "6"))]:
         try:
-            feed = feedparser.parse(base.format(query=quote_plus(termo)))
+            # V200_3: feedparser.parse(url) faz fetch SEM timeout e trava o
+            # ciclo. Roteia pelo HTTP resiliente com timeout duro.
+            _url_gn = base.format(query=quote_plus(termo))
+            try:
+                from ururau.coleta.http_fetch_v109 import fetch_rss_v109 as _frss_v88
+                _r88 = _frss_v88(_url_gn, timeout=12, max_retries=2,
+                                 referer="https://news.google.com/")
+                feed = feedparser.parse(_r88.text) if (_r88.ok and _r88.text) else feedparser.parse("")
+            except Exception:
+                feed = feedparser.parse("")
             for entry in feed.get("entries", [])[:max_por_termo]:
                 titulo = (entry.get("title") or "").strip(); link = (entry.get("link") or "").strip()
                 if " - " in titulo: titulo = titulo.rsplit(" - ", 1)[0].strip()

@@ -150,7 +150,14 @@ def coletar_campos24horas_v126(limite: int | None = None) -> list[dict]:
             if len(saida) >= limite:
                 break
             try:
-                feed = feedparser.parse(feed_url)
+                # V200_3: feedparser.parse(url) faz fetch SEM timeout e trava
+                # o ciclo. Roteia pelo HTTP resiliente com timeout duro.
+                try:
+                    from ururau.coleta.http_fetch_v109 import fetch_rss_v109 as _frss_c24
+                    _rc24 = _frss_c24(feed_url, timeout=12, max_retries=2)
+                    feed = feedparser.parse(_rc24.text) if (_rc24.ok and _rc24.text) else feedparser.parse("")
+                except Exception:
+                    feed = feedparser.parse("")
                 entries = feed.get("entries", []) or []
                 LAST_DIAGNOSTICO_CAMPOS24_V128["feeds"].append({
                     "url": feed_url,

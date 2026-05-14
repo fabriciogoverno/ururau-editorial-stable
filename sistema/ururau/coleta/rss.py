@@ -115,14 +115,25 @@ def _parsear_feed_resiliente_v200(url_feed: str):
             print(f"[RSS v200][TIMEOUT_CRONICO_FALHA] {url_efetiva}: {r.erro}")
         except Exception as e:
             print(f"[RSS v200][TIMEOUT_CRONICO_ERR] {url_efetiva}: {e}")
-        # Wayback como ultimo recurso
+        # Wayback como ultimo recurso — V200_3: COM TIMEOUT DURO.
+        # Antes: feedparser.parse(wb) baixava a URL do Wayback SEM timeout.
+        # Como isso roda dentro dos workers do prefetch paralelo, um Wayback
+        # lento travava o worker e, por tabela, a coleta inteira ('parado
+        # em Coletando RSS...'). Agora o Wayback tambem passa por fetch_rss_v109.
         try:
             if _v200_wayback:
                 wb = _v200_wayback(url_efetiva)
-                print(f"[RSS v200][WAYBACK] tentando {wb}")
-                return feedparser.parse(wb)
-        except Exception:
-            pass
+                print(f"[RSS v200][WAYBACK] tentando {wb}", flush=True)
+                from ururau.coleta.http_fetch_v109 import fetch_rss_v109 as _frss_wb
+                _rwb = _frss_wb(
+                    wb,
+                    timeout=int(os.getenv("URURAU_RSS_FEED_TIMEOUT", "12") or "12"),
+                    max_retries=1,
+                )
+                if _rwb.ok and _rwb.text:
+                    return feedparser.parse(_rwb.text)
+        except Exception as _e_wb:
+            print(f"[RSS v200][WAYBACK] falhou: {_e_wb}", flush=True)
         return feedparser.parse("")  # feed vazio
 
     # V200_3: caminho normal tambem passa por fetch com TIMEOUT DURO.
@@ -595,20 +606,33 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                     int(os.getenv("URURAU_RSS_PREFETCH_WORKERS", "12") or "12"),
                     len(_urls_feed),
                 ))
-                print(f"[RSS v200_3] prefetch paralelo de {len(_urls_feed)} feeds ({_workers} workers)...")
+                # Teto duro do prefetch inteiro. Mesmo que algum feed escape
+                # dos timeouts individuais, a coleta NUNCA fica presa aqui:
+                # passado o teto, segue com o que ja chegou.
+                _ceiling = int(os.getenv("URURAU_RSS_PREFETCH_CEILING_SEG", "120") or "120")
+                print(f"[RSS v200_3] prefetch paralelo de {len(_urls_feed)} feeds "
+                      f"({_workers} workers, teto {_ceiling}s)...", flush=True)
                 _t_pf = time.time()
-                with ThreadPoolExecutor(max_workers=_workers) as _ex:
-                    _fut = {_ex.submit(_parsear_feed_resiliente_v200, _u): _u for _u in _urls_feed}
-                    for _f_done in as_completed(_fut):
+                _ex = ThreadPoolExecutor(max_workers=_workers)
+                _fut = {_ex.submit(_parsear_feed_resiliente_v200, _u): _u for _u in _urls_feed}
+                try:
+                    for _f_done in as_completed(_fut, timeout=_ceiling):
                         _u = _fut[_f_done]
                         try:
                             _feeds_prefetch[_u] = _f_done.result()
                         except Exception as _e_pf:
-                            print(f"[RSS v200_3][PREFETCH_ERR] {_u[:70]}: {_e_pf}")
+                            print(f"[RSS v200_3][PREFETCH_ERR] {_u[:70]}: {_e_pf}", flush=True)
+                except Exception as _e_ceiling:
+                    _faltam = len(_urls_feed) - len(_feeds_prefetch)
+                    print(f"[RSS v200_3] teto de {_ceiling}s atingido — {_faltam} feed(s) "
+                          f"lento(s) abandonado(s), seguindo com {len(_feeds_prefetch)}.", flush=True)
+                # Nao espera stragglers: como toda chamada de rede ja tem
+                # timeout, os workers restantes terminam sozinhos em segundos.
+                _ex.shutdown(wait=False, cancel_futures=True)
                 print(f"[RSS v200_3] prefetch concluido em {time.time() - _t_pf:.1f}s "
-                      f"({len(_feeds_prefetch)}/{len(_urls_feed)} feeds)")
+                      f"({len(_feeds_prefetch)}/{len(_urls_feed)} feeds)", flush=True)
     except Exception as _e_pf_geral:
-        print(f"[RSS v200_3] prefetch paralelo indisponivel, seguindo sequencial: {_e_pf_geral}")
+        print(f"[RSS v200_3] prefetch paralelo indisponivel, seguindo sequencial: {_e_pf_geral}", flush=True)
         _feeds_prefetch = {}
 
     for fonte in fontes_config:
@@ -890,10 +914,14 @@ def coletar_google_news(
                 if frss.ok:
                     feed = feedparser.parse(frss.text)
                 else:
-                    print(f"[GNEWS v110] Termo '{termo}': falha RSS resiliente ({frss.erro}); tentando feedparser direto")
-                    feed = feedparser.parse(url_feed)
-            except Exception:
-                feed = feedparser.parse(url_feed)
+                    # V200_3: NAO cair em feedparser.parse(url_feed) direto.
+                    # Esse fetch interno do feedparser nao tem timeout e pode
+                    # travar o ciclo inteiro. Em caso de falha, feed vazio.
+                    print(f"[GNEWS v110] Termo '{termo}': falha RSS resiliente ({frss.erro})", flush=True)
+                    feed = feedparser.parse("")
+            except Exception as _e_gn:
+                print(f"[GNEWS v110] Termo '{termo}': erro ({_e_gn})", flush=True)
+                feed = feedparser.parse("")
             entradas = feed.get("entries", [])
             print(f"[GNEWS v110] Termo '{termo}': {len(entradas)} entradas")
 

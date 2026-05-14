@@ -200,7 +200,10 @@ def coletar_google_news_termos_v108() -> list[dict]:
                     continue
                 feed = feedparser.parse(frss.text)
             else:
-                feed = feedparser.parse(url_feed)
+                # V200_3: feedparser.parse(url) faz fetch SEM timeout e pode
+                # travar o ciclo. Sem o HTTP resiliente, pula o termo.
+                print(f"[GNEWS v109] {termo}: HTTP resiliente desativado — termo pulado (evita trava)")
+                continue
             entradas = feed.get("entries", []) or []
             print(f"[GNEWS v109] {termo}: {len(entradas)} entrada(s)")
             count = 0

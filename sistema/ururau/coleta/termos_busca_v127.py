@@ -205,7 +205,10 @@ def coletar_busca_termos_v127() -> list[dict]:
                     continue
                 feed = feedparser.parse(getattr(frss, "text", ""))
             else:
-                feed = feedparser.parse(url_feed)
+                # V200_3: feedparser.parse(url) faz fetch SEM timeout e pode
+                # travar o ciclo. Sem o HTTP resiliente, pula o termo.
+                print(f"[TERMOS v127] {termo}: HTTP resiliente desativado — termo pulado (evita trava)")
+                continue
 
             entradas = feed.get("entries", []) or []
             diag_item_v128["resultados_brutos"] = len(entradas)
