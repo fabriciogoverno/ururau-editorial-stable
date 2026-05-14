@@ -53,6 +53,7 @@ def aplicar_patch_v130(g: dict) -> None:
         bf = tk.Frame(f, bg=COR_PAINEL)
         bf.pack(fill="x", padx=8, pady=4)
         tk.Button(bf, text="Diagnosticar, aplicar e testar", command=lambda: _diagnosticar_aplicar(self), bg=COR_VERDE, fg="white", relief="flat", padx=10, pady=3, cursor="hand2", font=(FONTE_PEQUENA[0], FONTE_PEQUENA[1], "bold") if isinstance(FONTE_PEQUENA, tuple) else FONTE_PEQUENA).pack(side="left", padx=(0, 6))
+        tk.Button(bf, text="Diagnosticar TODAS as fontes", command=lambda: _diagnosticar_todas_v200(self), bg="#7c3aed", fg="white", relief="flat", padx=10, pady=3, cursor="hand2", font=(FONTE_PEQUENA[0], FONTE_PEQUENA[1], "bold") if isinstance(FONTE_PEQUENA, tuple) else FONTE_PEQUENA).pack(side="left", padx=(0, 6))
         tk.Button(bf, text="Exportar TXT", command=lambda: _exportar_diag(self), bg=COR_AMARELO, fg="#111827", relief="flat", padx=8, pady=2, cursor="hand2", font=FONTE_PEQUENA).pack(side="left", padx=(0, 6))
         tk.Button(bf, text="Limpar", command=lambda: _limpar_diag(self), bg=COR_VERMELHO, fg="white", relief="flat", padx=8, pady=2, cursor="hand2", font=FONTE_PEQUENA).pack(side="left")
 
@@ -420,7 +421,54 @@ def aplicar_patch_v130(g: dict) -> None:
         self._v130_diag_status.set("Pronto.")
         _set_text(self, "")
 
-    # Anexa método e envolve _build das duas janelas de configuração.
+    def _diagnosticar_todas_v200(self):
+        """V200_2: roda o diagnostico de fonte em LOTE para TODAS as fontes
+        configuradas. Descobre a melhor estrategia de cada link, aplica o
+        perfil operacional e produz relatorio consolidado. Fontes que
+        falharem em tudo sao apenas SINALIZADAS (nada e desativado)."""
+        if not messagebox.askyesno(
+            "Diagnosticar TODAS as fontes",
+            "Isto vai rodar o diagnostico completo de TODAS as fontes "
+            "configuradas, uma a uma, e aplicar o melhor perfil de cada.\n\n"
+            "Pode levar varios minutos. Continuar?",
+        ):
+            return
+        _set_text(self, "DIAGNOSTICO EM LOTE DE TODAS AS FONTES\n" + "=" * 70 + "\n\n")
+        self._v130_diag_status.set("Diagnosticando todas as fontes. Aguarde...")
+
+        def worker():
+            try:
+                from ururau.coleta.diagnostico_auto_v200 import diagnosticar_todas_as_fontes
+
+                def log(msg):
+                    try:
+                        self.after(0, lambda m=str(msg): _append_text(self, m))
+                    except Exception:
+                        pass
+
+                resumo = diagnosticar_todas_as_fontes(log_callback=log)
+                rel = resumo.get("relatorio_txt", "") or "Diagnostico em lote concluido."
+                try:
+                    self.after(0, lambda: _set_text(self, rel))
+                    self.after(0, lambda: self._v130_diag_status.set(
+                        f"Lote concluido: {resumo.get('funcionais', 0)}/"
+                        f"{resumo.get('total', 0)} funcionais, "
+                        f"{resumo.get('precisam_atencao', 0)} p/ atencao. "
+                        f"Relatorio: {resumo.get('arquivo_txt', '')}"
+                    ))
+                    self.after(100, lambda: _recarregar_fontes_links_v1324(self))
+                except Exception:
+                    pass
+            except Exception as e:
+                try:
+                    self.after(0, lambda: self._v130_diag_status.set("Erro no diagnostico em lote."))
+                    self.after(0, lambda: _append_text(self, f"ERRO: {e}"))
+                except Exception:
+                    pass
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    # Anexa metodo e envolve _build das duas janelas de configuracao.
     for cls_name in ("_ConfigWidget", "JanelaConfiguracoes"):
         cls = g.get(cls_name)
         if not cls or getattr(cls, "_v130_diag_patch_aplicado", False):
@@ -437,9 +485,8 @@ def aplicar_patch_v130(g: dict) -> None:
                         self._criar_aba_diagnostico_fontes_v130(nb)
                         self._v130_diag_tab_criada = True
                 except Exception as e:
-                    print(f"[v130][DIAGNOSTICO_FONTE] aba não criada: {e}")
+                    print(f"[v130][DIAGNOSTICO_FONTE] aba nao criada: {e}")
             return _build_v130
 
         setattr(cls, "_build", make_build(old_build))
         setattr(cls, "_v130_diag_patch_aplicado", True)
-

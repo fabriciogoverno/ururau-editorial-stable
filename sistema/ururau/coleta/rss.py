@@ -533,6 +533,13 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
     filtradas = 0
     motivos_filtro: dict[str, int] = {}
 
+    # V200_2: zera o cache de auto-cura no inicio de cada coleta geral
+    try:
+        from ururau.coleta.diagnostico_auto_v200 import limpar_cache_autocura
+        limpar_cache_autocura()
+    except Exception:
+        pass
+
     try:
         if _v114_ordenar_fontes is not None:
             incluir_quarentena = os.getenv("URURAU_FONTES_INCLUIR_QUARENTENA", "0").lower() in {"1", "true", "sim", "yes", "s"}
@@ -561,6 +568,31 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
             feed = _parsear_feed_resiliente_v200(url_feed)
             entradas = feed.get("entries", [])
             print(f"[RSS] {nome_fonte}: {len(entradas)} entradas")
+
+            # V200_2 AUTO-CURA: feed devolveu 0 itens — roda o diagnostico
+            # de fonte inline, aplica perfil fresco e tenta a cascata
+            # universal (rss xml -> wp api -> sitemap -> html). Cacheado
+            # por dominio. Politica: so sinaliza, nunca desativa.
+            if not entradas:
+                try:
+                    if os.getenv("URURAU_V200_AUTOCURA_COLETA", "1").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
+                        from ururau.coleta.diagnostico_auto_v200 import auto_curar_fonte_v200
+                        _cura = auto_curar_fonte_v200(
+                            url_feed, nome=nome_fonte,
+                            grupo=str(fonte.get("grupo") or "RSS"),
+                            log=lambda m: print(m),
+                        )
+                        if _cura.get("ok") and _cura.get("pautas"):
+                            _pautas_cura = _cura["pautas"]
+                            print(f"[RSS][AUTOCURA_V200] {nome_fonte}: "
+                                  f"+{len(_pautas_cura)} pauta(s) via {_cura.get('estrategia')}")
+                            for _pc in _pautas_cura:
+                                if isinstance(_pc, dict):
+                                    _pc.setdefault("_origem_autocura_v200", True)
+                                    _pc.setdefault("fonte_nome", nome_fonte)
+                                    pautas.append(_pc)
+                except Exception as _e_cura:
+                    print(f"[RSS][AUTOCURA_V200] {nome_fonte}: auto-cura falhou: {_e_cura}")
             try:
                 max_por_link_v117 = int(os.getenv("URURAU_RSS_MAX_POR_LINK", "10"))
             except Exception:
@@ -1054,4 +1086,3 @@ def obter_termos_radar_audiencia_v88():
     except Exception as e:
         print(f"[v88][RADAR] indisponivel: {e}")
         return []
-
