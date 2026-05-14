@@ -357,6 +357,43 @@ def _ler_fonte_impl(pauta: dict, forcar_refresh: bool) -> ResultadoLeitura:
     except Exception as _e_proxy_pre_v134:
         print(f"[V134][READER_PROXY] prioridade falhou: {_e_proxy_pre_v134}", flush=True)
 
+    # V200_2: SCRAPLING como PRIMEIRA tentativa na hidratacao do painel.
+    # Ate aqui, o Scrapling (com bypass de paywall/anti-bot) so era usado
+    # em scraping.extrair_dossie_completo — caminho do workflow, NUNCA a
+    # hidratacao do painel (aba Fonte / fila). Agora a leitura de fonte
+    # tenta o Scrapling primeiro e so cai na cascata v104/v110/v86 se ele
+    # nao trouxer texto suficiente. Desativavel: URURAU_SCRAPLING_NA_LEITURA_FONTE=0
+    try:
+        if os.getenv("URURAU_SCRAPLING_NA_LEITURA_FONTE", "1").strip().lower() not in {"0", "false", "nao", "n\u00e3o", "off"}:
+            from ururau.coleta.scraping import extrair_dossie_completo
+            from ururau.coleta.limpeza_texto_v81 import texto_util_chars as _tuc_scr
+            _min_scr = int(os.getenv("URURAU_SCRAPLING_MIN_CHARS", os.getenv("URURAU_MIN_CHARS_TEXTO_FONTE", "900")) or "900")
+            _dossie_scr = extrair_dossie_completo(url, texto_existente=texto_preextraido or pauta.get("resumo_origem", "") or "")
+            _txt_scr = str((_dossie_scr or {}).get("cleaned_source_text") or (_dossie_scr or {}).get("dossie") or "").strip()
+            _metodo_scr = str((_dossie_scr or {}).get("extraction_method") or "")
+            if _txt_scr and _metodo_scr.startswith("scrapling") and _tuc_scr(_txt_scr) >= _min_scr:
+                _meta_scr = (_dossie_scr or {}).get("metadata") or {}
+                _texto_limpo_scr = limpar_texto_artigo_v101(
+                    _txt_scr, titulo=pauta.get("titulo_origem", ""), max_chars=12000)
+                print(f"[LEITURA_FONTE][SCRAPLING] OK {_tuc_scr(_texto_limpo_scr)} chars "
+                      f"via {_metodo_scr}: {url[:70]}")
+                resultado = ResultadoLeitura(
+                    url=str(_meta_scr.get("resolved_url") or url),
+                    texto_limpo=_texto_limpo_scr[:12000],
+                    titulo_extraido=str(_meta_scr.get("titulo") or pauta.get("titulo_origem", "")),
+                    imagem_url=str(_meta_scr.get("imagem") or pauta.get("imagem_url")
+                                   or pauta.get("imagem") or ""),
+                    termos_destacados=[],
+                    score_intel_adicional=0,
+                    intel_log=f"[scrapling] {_metodo_scr}",
+                    tamanho_chars=len(_texto_limpo_scr),
+                    sucesso=True,
+                )
+                _cache[url] = (agora, resultado)
+                return resultado
+    except Exception as _e_scr_lf:
+        print(f"[LEITURA_FONTE][SCRAPLING] indisponivel/falhou, seguindo cascata v104: {_e_scr_lf}")
+
     # v104: usa o extrator definitivo também na aba Fonte.
     try:
         from ururau.coleta.fonte_extractor_v104 import extrair_artigo_v104

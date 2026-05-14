@@ -147,15 +147,26 @@ def _container_text(page: Any, selector: str) -> str:
 
 
 def _texto_de_page(page: Any) -> str:
-    for attr in ("html", "body", "content"):
+    # V200_2: Scrapling 0.4.x guarda o HTML cru em .html_content; versoes
+    # antigas usavam .html/.body/.content. Tentamos todas em ordem.
+    for attr in ("html_content", "html", "content", "body"):
         try:
-            value = getattr(page, attr)
+            value = getattr(page, attr, None)
             if callable(value):
                 value = value()
             if isinstance(value, str) and len(value) > 100:
                 return value
         except Exception:
             pass
+    # Scrapling 0.4.x: get_all_text() devolve o texto util da pagina
+    try:
+        gat = getattr(page, "get_all_text", None)
+        if callable(gat):
+            t = gat(strip=True)
+            if isinstance(t, str) and len(t) > 100:
+                return t
+    except Exception:
+        pass
     try:
         body = page.css("body").get()
         if body:
@@ -301,8 +312,15 @@ class UrurauScraplingExtractor:
     def __init__(self):
         self.fetcher = None
         if SCRAPLING_DISPONIVEL and StealthyFetcher:
+            # V200_2: a API do Scrapling 0.4.x NAO tem mais StealthyFetcher.
+            # configure(). O modo adaptativo agora e um atributo de classe.
+            # Mantemos o configure() so como fallback para versoes antigas.
             try:
-                # API recomendada pela própria lib v0.4.x
+                StealthyFetcher.adaptive = True  # Scrapling >= 0.3
+            except Exception:
+                pass
+            try:
+                # versoes antigas (<= 0.2.x) ainda tinham .configure()
                 StealthyFetcher.configure(
                     stealth_mode=True,
                     bypass_cloudflare=True,
