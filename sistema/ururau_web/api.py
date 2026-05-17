@@ -1433,8 +1433,11 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
     # So texto >= 1500 (cinco-seis paragrafos reais) eh considerado completo.
     # Caso contrario, dispara escada trafilatura -> Jina e marca on-demand
     # para nao repetir nas proximas requisicoes.
-    _TEXTO_MIN_UTIL = 3000  # v1.15.12: subiu de 1500 -> 3000 pra cobrir
-                            # resumos longos do RSS que estavam passando
+    # V200_28: voltou para 1500 - o hidratador BG ja garante que materias
+    # com texto >= 1500 chars sao hidratacoes reais (nao resumo). Manter
+    # em 3000 fazia toda materia 1500-3000 disparar hidratacao on-demand a
+    # cada click, demorando 5-30s. Agora so dispara se texto < 1500 chars.
+    _TEXTO_MIN_UTIL = 1500
     _maior_texto = max(len(_texto_hidratado), len(_texto_legacy))
     _metodo_anterior = merged.get("hidratacao_on_demand", "")
     _link_pauta = _link_pauta_para_hidratacao(merged)

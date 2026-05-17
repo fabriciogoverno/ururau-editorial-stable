@@ -329,6 +329,35 @@ async function carregarTabFonte(p) {
   const thumbHtml = p.imagem_thumb
     ? `<div class="tf-thumb"><img src="${escapeHtml(p.imagem_thumb)}" alt="" onerror="this.parentNode.style.display='none'"/></div>`
     : "";
+  // V200_28: skeleton IMEDIATO antes do fetch.
+  // O fetch /api/pautas/{uid} pode demorar 5-30s porque dispara hidratacao
+  // on-demand (pipeline_v90 -> leitura_fonte -> trafilatura -> Jina). Sem
+  // este placeholder, o painel ficava com texto da pauta ANTERIOR durante
+  // todo esse tempo, dando impressao de que o sistema travou.
+  const skelMeta = `<div class="tf-meta" style="opacity:0.7;">
+    <b>${escapeHtml(p.fonte || "-")}</b> · ${escapeHtml(p.data || "-")} ${p.canal ? "· " + escapeHtml(p.canal) : ""}
+    ${p.txt_chars ? ` · ${p.txt_chars} caracteres` : ""}
+  </div>`;
+  $("painel-fonte").innerHTML = `
+    ${thumbHtml}
+    <h1 class="tf-titulo">${escapeHtml(p.titulo || "")}</h1>
+    ${skelMeta}
+    <div class="tf-corpo" style="margin-top:14px;">
+      <div style="display:flex; align-items:center; gap:10px; padding:14px;
+                  background:rgba(124,58,237,0.08); border:1px solid var(--border-2);
+                  border-radius:8px; color:var(--text-soft); font-size:13px;">
+        <span class="spinner" style="border-color:rgba(255,255,255,0.25); border-top-color:var(--acento-2);"></span>
+        <span>Carregando texto da fonte...</span>
+      </div>
+      <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+        <div style="height:14px; background:rgba(255,255,255,0.05); border-radius:4px; width:100%;"></div>
+        <div style="height:14px; background:rgba(255,255,255,0.05); border-radius:4px; width:96%;"></div>
+        <div style="height:14px; background:rgba(255,255,255,0.05); border-radius:4px; width:88%;"></div>
+        <div style="height:14px; background:rgba(255,255,255,0.05); border-radius:4px; width:92%;"></div>
+        <div style="height:14px; background:rgba(255,255,255,0.05); border-radius:4px; width:75%;"></div>
+      </div>
+    </div>
+  `;
   try {
     const j = await jget(API.pauta(p.uid));
     if (meuSeq !== _selSeq) return;  // descartado: outra pauta foi selecionada
