@@ -2001,8 +2001,24 @@ async function _atualizar_coleta_status_v200_26() {
   } catch (err) {}
 }
 
+// V200_29: carregar config IA no startup (sem isso _iaCfg.configurada
+// fica false pra sempre e botao Redigir / Copydesk ficam disabled)
+async function _carregar_config_ia_v200_29() {
+  try {
+    const r = await fetch("/api/diag");
+    if (!r.ok) return;
+    const j = await r.json();
+    const ia = j.ia || {};
+    _iaCfg.modelo = ia.modelo || _iaCfg.modelo || "";
+    _iaCfg.configurada = !!(ia.lib_instalada && ia.client_criado);
+    if (typeof atualizarToolbar === "function") atualizarToolbar();
+  } catch (e) { console.warn("config IA falhou:", e); }
+}
+
 async function _bootstrap_v200_26() {
   try {
+    // 0) V200_29: config IA primeiro (habilita botao Redigir/Copydesk)
+    try { await _carregar_config_ia_v200_29(); } catch (e) {}
     // 1) Carrega a fila pela primeira vez
     try { await carregarFila(); }
     catch (e) { console.error("carregarFila inicial falhou:", e); }
