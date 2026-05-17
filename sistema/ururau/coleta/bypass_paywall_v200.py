@@ -68,6 +68,37 @@ TIMEOUT = int(os.getenv("URURAU_BYPASS_TIMEOUT", "15"))
 MIN_CHARS_VALIDOS = int(os.getenv("URURAU_BYPASS_MIN_CHARS", "550"))
 
 
+
+def _ler_texto_utf8_v200_18(r) -> str:
+    """V200_18: decodifica response forcando UTF-8 quando necessario.
+
+    A Folha/Estadao/Globo servem UTF-8 mas o header HTTP as vezes
+    declara ISO-8859-1 ou nao declara. O requests confia no header
+    e cai em Latin-1, gerando "RevoluÃ§Ã£o" em vez de "Revolucao".
+    """
+    try:
+        raw = r.content or b""
+        if not raw:
+            return ""
+        enc_header = (r.encoding or "").lower()
+        try:
+            sample = raw[:2048].decode("ascii", errors="ignore").lower()
+            if 'charset=utf-8' in sample or 'charset="utf-8"' in sample:
+                return raw.decode("utf-8", errors="replace")
+            if 'charset=iso-8859-1' in sample or 'charset=latin-1' in sample:
+                return raw.decode("iso-8859-1", errors="replace")
+        except Exception:
+            pass
+        if enc_header in ("iso-8859-1", "latin-1", "latin1", "windows-1252", ""):
+            try:
+                return raw.decode("utf-8")
+            except UnicodeDecodeError:
+                return raw.decode("iso-8859-1", errors="replace")
+        return r.text or ""
+    except Exception:
+        return r.text or ""
+
+
 def _http_get(url: str, *, ua: str = DESKTOP_UA, referer: str = "",
               allow_redirects: bool = True) -> tuple[int, str, str]:
     """Devolve (status, url_final, html). Retorna (0,'','') em falha."""
@@ -77,7 +108,7 @@ def _http_get(url: str, *, ua: str = DESKTOP_UA, referer: str = "",
         "User-Agent": ua,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.7",
-        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Encoding": "gzip, deflate",
         "DNT": "1",
         "Upgrade-Insecure-Requests": "1",
     }
@@ -86,7 +117,7 @@ def _http_get(url: str, *, ua: str = DESKTOP_UA, referer: str = "",
     try:
         r = requests.get(url, headers=headers, timeout=TIMEOUT,
                           allow_redirects=allow_redirects)
-        return r.status_code, r.url, r.text or ""
+        return r.status_code, r.url, _ler_texto_utf8_v200_18(r)
     except Exception:
         return 0, "", ""
 
@@ -241,7 +272,7 @@ def _tent_no_cookies(url: str, titulo: str) -> dict:
         s_obj.cookies.clear()
         r = s_obj.get(url, headers=headers, timeout=TIMEOUT,
                        allow_redirects=True)
-        html = r.text or ""
+        html = _ler_texto_utf8_v200_18(r)
         texto = _extrair_texto_limpo(html, titulo, r.url)
         return {"estrategia": "no_cookies", "status": r.status_code,
                 "url_final": r.url, "chars": len(texto), "texto": texto,
@@ -251,9 +282,25 @@ def _tent_no_cookies(url: str, titulo: str) -> dict:
                 "chars": 0, "texto": "", "ok": False}
 
 
-# Lista ordenada das estrategias. AMP e googlebot sao as mais eficazes
-# em paywalls brasileiros (Folha, Globo, Estadao, Veja...).
+# V200_4: regra Burlesco por dominio — primeira tentativa quando o site
+# esta na lista do projeto Burlesco (33 portais brasileiros). Se o dominio
+# nao for reconhecido OU a regra falhar, cai nas estrategias genericas.
+try:
+    from ururau.coleta.paywall_rules_burlesco_v200 import (
+        tentar_bypass_burlesco as _tent_burlesco,
+    )
+    _BURLESCO_OK = True
+except Exception:
+    _BURLESCO_OK = False
+    def _tent_burlesco(url: str, titulo: str) -> dict:
+        return {"estrategia": "burlesco_indisponivel", "status": 0,
+                "url_final": "", "chars": 0, "texto": "", "ok": False}
+
+
+# Lista ordenada das estrategias. Burlesco roda primeiro (regra por
+# dominio); depois AMP/Googlebot/etc como fallback generico.
 ESTRATEGIAS = (
+    _tent_burlesco,        # regra Burlesco por dominio (33 portais BR)
     _tent_amp,             # mais barato e eficaz
     _tent_googlebot_news,  # Folha, Estadao
     _tent_googlebot,       # Globo, UOL
