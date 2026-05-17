@@ -1815,10 +1815,13 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
             lote_id = f"coleta_{data_hoje}_{seq_atual}_{int(_time.time())}"
             print(f"[ururau_web][COLETA] iniciado lote: {lote_label} (dia {data_hoje})")
 
-            # Estrategia em 2 fases (igual ao painel desktop):
-            # 1) coletar_rss direto (cobre TODAS as fontes em sistema/config/fontes_rss.json)
-            # 2) coletar_pautas_premium_v90 como complemento (sitemaps + watchlist)
+            # V200_25: Estrategia em 2 fases SALVANDO progressivamente.
+            # Fase 1: coletar_rss + SALVAR imediatamente (~5s para 243 pautas)
+            # Fase 2: source_hunter + SALVAR (lento, ~2.5min)
+            # Antes: ambas terminavam, depois salvavam tudo. Fila vazia 2.5min.
             pautas: list[dict] = []
+            rss_pautas: list[dict] = []
+            premium_pautas: list[dict] = []
             try:
                 fontes_rss = _carregar_fontes_rss()
                 print(f"[ururau_web][COLETA] coletar_rss: {len(fontes_rss)} fontes configuradas")
@@ -1827,12 +1830,7 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
                 print(f"[ururau_web][COLETA] coletar_rss retornou {len(rss_pautas)} pautas")
             except Exception as _e_rss:
                 print(f"[ururau_web][COLETA] coletar_rss falhou: {_e_rss}")
-            try:
-                premium_pautas = coletar_pautas_premium_v90(limite=limite, janela=janela) or []
-                pautas.extend(premium_pautas)
-                print(f"[ururau_web][COLETA] source_hunter retornou {len(premium_pautas)} pautas")
-            except Exception as _e_sh:
-                print(f"[ururau_web][COLETA] source_hunter falhou: {_e_sh}")
+            # source_hunter movido para DEPOIS da Fase 1 de save (V200_25)
 
             with _coleta_lock:
                 _coleta_estado["captadas_brutas"] = len(pautas)
@@ -1895,13 +1893,9 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
                         break
                 return out
 
-            print(f"[ururau_web][COLETA] salvando {len(pautas)} pautas brutas no banco (em lotes de 25)...")
             erros_salvar = 0
             normalizadas_burlesco = 0
-            # V200_12: buffer de chunks. A cada 25 pautas processadas, faz
-            # salvar_pautas_batch (1 commit so) e zera o buffer. Assim a
-            # fila web ja enxerga as primeiras pautas em ~1-2s, em vez de
-            # esperar 200+ pautas serem inseridas uma a uma.
+            # V200_12 + V200_25: chunks de 25 + 2 fases (RSS antes, SH depois)
             CHUNK_SIZE = 25
             _chunk_buffer = []
             _chunk_idx = 0
@@ -1928,110 +1922,133 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
                     print(f"[ururau_web][COLETA] chunk {_chunk_idx} FALHOU: {_e}")
                     erros_salvar += len(_chunk_buffer)
                 _chunk_buffer.clear()
-            for pauta in pautas:
-                try:
-                    # Marca o lote v123 (igual ao desktop) antes de salvar.
-                    pauta["coleta_lote_id_v123"] = lote_id
-                    pauta["coleta_lote_ordem_v123"] = seq_atual
-                    pauta["coleta_lote_hora_v123"] = hora_lote
-                    pauta["coleta_lote_label_v123"] = lote_label
-                    # IMPORTANTE: força captada_em/atualizada_em ao momento atual.
-                    pauta["captada_em"] = agora_iso
-                    pauta["atualizada_em"] = agora_iso
-                    pauta["data_pub_fonte"] = pauta.get("data_pub_fonte") or pauta.get("data_fonte") or ""
-                    # ── V200_7: NORMALIZACAO DE CHAVES (Source Hunter / Burlesco) ──
-                    # O source_hunter_v90 (que rescata via bypass_burlesco_rule)
-                    # retorna pautas com chaves "titulo", "url_original", "fonte",
-                    # "texto_fonte" — diferente do contrato canonico do banco
-                    # (titulo_origem, link_origem, fonte_nome, cleaned_source_text).
-                    # Sem normalizar:
-                    #  - link_origem fica vazio na coluna -> query_fila_ativa filtra
-                    #    (WHERE link_origem <> '') e a pauta SUMIA da fila;
-                    #  - cleaned_source_text fica vazio -> TXT OK nao aparece e a
-                    #    hidratacao on-demand re-extrai (lag ao clicar);
-                    #  - 'TEXTO DA FONTE' demora a aparecer na 2a coluna porque
-                    #    o front considera texto incompleto e dispara escada.
-                    _eh_source_hunter = bool(
-                        pauta.get("metodo_extracao")
-                        or pauta.get("metodo_coleta")
-                        or pauta.get("dominio")
-                        or pauta.get("url_original")
-                    ) and not pauta.get("titulo_origem")
-                    if not pauta.get("titulo_origem") and pauta.get("titulo"):
-                        pauta["titulo_origem"] = pauta["titulo"]
-                    if not pauta.get("link_origem"):
-                        for k in ("url_final", "url_original", "url", "link"):
-                            v = pauta.get(k)
-                            if isinstance(v, str) and v.startswith(("http://", "https://")):
-                                pauta["link_origem"] = v
-                                break
-                    if not pauta.get("fonte_nome") and pauta.get("fonte"):
-                        pauta["fonte_nome"] = pauta["fonte"]
-                    if not pauta.get("resumo_origem") and pauta.get("resumo"):
-                        pauta["resumo_origem"] = pauta["resumo"]
-                    # V200_8: imagem do pipeline_v90 -> imagem_url canonico
-                    # (handler_imagem_pauta e _detectar_imagem_url procuram
-                    # "imagem_url"/"imagem_capa" antes de cair em og:image)
-                    if not pauta.get("imagem_url"):
-                        for _k_img in ("imagem", "og_image", "image_url",
-                                       "imagem_principal", "thumbnail"):
-                            _v_img = pauta.get(_k_img)
-                            if isinstance(_v_img, str) and _v_img.startswith(("http://", "https://")):
-                                pauta["imagem_url"] = _v_img
-                                break
-                    # V200_8: limpa titulo lixo do Google News RSS (caso
-                    # "| Folha de Londrina - Folha de Londrina"). Heuristica:
-                    # comeca com | ou -, ou e curto demais sem letras uteis.
-                    _tit_atual = str(pauta.get("titulo_origem") or "").strip()
-                    _tit_limpo = _tit_atual.lstrip("|- \t").rstrip("|- \t")
-                    _eh_titulo_lixo = (
-                        not _tit_atual
-                        or _tit_atual.startswith(("|", "-"))
-                        or len(_tit_limpo) < 15
-                    )
-                    if _eh_titulo_lixo:
-                        _alt = (
-                            str(pauta.get("resumo_origem") or "").strip()
-                            or str(pauta.get("resumo") or "").strip()
-                            or str(pauta.get("descricao") or "").strip()
+            def _processar_e_salvar(lista_pautas, rotulo_fase):
+                """V200_25: processa uma lista de pautas em chunks e salva."""
+                nonlocal normalizadas_burlesco, erros_salvar
+                if not lista_pautas:
+                    return
+                print(f"[ururau_web][COLETA][{rotulo_fase}] salvando {len(lista_pautas)} pautas em chunks de {CHUNK_SIZE}...")
+                for pauta in lista_pautas:
+                    try:
+                            # Marca o lote v123 (igual ao desktop) antes de salvar.
+                        pauta["coleta_lote_id_v123"] = lote_id
+                        pauta["coleta_lote_ordem_v123"] = seq_atual
+                        pauta["coleta_lote_hora_v123"] = hora_lote
+                        pauta["coleta_lote_label_v123"] = lote_label
+                        # IMPORTANTE: força captada_em/atualizada_em ao momento atual.
+                        pauta["captada_em"] = agora_iso
+                        pauta["atualizada_em"] = agora_iso
+                        pauta["data_pub_fonte"] = pauta.get("data_pub_fonte") or pauta.get("data_fonte") or ""
+                        # ── V200_7: NORMALIZACAO DE CHAVES (Source Hunter / Burlesco) ──
+                        # O source_hunter_v90 (que rescata via bypass_burlesco_rule)
+                        # retorna pautas com chaves "titulo", "url_original", "fonte",
+                        # "texto_fonte" — diferente do contrato canonico do banco
+                        # (titulo_origem, link_origem, fonte_nome, cleaned_source_text).
+                        # Sem normalizar:
+                        #  - link_origem fica vazio na coluna -> query_fila_ativa filtra
+                        #    (WHERE link_origem <> '') e a pauta SUMIA da fila;
+                        #  - cleaned_source_text fica vazio -> TXT OK nao aparece e a
+                        #    hidratacao on-demand re-extrai (lag ao clicar);
+                        #  - 'TEXTO DA FONTE' demora a aparecer na 2a coluna porque
+                        #    o front considera texto incompleto e dispara escada.
+                        _eh_source_hunter = bool(
+                            pauta.get("metodo_extracao")
+                            or pauta.get("metodo_coleta")
+                            or pauta.get("dominio")
+                            or pauta.get("url_original")
+                        ) and not pauta.get("titulo_origem")
+                        if not pauta.get("titulo_origem") and pauta.get("titulo"):
+                            pauta["titulo_origem"] = pauta["titulo"]
+                        if not pauta.get("link_origem"):
+                            for k in ("url_final", "url_original", "url", "link"):
+                                v = pauta.get(k)
+                                if isinstance(v, str) and v.startswith(("http://", "https://")):
+                                    pauta["link_origem"] = v
+                                    break
+                        if not pauta.get("fonte_nome") and pauta.get("fonte"):
+                            pauta["fonte_nome"] = pauta["fonte"]
+                        if not pauta.get("resumo_origem") and pauta.get("resumo"):
+                            pauta["resumo_origem"] = pauta["resumo"]
+                        # V200_8: imagem do pipeline_v90 -> imagem_url canonico
+                        # (handler_imagem_pauta e _detectar_imagem_url procuram
+                        # "imagem_url"/"imagem_capa" antes de cair em og:image)
+                        if not pauta.get("imagem_url"):
+                            for _k_img in ("imagem", "og_image", "image_url",
+                                           "imagem_principal", "thumbnail"):
+                                _v_img = pauta.get(_k_img)
+                                if isinstance(_v_img, str) and _v_img.startswith(("http://", "https://")):
+                                    pauta["imagem_url"] = _v_img
+                                    break
+                        # V200_8: limpa titulo lixo do Google News RSS (caso
+                        # "| Folha de Londrina - Folha de Londrina"). Heuristica:
+                        # comeca com | ou -, ou e curto demais sem letras uteis.
+                        _tit_atual = str(pauta.get("titulo_origem") or "").strip()
+                        _tit_limpo = _tit_atual.lstrip("|- \t").rstrip("|- \t")
+                        _eh_titulo_lixo = (
+                            not _tit_atual
+                            or _tit_atual.startswith(("|", "-"))
+                            or len(_tit_limpo) < 15
                         )
-                        if _alt:
-                            _alt = _alt.split("\n")[0].split(". ")[0].strip()[:200]
-                            pauta["titulo_origem"] = _alt
-                    # texto_fonte do source_hunter -> cleaned_source_text canonico
-                    _texto_sh = (
-                        pauta.get("texto_fonte")
-                        or pauta.get("texto")
-                        or ""
-                    )
-                    if (
-                        not (pauta.get("cleaned_source_text") or "").strip()
-                        and isinstance(_texto_sh, str)
-                        and _texto_sh.strip()
-                    ):
-                        pauta["cleaned_source_text"] = _texto_sh
-                        # Marca que ja veio hidratada para o handler de detalhe
-                        # NAO disparar hidratacao on-demand de novo (lag ao clicar).
-                        pauta["fonte_status"] = pauta.get("fonte_status") or "ok"
-                        if _eh_source_hunter:
-                            pauta["hidratacao_on_demand"] = (
-                                pauta.get("hidratacao_on_demand")
-                                or "source_hunter:" + str(pauta.get("metodo_extracao") or "")
+                        if _eh_titulo_lixo:
+                            _alt = (
+                                str(pauta.get("resumo_origem") or "").strip()
+                                or str(pauta.get("resumo") or "").strip()
+                                or str(pauta.get("descricao") or "").strip()
                             )
-                            normalizadas_burlesco += 1
-                    # Match de termos editoriais para destacar prioridade na fila.
-                    termos_encontrados = _match_termos(pauta)
-                    if termos_encontrados:
-                        pauta["_v129_termos_positivos"] = termos_encontrados
-                        pauta["_v129_termos_prioridade"] = termos_encontrados
-                    _chunk_buffer.append(pauta)
-                    if len(_chunk_buffer) >= CHUNK_SIZE:
-                        _flush_chunk()
-                except Exception as e:
-                    erros_salvar += 1
-                    print(f"[ururau_web] falha ao preparar pauta: {e}")
-            # ultimo chunk parcial
-            _flush_chunk()
+                            if _alt:
+                                _alt = _alt.split("\n")[0].split(". ")[0].strip()[:200]
+                                pauta["titulo_origem"] = _alt
+                        # texto_fonte do source_hunter -> cleaned_source_text canonico
+                        _texto_sh = (
+                            pauta.get("texto_fonte")
+                            or pauta.get("texto")
+                            or ""
+                        )
+                        if (
+                            not (pauta.get("cleaned_source_text") or "").strip()
+                            and isinstance(_texto_sh, str)
+                            and _texto_sh.strip()
+                        ):
+                            pauta["cleaned_source_text"] = _texto_sh
+                            # Marca que ja veio hidratada para o handler de detalhe
+                            # NAO disparar hidratacao on-demand de novo (lag ao clicar).
+                            pauta["fonte_status"] = pauta.get("fonte_status") or "ok"
+                            if _eh_source_hunter:
+                                pauta["hidratacao_on_demand"] = (
+                                    pauta.get("hidratacao_on_demand")
+                                    or "source_hunter:" + str(pauta.get("metodo_extracao") or "")
+                                )
+                                normalizadas_burlesco += 1
+                        # Match de termos editoriais para destacar prioridade na fila.
+                        termos_encontrados = _match_termos(pauta)
+                        if termos_encontrados:
+                            pauta["_v129_termos_positivos"] = termos_encontrados
+                            pauta["_v129_termos_prioridade"] = termos_encontrados
+                        _chunk_buffer.append(pauta)
+                        if len(_chunk_buffer) >= CHUNK_SIZE:
+                            _flush_chunk()
+                    except Exception as e:
+                        erros_salvar += 1
+                        print(f"[ururau_web] falha ao preparar pauta: {e}")
+                # ultimo chunk parcial da fase
+                _flush_chunk()
+                print(f"[ururau_web][COLETA][{rotulo_fase}] fase concluida (total acumulado: {inseridas})")
+
+            # V200_25: FASE 1 - salva RSS imediatamente (~5s)
+            _processar_e_salvar(rss_pautas, "RSS")
+            with _coleta_lock:
+                _coleta_estado["captadas_brutas"] = len(rss_pautas)
+
+            # V200_25: FASE 2 - agora roda source_hunter (lento) e salva
+            try:
+                premium_pautas = coletar_pautas_premium_v90(limite=limite, janela=janela) or []
+                pautas.extend(premium_pautas)
+                print(f"[ururau_web][COLETA] source_hunter retornou {len(premium_pautas)} pautas")
+            except Exception as _e_sh:
+                print(f"[ururau_web][COLETA] source_hunter falhou: {_e_sh}")
+            _processar_e_salvar(premium_pautas, "SOURCE_HUNTER")
+            with _coleta_lock:
+                _coleta_estado["captadas_brutas"] = len(rss_pautas) + len(premium_pautas)
             if normalizadas_burlesco:
                 print(f"[ururau_web][COLETA][V200_7] normalizadas {normalizadas_burlesco} pautas do source_hunter "
                       f"(chaves canonicas + cleaned_source_text preenchido)")
