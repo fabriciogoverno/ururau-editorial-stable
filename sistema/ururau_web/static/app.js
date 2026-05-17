@@ -1872,6 +1872,90 @@ document.addEventListener("click", (e) => {
 });
 
 // ════════════════════════════════════════════════════════════════════════
+// V200_27: DRAG-RESIZE das colunas Fila|Centro|Stats
+// Os <div class="resizer" data-target="fila|stats"> ficam entre as
+// colunas. Arrastar atualiza a CSS var --w-fila ou --w-stats.
+// Salva em localStorage para persistir entre sessoes.
+// ════════════════════════════════════════════════════════════════════════
+(function _init_drag_resize_v200_27() {
+  const body = document.querySelector(".body");
+  if (!body) return;
+  // Restaura larguras salvas
+  try {
+    const saved_fila = localStorage.getItem("ururau_w_fila");
+    if (saved_fila && parseInt(saved_fila) >= 240) {
+      body.style.setProperty("--w-fila", saved_fila + "px");
+    }
+    const saved_stats = localStorage.getItem("ururau_w_stats");
+    if (saved_stats && parseInt(saved_stats) >= 240) {
+      body.style.setProperty("--w-stats", saved_stats + "px");
+    }
+  } catch (e) {}
+
+  document.querySelectorAll(".resizer[data-target]").forEach((resizer) => {
+    const target = resizer.dataset.target; // "fila" ou "stats"
+    let dragging = false;
+    let startX = 0;
+    let startW = 0;
+
+    const onMouseDown = (e) => {
+      dragging = true;
+      startX = e.clientX;
+      const cssVar = target === "fila" ? "--w-fila" : "--w-stats";
+      const cur = getComputedStyle(body).getPropertyValue(cssVar).trim();
+      startW = parseInt(cur) || (target === "fila" ? 480 : 340);
+      resizer.classList.add("dragging");
+      document.body.classList.add("resizing");
+      e.preventDefault();
+    };
+
+    const onMouseMove = (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      // fila aumenta para direita (dx positivo = mais largo)
+      // stats aumenta para esquerda (dx negativo = mais largo)
+      const delta = target === "fila" ? dx : -dx;
+      let nova = startW + delta;
+      // limites: min 240px, max 50% viewport
+      const maxW = Math.floor(window.innerWidth * 0.5);
+      if (nova < 240) nova = 240;
+      if (nova > maxW) nova = maxW;
+      const cssVar = target === "fila" ? "--w-fila" : "--w-stats";
+      body.style.setProperty(cssVar, nova + "px");
+    };
+
+    const onMouseUp = () => {
+      if (!dragging) return;
+      dragging = false;
+      resizer.classList.remove("dragging");
+      document.body.classList.remove("resizing");
+      // Salva no localStorage
+      try {
+        const cssVar = target === "fila" ? "--w-fila" : "--w-stats";
+        const key = target === "fila" ? "ururau_w_fila" : "ururau_w_stats";
+        const cur = getComputedStyle(body).getPropertyValue(cssVar).trim();
+        const px = parseInt(cur);
+        if (px && px >= 240) localStorage.setItem(key, String(px));
+      } catch (e) {}
+    };
+
+    resizer.addEventListener("mousedown", onMouseDown);
+    // mousemove/up globais para o cursor nao escapar do handle
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    // duplo-clique reseta para padrao
+    resizer.addEventListener("dblclick", () => {
+      const cssVar = target === "fila" ? "--w-fila" : "--w-stats";
+      const def = target === "fila" ? "480px" : "340px";
+      body.style.setProperty(cssVar, def);
+      try {
+        localStorage.removeItem(target === "fila" ? "ururau_w_fila" : "ururau_w_stats");
+      } catch (e) {}
+    });
+  });
+})();
+
+// ════════════════════════════════════════════════════════════════════════
 // V200_26: BOOTSTRAP - chamadas iniciais que estavam faltando
 // Sem essas chamadas, o app.js carregava mas a fila nunca era populada
 // (carregarFila() nunca era disparada na carga inicial - so quando o
