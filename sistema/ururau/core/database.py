@@ -244,6 +244,96 @@ class Database:
           AND link_origem != ''
         """)
 
+        # Migração 5: Feed Universal v200+.
+        # Guarda descoberta, geracao de candidatos, dedupe e logs de extracao
+        # fora do cache temporario. A fila continua entrando pela tabela pautas.
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_url TEXT UNIQUE NOT NULL,
+            domain TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_discovered_feeds (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_url TEXT,
+            feed_url TEXT NOT NULL,
+            tipo TEXT,
+            score INTEGER DEFAULT 0,
+            status_http INTEGER DEFAULT 0,
+            ok INTEGER DEFAULT 0,
+            entries INTEGER DEFAULT 0,
+            discovered_at TEXT,
+            dados_json TEXT,
+            UNIQUE(source_url, feed_url)
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_generated_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            canonical_url TEXT UNIQUE NOT NULL,
+            source_url TEXT,
+            title TEXT,
+            method TEXT,
+            status TEXT,
+            first_seen_at TEXT,
+            last_seen_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_seen_urls (
+            canonical_url TEXT PRIMARY KEY,
+            title_hash TEXT,
+            text_hash TEXT,
+            source_url TEXT,
+            pauta_uid TEXT,
+            first_seen_at TEXT,
+            last_seen_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_fu_seen_title_hash
+        ON feed_universal_seen_urls(title_hash)
+        """)
+        conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_fu_seen_text_hash
+        ON feed_universal_seen_urls(text_hash)
+        """)
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_blocked_urls (
+            canonical_url TEXT PRIMARY KEY,
+            motivo TEXT,
+            source_url TEXT,
+            blocked_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_source_health (
+            domain TEXT PRIMARY KEY,
+            score INTEGER DEFAULT 0,
+            status TEXT,
+            updated_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS feed_universal_extraction_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            canonical_url TEXT,
+            source_url TEXT,
+            status TEXT,
+            motivo TEXT,
+            useful_chars INTEGER DEFAULT 0,
+            method TEXT,
+            logged_at TEXT,
+            dados_json TEXT
+        )""")
+        conn.execute("""
+        CREATE INDEX IF NOT EXISTS idx_fu_logs_url
+        ON feed_universal_extraction_logs(canonical_url)
+        """)
+
         # Migração 4: adiciona coluna revisao_status na tabela materias (v59+)
         try:
             conn.execute("ALTER TABLE materias ADD COLUMN revisao_status TEXT DEFAULT 'pendente'")
@@ -373,6 +463,74 @@ class Database:
                 conn.close()
         return uid
 
+    def salvar_pautas_batch(self, pautas: list[dict]) -> dict:
+        """V200_12: salva varias pautas em UMA transacao (1 commit so).
+
+        Para 200+ pautas isso e ~10-50x mais rapido que chamar
+        salvar_pauta em loop (que abria/comitava/fechava por pauta).
+        Retorna {"inseridas": N, "erros": M, "uids": [...]}.
+        """
+        if not pautas:
+            return {"inseridas": 0, "erros": 0, "uids": []}
+        import time as _t
+        inicio = _t.time()
+        uids = []
+        erros = 0
+        with _lock:
+            conn = self._conectar()
+            try:
+                # Em uma transacao unica, sem auto-commit
+                conn.execute("BEGIN IMMEDIATE")
+                for pauta in pautas:
+                    try:
+                        uid = pauta.get("_uid") or self._uid_para_pauta(
+                            pauta.get("link_origem", ""), pauta.get("titulo_origem", "")
+                        )
+                        existente = conn.execute(
+                            "SELECT status FROM pautas WHERE uid=? LIMIT 1", (uid,)
+                        ).fetchone()
+                        if existente and existente["status"] == "excluida":
+                            uids.append(uid)
+                            continue
+                        conn.execute("""
+                        INSERT OR REPLACE INTO pautas
+                            (uid, titulo_origem, link_origem, fonte_nome, resumo_origem,
+                             canal, score_editorial, status, urgente, captada_em, atualizada_em, dados_json)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                        """, (
+                            uid,
+                            pauta.get("titulo_origem", ""),
+                            pauta.get("link_origem", ""),
+                            pauta.get("fonte_nome", ""),
+                            (pauta.get("resumo_origem", "") or "")[:500],
+                            pauta.get("canal_forcado", ""),
+                            pauta.get("score_editorial", 0),
+                            pauta.get("status", "captada"),
+                            1 if pauta.get("urgente") else 0,
+                            pauta.get("captada_em", self._agora()),
+                            self._agora(),
+                            json.dumps(pauta, ensure_ascii=False, default=str),
+                        ))
+                        uids.append(uid)
+                    except Exception as e:
+                        erros += 1
+                        print(f"[DB][batch] falha pauta: {e}")
+                conn.commit()
+            except Exception as e:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+                print(f"[DB][batch] ROLLBACK: {e}")
+                erros += len(pautas) - len(uids)
+                uids = []
+            finally:
+                conn.close()
+        dur = _t.time() - inicio
+        print(f"[DB][batch] {len(uids)}/{len(pautas)} pautas em {dur:.1f}s ({erros} erros)")
+        return {"inseridas": len(uids), "erros": erros, "uids": uids}
+
+
     def buscar_pauta(self, uid: str) -> Optional[dict]:
         with _lock:
             conn = self._conectar()
@@ -391,6 +549,47 @@ class Database:
                 conn.execute("UPDATE pautas SET status=?, atualizada_em=? WHERE uid=?",
                              (status, self._agora(), uid))
                 conn.commit()
+            finally:
+                conn.close()
+
+    def atualizar_pauta(self, uid: str, campos: dict) -> bool:
+        """Atualiza campos permitidos da pauta preservando o restante."""
+        if not uid or not isinstance(campos, dict) or not campos:
+            return False
+        permitidos = {
+            "titulo_origem",
+            "link_origem",
+            "fonte_nome",
+            "resumo_origem",
+            "canal",
+            "score_editorial",
+            "status",
+            "urgente",
+            "captada_em",
+            "atualizada_em",
+            "dados_json",
+        }
+        sets = []
+        valores = []
+        for k, v in campos.items():
+            if k in permitidos:
+                sets.append(f"{k}=?")
+                valores.append(v)
+        if not sets:
+            return False
+        if "atualizada_em" not in campos:
+            sets.append("atualizada_em=?")
+            valores.append(self._agora())
+        valores.append(uid)
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute(
+                    "UPDATE pautas SET " + ", ".join(sets) + " WHERE uid=?",
+                    tuple(valores),
+                )
+                conn.commit()
+                return True
             finally:
                 conn.close()
 
@@ -743,6 +942,311 @@ class Database:
             finally:
                 conn.close()
 
+    # ── Feed Universal v200+ ─────────────────────────────────────────────────
+
+    def _fu_hash(self, valor: str) -> str:
+        import hashlib
+        raw = " ".join(str(valor or "").lower().split())
+        return hashlib.sha1(raw.encode("utf-8", errors="ignore")).hexdigest()[:16] if raw else ""
+
+    def feed_universal_registrar_source(self, source_url: str, dados: dict | None = None):
+        """Registra a URL de origem analisada pelo Feed Universal."""
+        if not source_url:
+            return
+        from urllib.parse import urlparse
+
+        source_url = source_url.strip()
+        domain = urlparse(source_url).netloc.lower().removeprefix("www.")
+        agora = self._agora()
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_sources
+                    (source_url, domain, created_at, updated_at, dados_json)
+                VALUES (?,?,?,?,?)
+                ON CONFLICT(source_url) DO UPDATE SET
+                    domain=excluded.domain,
+                    updated_at=excluded.updated_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    source_url,
+                    domain,
+                    agora,
+                    agora,
+                    json.dumps(dados or {}, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_registrar_discovered_feed(self, source_url: str, feed: dict):
+        """Persiste feed RSS/Atom/JSON descoberto para diagnostico posterior."""
+        feed_url = str((feed or {}).get("url") or "").strip()
+        if not feed_url:
+            return
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_discovered_feeds
+                    (source_url, feed_url, tipo, score, status_http, ok, entries, discovered_at, dados_json)
+                VALUES (?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(source_url, feed_url) DO UPDATE SET
+                    tipo=excluded.tipo,
+                    score=excluded.score,
+                    status_http=excluded.status_http,
+                    ok=excluded.ok,
+                    entries=excluded.entries,
+                    discovered_at=excluded.discovered_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    source_url,
+                    feed_url,
+                    str(feed.get("tipo") or feed.get("type") or ""),
+                    int(feed.get("score") or 0),
+                    int(feed.get("status_http") or 0),
+                    1 if feed.get("ok") else 0,
+                    int(feed.get("entries") or 0),
+                    self._agora(),
+                    json.dumps(feed, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_registrar_generated_item(self, source_url: str, item: dict, status: str = "detectado"):
+        """Persiste candidato detectado antes/depois da hidratacao."""
+        canonical_url = str((item or {}).get("url") or item.get("url_final") or "").strip()
+        if not canonical_url:
+            return
+        agora = self._agora()
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_generated_items
+                    (canonical_url, source_url, title, method, status, first_seen_at, last_seen_at, dados_json)
+                VALUES (?,?,?,?,?,?,?,?)
+                ON CONFLICT(canonical_url) DO UPDATE SET
+                    source_url=excluded.source_url,
+                    title=excluded.title,
+                    method=excluded.method,
+                    status=excluded.status,
+                    last_seen_at=excluded.last_seen_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    canonical_url,
+                    source_url,
+                    str(item.get("titulo") or item.get("titulo_origem") or "")[:300],
+                    str(item.get("metodo") or item.get("extraction_method") or ""),
+                    status,
+                    agora,
+                    agora,
+                    json.dumps(item, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_match_seen(self, link: str = "", titulo: str = "", texto: str = "") -> Optional[dict]:
+        """Busca duplicidade por URL canonica, hash de titulo ou hash de texto."""
+        canonical = str(link or "").strip()
+        title_hash = self._fu_hash(titulo)
+        text_hash = self._fu_hash(texto[:2000] if texto else "")
+        with _lock:
+            conn = self._conectar()
+            try:
+                if canonical:
+                    row = conn.execute(
+                        "SELECT * FROM feed_universal_seen_urls WHERE canonical_url=? LIMIT 1",
+                        (canonical,),
+                    ).fetchone()
+                    if row:
+                        return dict(row)
+                if title_hash:
+                    row = conn.execute(
+                        "SELECT * FROM feed_universal_seen_urls WHERE title_hash=? LIMIT 1",
+                        (title_hash,),
+                    ).fetchone()
+                    if row:
+                        return dict(row)
+                if text_hash:
+                    row = conn.execute(
+                        "SELECT * FROM feed_universal_seen_urls WHERE text_hash=? LIMIT 1",
+                        (text_hash,),
+                    ).fetchone()
+                    if row:
+                        return dict(row)
+                return None
+            finally:
+                conn.close()
+
+    def feed_universal_url_seen(self, link: str) -> bool:
+        return self.feed_universal_match_seen(link=link) is not None
+
+    def feed_universal_mark_seen(
+        self,
+        link: str,
+        *,
+        titulo: str = "",
+        texto: str = "",
+        source_url: str = "",
+        pauta_uid: str = "",
+        dados: dict | None = None,
+    ):
+        """Marca URL como vista fora do cache temporario."""
+        canonical = str(link or "").strip()
+        if not canonical:
+            return
+        agora = self._agora()
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_seen_urls
+                    (canonical_url, title_hash, text_hash, source_url, pauta_uid,
+                     first_seen_at, last_seen_at, dados_json)
+                VALUES (?,?,?,?,?,?,?,?)
+                ON CONFLICT(canonical_url) DO UPDATE SET
+                    title_hash=excluded.title_hash,
+                    text_hash=excluded.text_hash,
+                    source_url=excluded.source_url,
+                    pauta_uid=excluded.pauta_uid,
+                    last_seen_at=excluded.last_seen_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    canonical,
+                    self._fu_hash(titulo),
+                    self._fu_hash(texto[:2000] if texto else ""),
+                    source_url,
+                    pauta_uid,
+                    agora,
+                    agora,
+                    json.dumps(dados or {}, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_block_url(
+        self,
+        link: str,
+        motivo: str,
+        *,
+        source_url: str = "",
+        dados: dict | None = None,
+    ):
+        """Registra bloqueio tecnico/editorial especifico do Feed Universal."""
+        canonical = str(link or "").strip()
+        if not canonical:
+            return
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_blocked_urls
+                    (canonical_url, motivo, source_url, blocked_at, dados_json)
+                VALUES (?,?,?,?,?)
+                ON CONFLICT(canonical_url) DO UPDATE SET
+                    motivo=excluded.motivo,
+                    source_url=excluded.source_url,
+                    blocked_at=excluded.blocked_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    canonical,
+                    str(motivo or "")[:300],
+                    source_url,
+                    self._agora(),
+                    json.dumps(dados or {}, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_log_extraction(
+        self,
+        link: str,
+        *,
+        source_url: str = "",
+        status: str = "",
+        motivo: str = "",
+        useful_chars: int = 0,
+        method: str = "",
+        dados: dict | None = None,
+    ):
+        """Auditoria leve da extracao/hidratacao."""
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_extraction_logs
+                    (canonical_url, source_url, status, motivo, useful_chars, method, logged_at, dados_json)
+                VALUES (?,?,?,?,?,?,?,?)
+                """, (
+                    str(link or "").strip(),
+                    source_url,
+                    str(status or ""),
+                    str(motivo or "")[:300],
+                    int(useful_chars or 0),
+                    str(method or ""),
+                    self._agora(),
+                    json.dumps(dados or {}, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_update_source_health(self, domain: str, summary: dict):
+        if not domain:
+            return
+        with _lock:
+            conn = self._conectar()
+            try:
+                conn.execute("""
+                INSERT INTO feed_universal_source_health
+                    (domain, score, status, updated_at, dados_json)
+                VALUES (?,?,?,?,?)
+                ON CONFLICT(domain) DO UPDATE SET
+                    score=excluded.score,
+                    status=excluded.status,
+                    updated_at=excluded.updated_at,
+                    dados_json=excluded.dados_json
+                """, (
+                    domain.lower().removeprefix("www."),
+                    int(summary.get("score") or 0),
+                    str(summary.get("status") or ""),
+                    self._agora(),
+                    json.dumps(summary or {}, ensure_ascii=False, default=str),
+                ))
+                conn.commit()
+            finally:
+                conn.close()
+
+    def feed_universal_source_health_summary(self, limite: int = 100) -> list[dict]:
+        with _lock:
+            conn = self._conectar()
+            try:
+                rows = conn.execute(
+                    """SELECT domain, score, status, updated_at, dados_json
+                       FROM feed_universal_source_health
+                       ORDER BY updated_at DESC LIMIT ?""",
+                    (int(limite),),
+                ).fetchall()
+                out = []
+                for row in rows:
+                    d = dict(row)
+                    try:
+                        extra = json.loads(d.get("dados_json") or "{}")
+                        if isinstance(extra, dict):
+                            d.update(extra)
+                    except Exception:
+                        pass
+                    out.append(d)
+                return out
+            finally:
+                conn.close()
+
     def marcar_descartada(self, uid: str, motivo: str = "", pauta: dict = None):
         """
         Marca uma pauta como rejeitada de forma PERMANENTE.
@@ -996,20 +1500,33 @@ class Database:
         Resultado deterministico para a mesma snapshot do banco.
         """
         placeholders = ",".join("?" * len(self._STATUS_FORA_DA_FILA))
-        sql = (
-            "SELECT uid, titulo_origem, link_origem, fonte_nome, canal, "
-            "       score_editorial, status, urgente, "
-            "       captada_em, atualizada_em, dados_json "
-            "FROM pautas "
-            f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
-            "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> '' "
-            "ORDER BY datetime(COALESCE(captada_em, atualizada_em)) DESC "
-            "LIMIT ?"
-        )
         rows: list[dict] = []
         with _lock:
             conn = self._conectar()
             try:
+                cols = {r[1] for r in conn.execute("PRAGMA table_info(pautas)").fetchall()}
+                # SELECT * e intencional: o writer/hidratador v136 pode popular
+                # colunas fisicas como cleaned_source_text, imagem_url e
+                # data_pub_fonte mesmo quando dados_json ainda esta vazio.
+                # A fila canonica precisa enxergar esses campos.
+                order_cols = [
+                    c for c in ("captada_em", "atualizada_em", "criado_em", "data_pub_fonte", "data_fonte")
+                    if c in cols
+                ]
+                if order_cols:
+                    order_expr = "datetime(COALESCE(" + ", ".join(
+                        f"NULLIF({c}, '')" for c in order_cols
+                    ) + ")) DESC"
+                else:
+                    order_expr = "rowid DESC"
+                sql = (
+                    "SELECT * "
+                    "FROM pautas "
+                    f"WHERE (status IS NULL OR LOWER(status) NOT IN ({placeholders})) "
+                    "  AND link_origem IS NOT NULL AND TRIM(link_origem) <> '' "
+                    f"ORDER BY {order_expr} "
+                    "LIMIT ?"
+                )
                 cur = conn.execute(
                     sql,
                     tuple(self._STATUS_FORA_DA_FILA) + (int(limite),),
@@ -1090,10 +1607,25 @@ class Database:
         )
 
         # 3) dentro de cada grupo: TXT OK primeiro, pendentes depois.
+        def _dt_ordem(p: dict) -> str:
+            for key in ("_data_pub_ordem", "data_pub_fonte", "data_pub_fonte_br", "captada_em", "atualizada_em"):
+                v = str(p.get(key) or "")
+                if v:
+                    return v
+            return ""
+
         out: list[dict] = []
         for lab in ordem_labels:
-            com_txt = [d for d in grupos[lab] if source_text_is_valid(d)]
-            sem_txt = [d for d in grupos[lab] if not source_text_is_valid(d)]
+            com_txt = sorted(
+                [d for d in grupos[lab] if source_text_is_valid(d)],
+                key=_dt_ordem,
+                reverse=True,
+            )
+            sem_txt = sorted(
+                [d for d in grupos[lab] if not source_text_is_valid(d)],
+                key=_dt_ordem,
+                reverse=True,
+            )
             out.extend(com_txt)
             out.extend(sem_txt)
 

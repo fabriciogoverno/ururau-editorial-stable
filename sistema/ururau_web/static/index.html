@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ururau Editorial - Web Local</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-coletar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+  <symbol id="ic-redigir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></symbol>
+  <symbol id="ic-copydesk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+  <symbol id="ic-preview" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-publicar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="ic-descartar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></symbol>
+  <symbol id="ic-atualizar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="ic-config" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="ic-feed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></symbol>
+  <symbol id="ic-add" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="ic-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="ic-imagem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+</svg>
+
+<div class="app">
+  <div class="toolbar">
+    <div class="brand">
+      <div class="brand-icon">U</div>
+      <div class="brand-name"><span class="nome">URURAU</span><span class="sub">Editorial</span></div>
+    </div>
+    <div class="tb-group">
+      <button id="btn-coletar"   class="btn coletar"   title="Ctrl+G - Coletar"><svg><use href="#ic-coletar"/></svg> Coletar</button>
+      <button id="btn-redigir"   class="btn redigir"   title="Ctrl+W - Redigir via IA" disabled><svg><use href="#ic-redigir"/></svg> Redigir</button>
+      <button id="btn-copydesk"  class="btn copydesk"  title="Ctrl+K - Copydesk" disabled><svg><use href="#ic-copydesk"/></svg> Copydesk</button>
+      <button id="btn-preview"   class="btn preview"   title="Ctrl+P - Preview" disabled><svg><use href="#ic-preview"/></svg> Preview</button>
+      <button id="btn-publicar"  class="btn publicar"  title="Publicar no CMS" disabled><svg><use href="#ic-publicar"/></svg> Publicar</button>
+      <button id="btn-descartar" class="btn descartar" title="Del - Descartar" disabled><svg><use href="#ic-descartar"/></svg> Descartar</button>
+    </div>
+    <div class="tb-group">
+      <button id="btn-atualizar"  class="btn atualizar" title="F5"><svg><use href="#ic-atualizar"/></svg> Atualizar F5</button>
+      <button id="btn-add-manual" class="btn escuro"    title="Adicionar pauta manualmente"><svg><use href="#ic-add"/></svg> Manual</button>
+      <button id="btn-config"     class="btn sec"       title="Configurações / Diag / Histórico"><svg><use href="#ic-config"/></svg> Config</button>
+    </div>
+    <div class="tb-group">
+      <button id="btn-feed-analisar" class="btn feed"      title="Analisar URL (Feed Universal)"><svg><use href="#ic-feed"/></svg> Analisar URL</button>
+      <button id="btn-feed-coletar"  class="btn feed-coll" title="Coletar URL para fila"><svg><use href="#ic-feed"/></svg> Coletar URL</button>
+    </div>
+    <div class="tb-group" style="margin-left:auto;">
+      <span id="auto-coleta-info" class="muted small" title="Coleta automática a cada 30 minutos" style="padding:6px 10px; border:1px solid var(--border); border-radius:6px; background:rgba(34,197,94,0.06); color:#86efac; font-size:11.5px;">⏱ auto · --</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="col col-fila">
+      <div class="panel flex">
+        <div class="panel-head">
+          <h2>Fila de Pautas</h2>
+          <span id="meta-total" class="meta">0 pautas</span>
+        </div>
+        <div class="filtros-mini">
+          <div class="row">
+            <select id="sel-status" title="Status"><option value="">todos status</option><option value="captada">captada</option><option value="baixo_score">baixo_score</option><option value="em_redacao">em_redacao</option><option value="revisada">revisada</option><option value="pronta">pronta</option><option value="publicada">publicada</option><option value="rejeitada">rejeitada</option></select>
+            <select id="sel-txt"    title="TXT"><option value="">todos TXT</option><option value="TXT OK">TXT OK</option><option value="TXT...">TXT pendente</option><option value="TXT CURTO">TXT curto</option><option value="TXT 429">TXT 429</option></select>
+          </div>
+          <div class="row">
+            <select id="sel-fonte" title="Fonte"><option value="">todas fontes</option></select>
+            <select id="sel-canal" title="Canal"><option value="">todos canais</option></select>
+          </div>
+          <div class="row"><input type="text" id="inp-busca" placeholder="buscar título, fonte, link..." /></div>
+          <div class="row" style="justify-content: space-between;">
+            <label class="chk"><input type="checkbox" id="chk-incluir-baixo" checked /> baixo_score</label>
+            <input type="number" id="inp-limite" value="500" min="20" max="1000" step="20" title="limite por coleta (max 1000)" style="width: 70px;" />
+          </div>
+        </div>
+        <div id="fila" class="fila"></div>
+      </div>
+    </div>
+
+    <div class="resizer" data-target="fila" title="Arraste para redimensionar"></div>
+
+    <div class="col col-centro">
+      <div class="panel flex">
+        <div class="centro-header">
+          <div class="centro-titulo" id="centro-titulo">Nenhuma pauta selecionada</div>
+          <div class="centro-acoes" id="centro-acoes"></div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="perfil">Perfil</button>
+          <button class="tab" data-tab="fonte">Texto da fonte</button>
+          <button class="tab" data-tab="materia">Matéria gerada</button>
+          <button class="tab" data-tab="copydesk">Copydesk</button>
+        </div>
+        <div id="tab-perfil" class="tab-content active">
+          <div id="painel-perfil">
+            <div class="empty-state">
+              <div class="icon"><svg width="28" height="28"><use href="#ic-doc"/></svg></div>
+              <h3>Selecione uma pauta na fila</h3>
+              <p>O perfil editorial, o texto da fonte e a matéria gerada aparecem aqui.</p>
+            </div>
+          </div>
+        </div>
+        <div id="tab-fonte" class="tab-content"><div id="painel-fonte" class="texto-fonte">Selecione uma pauta para ver o texto da fonte.</div></div>
+        <div id="tab-materia" class="tab-content"><div id="painel-materia" class="materia-card">Selecione uma pauta com matéria gerada.</div></div>
+        <div id="tab-copydesk" class="tab-content">
+          <div id="painel-copydesk" class="panel-body" style="padding: 0;">
+            <div class="muted small" style="margin-bottom: 8px;">
+              Orientações enviadas ao <b id="cd-modelo">GPT</b> para revisar a matéria.
+              O padrão SEO Google já vem carregado. Você pode editar antes de aplicar.
+              <a href="#" id="cd-restaurar-padrao" style="color:var(--accent-2); margin-left:6px;">restaurar padrão</a> ·
+              <a href="#" id="cd-limpar" style="color:var(--accent-2); margin-left:6px;">limpar</a>
+            </div>
+            <textarea id="cd-orientacao" rows="8"
+              placeholder="Edite as instruções de correção para o GPT antes de aplicar."
+              style="width:100%; background:#0d1024; color:var(--text); border:1px solid var(--border-2); border-radius:6px; padding:10px; font-size:12.5px; font-family:inherit; line-height:1.45; resize:vertical; max-height:240px;"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px;">
+              <span id="cd-status" class="muted small">--</span>
+              <div style="display:flex; gap:8px;">
+                <button id="cd-aplicar" class="btn copydesk">Gerar revisão</button>
+                <button id="cd-aplicar-sem" class="btn ghost" title="revisar sem orientação extra (só checagens padrão)">Apenas revisar</button>
+              </div>
+            </div>
+            <div id="cd-bloco-revisao" style="display:none; margin-top: 14px; border:1px solid #d4a017; border-radius:8px; padding:10px; background:rgba(212,160,23,0.06);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <div style="font-size:12.5px; color:#f0c14b; font-weight:600;">⚠ Revisão pendente · ainda não aplicada</div>
+                <div style="display:flex; gap:6px;">
+                  <button id="cd-salvar" class="btn primary" title="aplica a revisão sobre a matéria gerada">✓ Salvar alterações</button>
+                  <button id="cd-descartar-rev" class="btn ghost" title="descarta a revisão e mantém a matéria atual">✗ Descartar revisão</button>
+                </div>
+              </div>
+              <div id="cd-checagem" class="muted small" style="margin-bottom:8px;"></div>
+              <div class="muted small" style="margin-bottom:4px;">Pré-visualização da revisão (gerada pelo Copydesk):</div>
+              <div id="cd-revisao" class="materia-card" style="max-height: 280px; overflow:auto;"></div>
+            </div>
+            <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                <div class="muted small">Matéria atual (segue a linha editorial do Ururau):</div>
+                <div style="display:flex; gap:6px;">
+                  <button id="cd-editar-texto" class="btn ghost" title="Editar manualmente o corpo da materia">✏ Editar texto</button>
+                  <button id="cd-salvar-texto" class="btn primary" title="Salva as alteracoes manuais e atualiza a Materia gerada" style="display:none;">✓ Salvar texto editado</button>
+                  <button id="cd-cancelar-texto" class="btn ghost" title="Cancela a edicao manual" style="display:none;">✗ Cancelar</button>
+                </div>
+              </div>
+              <div id="cd-preview" class="materia-card" style="max-height: 280px; overflow:auto;">Selecione uma pauta com matéria gerada.</div>
+              <textarea id="cd-editor-texto" rows="14"
+                placeholder="Edite o corpo da matéria aqui."
+                style="display:none; width:100%; background:#0d1024; color:var(--text); border:1px solid var(--border-2); border-radius:6px; padding:10px; font-size:13px; font-family:inherit; line-height:1.55; resize:vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resizer" data-target="stats" title="Arraste para redimensionar"></div>
+
+    <div class="col col-stats">
+      <div class="panel">
+        <div class="panel-head"><h2>Estatísticas</h2><span id="stats-ts" class="meta">--</span></div>
+        <div class="panel-body">
+          <div id="stats-totais"></div>
+          <div class="form-section-title">Top fontes</div>
+          <div id="stats-por-fonte" class="stat-list"></div>
+          <div class="form-section-title" style="margin-top: 14px;">Por canal</div>
+          <div id="stats-por-canal" class="stat-list"></div>
+          <div class="form-section-title" style="margin-top: 14px;">Por status</div>
+          <div id="stats-por-status" class="stat-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="status-line" class="msg">Pronto. <a href="#" id="link-atalhos" class="muted" style="margin-left:12px; color:var(--text-soft); text-decoration:none;">[?] atalhos</a></span>
+    <span id="status-coleta" class="ind"><span class="dot"></span> coleta: ociosa</span>
+    <span id="status-ia" class="ind">IA: --</span>
+    <span id="status-banco" class="ind">banco: --</span>
+  </div>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="modal-titulo">Detalhes</h3><button class="modal-x" id="modal-x">×</button></div>
+    <div class="modal-body"><div id="modal-corpo"></div></div>
+  </div>
+</div>
+
+<div id="modal-config" class="modal" hidden>
+  <div class="modal-card" style="width: min(1100px, 94vw); max-height: 90vh;">
+    <div class="modal-head"><h3>Configurações</h3><button class="modal-x" data-close="modal-config">×</button></div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-mtab="cfg">Operação</button>
+      <button class="modal-tab" data-mtab="ident">Credenciais</button>
+      <button class="modal-tab" data-mtab="ia">IA</button>
+      <button class="modal-tab" data-mtab="termos">Termos</button>
+      <button class="modal-tab" data-mtab="fontes">Fontes</button>
+      <button class="modal-tab" data-mtab="diag">Diagnóstico</button>
+      <button class="modal-tab" data-mtab="hist">Histórico</button>
+      <button class="modal-tab" data-mtab="export">Exportar</button>
+    </div>
+    <div class="modal-body">
+      <div id="mtab-cfg" class="modal-tab-content active">
+        <div class="form-section">
+          <div class="form-section-title">Runtime (web local)</div>
+          <div class="form-grid">
+            <label>Limite visual da fila</label><input id="cfg-limite-visual" type="number" min="20" max="1000" step="20" />
+            <label>Janela padrão (h)</label><input id="cfg-janela" type="number" min="1" max="168" />
+            <label>Arquivo do banco</label><input id="cfg-db" class="ro" type="text" readonly />
+            <label>Host : Porta</label><input id="cfg-host" class="ro" type="text" readonly />
+            <label>CORS permitido</label><input id="cfg-cors" class="ro" type="text" readonly />
+            <label>Publicação automática</label><input id="cfg-pub-auto" class="ro" type="text" readonly value="DESLIGADA" />
+          </div>
+          <div class="form-actions"><button id="cfg-salvar" class="btn redigir">Salvar runtime</button></div>
+        </div>
+        <div class="form-section" style="margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px;">
+          <div class="form-section-title">Limpeza visual da fila</div>
+          <p class="muted small" style="margin-bottom: 10px;">
+            Marca um corte de tempo. Pautas captadas antes desse momento somem da fila web,
+            mas <b>continuam no banco e visíveis no painel desktop</b>. Matérias em redação/revisadas/prontas
+            permanecem para você não perder trabalho.
+          </p>
+          <div id="corte-info" class="muted small" style="margin-bottom: 10px;">--</div>
+          <div class="form-actions" style="justify-content: flex-start;">
+            <button id="btn-zerar-fila" class="btn descartar">Zerar fila visual agora</button>
+            <button id="btn-restaurar-fila" class="btn ghost">Restaurar (mostrar tudo)</button>
+          </div>
+        </div>
+      </div>
+      <div id="mtab-ident" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Identidade (CMS)</div>
+          <div class="form-grid">
+            <label>URURAU_LOGIN</label><input id="cfg-login" class="ro" type="text" readonly />
+            <label>URURAU_SENHA</label><input id="cfg-senha" class="ro" type="text" readonly value="●●●●●●●● (definida no .env)" />
+            <label>URURAU_ASSINATURA</label><input id="cfg-assinatura" class="ro" type="text" readonly />
+          </div>
+          <div class="muted small" style="margin-top:10px;">Para alterar, edite <code>sistema/credenciais/env_principal.env</code> ou <code>sistema/.env</code> e reabra o servidor.</div>
+        </div>
+      </div>
+      <div id="mtab-ia" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Inteligência Artificial</div>
+          <div class="form-grid">
+            <label>OPENAI_MODEL</label><input id="cfg-modelo" class="ro" type="text" readonly />
+            <label>OPENAI_API_KEY</label><input id="cfg-key" class="ro" type="text" readonly />
+            <label>Biblioteca openai</label><input id="cfg-lib" class="ro" type="text" readonly />
+          </div>
+          <div class="muted small" style="margin-top:10px;">A chave é lida do .env. Se a biblioteca estiver ausente, o launcher (.bat) instala automaticamente.</div>
+        </div>
+      </div>
+      <div id="mtab-termos" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Termos editoriais — destaque/prioridade</div>
+          <p class="muted small">Termos que ganham score extra e marcam a pauta como <b>PRIORIDADE</b>. Organize por grupo (Política, Cidades, etc.). Clique <b>×</b> em um chip para remover. Use <b>+</b> para criar um novo grupo.</p>
+          <div id="termos-grupos" style="display:flex; flex-direction:column; gap:14px; margin-top:10px;"></div>
+          <div class="form-actions" style="justify-content: space-between; align-items: center;">
+            <button id="termos-novo-grupo" class="btn ghost">+ Novo grupo</button>
+            <div style="display:flex; gap:8px;">
+              <button id="termos-recarregar" class="btn ghost">Recarregar</button>
+              <button id="termos-salvar" class="btn redigir">Salvar termos</button>
+            </div>
+          </div>
+          <div id="termos-status" class="muted small" style="margin-top:8px;">--</div>
+        </div>
+      </div>
+
+      <div id="mtab-fontes" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">⚡ Adição em lote (auto-detecta o feed)</div>
+          <p class="muted small">Cole abaixo <b>uma URL por linha</b> (ou domínio simples como <code>folha1.com.br</code>). O sistema tenta os sufixos de feed comuns, vasculha o HTML por <code>&lt;link rel="alternate"&gt;</code>, e se nada funcionar usa Google News como fallback. Cada URL leva 1-10 segundos para validar.</p>
+          <textarea id="fontes-auto-urls" rows="5" placeholder="folha1.com.br
+campos24horas.com.br
+https://jornalterceiravia.com.br
+clickcampos.com" style="width:100%; background:#0d1024; color:var(--text); border:1px solid var(--border-2); border-radius:6px; padding:10px; font-size:12.5px; font-family:inherit; line-height:1.4; resize:vertical;"></textarea>
+          <div class="form-actions" style="margin-top:8px;">
+            <button id="fontes-auto-detectar" class="btn redigir">🔍 Detectar e adicionar</button>
+            <span id="fontes-auto-status" class="muted small">--</span>
+          </div>
+          <div id="fontes-auto-resultado" style="margin-top:8px; max-height:200px; overflow:auto;"></div>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:18px 0;">
+        <div class="form-section">
+          <div class="form-section-title">Fontes configuradas (links para captação)</div>
+          <p class="muted small">Lista de fontes que a coleta web visita — pode ser RSS direto, Google News (when:24h) ou home via Jina. <b>Adicione</b> uma nova fonte preenchendo a linha em branco no topo. <b>Desative</b> uma fonte sem apagar marcando o checkbox como desligado.</p>
+          <div id="fontes-list" style="max-height: 360px; overflow:auto; border:1px solid var(--border-2); border-radius:6px; padding:8px; background:#0d1024;"></div>
+          <div class="form-actions">
+            <button id="fontes-add" class="btn ghost">+ Nova fonte</button>
+            <button id="fontes-recarregar" class="btn ghost">Recarregar</button>
+            <button id="fontes-salvar" class="btn redigir">Salvar lista</button>
+          </div>
+          <div id="fontes-status" class="muted small" style="margin-top:8px;">--</div>
+        </div>
+      </div>
+
+      <div id="mtab-diag" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Diagnóstico do servidor</div>
+          <button id="diag-recarregar" class="btn mini sec" style="margin-bottom:10px;">recarregar</button>
+          <pre id="diag-corpo" class="mono" style="max-height:50vh;">carregando...</pre>
+        </div>
+      </div>
+      <div id="mtab-hist" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Histórico</div>
+          <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+            <label>Status: <select id="hist-status"><option value="">todos finais</option><option value="publicada">publicada</option><option value="descartada">descartada</option><option value="rejeitada">rejeitada</option><option value="bloqueada">bloqueada</option><option value="excluida">excluida</option></select></label>
+            <button id="hist-recarregar" class="btn mini sec">recarregar</button>
+          </div>
+          <div id="hist-corpo">carregando...</div>
+        </div>
+      </div>
+      <div id="mtab-export" class="modal-tab-content">
+        <div class="form-section">
+          <div class="form-section-title">Exportar pauta selecionada</div>
+          <p class="muted small">Selecione uma pauta na fila antes de exportar. O arquivo gerado contém o JSON com a pauta + matéria.</p>
+          <div class="form-actions" style="justify-content: flex-start;"><button id="export-json" class="btn redigir">Exportar JSON</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-manual" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head"><h3>Adicionar Pauta Manualmente</h3><button class="modal-x" data-close="modal-manual">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>Título *</label><input id="man-titulo" type="text" placeholder="Título da matéria" />
+        <label>Link da fonte *</label><input id="man-link" type="url" placeholder="https://..." />
+        <label>Fonte</label><input id="man-fonte" type="text" placeholder="(opcional - extrai do domínio)" />
+        <label>Canal</label><select id="man-canal"><option value="Brasil e Mundo">Brasil e Mundo</option><option value="Política">Política</option><option value="Cidades">Cidades</option><option value="Economia">Economia</option><option value="Esportes">Esportes</option><option value="Cultura">Cultura</option><option value="Polícia">Polícia</option></select>
+        <label>Score editorial</label><input id="man-score" type="number" min="0" max="100" value="80" />
+        <label>Resumo</label><textarea id="man-resumo" rows="3" placeholder="(opcional)"></textarea>
+        <label class="full"><input id="man-urgente" type="checkbox" /> Marcar como URGENTE</label>
+      </div>
+      <div class="form-actions">
+        <button class="btn ghost" data-close="modal-manual">Cancelar</button>
+        <button id="man-adicionar" class="btn redigir">Adicionar à fila</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-publicar" class="modal" hidden>
+  <div class="modal-card" style="width: min(540px, 92vw);">
+    <div class="modal-head">
+      <h3>Publicar matéria no CMS</h3>
+      <button class="modal-x" data-close="modal-publicar">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px; color:var(--text); margin-top:0;">
+        <b id="pub-titulo" style="color:var(--acento);">--</b>
+      </p>
+      <p class="muted small" style="margin-bottom: 20px;">
+        Escolha como publicar. <b>Rascunho</b> envia para o CMS sem ficar público —
+        você confere no painel do site antes. <b>Publicar ao vivo</b> manda direto ao ar.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button id="pub-rascunho" class="btn publicar" style="padding:12px 16px; font-size:13px; justify-content: center;">
+          <svg><use href="#ic-doc"/></svg>
+          Salvar como rascunho no CMS
+        </button>
+        <button id="pub-aovivo" class="btn descartar" style="padding:12px 16px; font-size:13px; justify-content: center;">
+          <svg><use href="#ic-publicar"/></svg>
+          Publicar AO VIVO (irreversível)
+        </button>
+        <button class="btn ghost" data-close="modal-publicar" style="padding:10px 16px; justify-content: center;">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-feed" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head"><h3>Feed Universal</h3><button class="modal-x" data-close="modal-feed">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>URL da fonte</label><input id="feed-url" type="url" placeholder="https://exemplo.com/" />
+        <label>Limite</label><input id="feed-limit" type="number" value="20" min="1" max="50" />
+        <label>Janela (h)</label><input id="feed-janela" type="number" value="24" min="0" max="168" />
+      </div>
+      <div class="form-actions">
+        <button id="feed-analisar2" class="btn feed">Analisar (não insere)</button>
+        <button id="feed-coletar2"  class="btn feed-coll">Coletar para fila</button>
+      </div>
+      <pre id="feed-saida" class="mono" style="margin-top:12px; max-height:320px;">--</pre>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
