@@ -168,6 +168,17 @@ def iniciar_auto_coleta(db, intervalo_min: int = 30, atraso_inicial: float = 8.0
         daemon=True,
     )
     _auto_thread.start()
+
+    # V200_16: inicia o hidratador em background (extrai texto+imagem de
+    # pautas TXT... sem usuario precisar clicar). Ciclo: 30s, batch 10,
+    # janela 8h max + prioridade 4h.
+    try:
+        from ururau.coleta import hidratador_background_v200 as _hbg
+        _hbg.iniciar(db)
+        print("[ururau_web][HIDRATADOR_BG] worker iniciado em thread daemon")
+    except Exception as _e_hbg:
+        print(f"[ururau_web][HIDRATADOR_BG] falha ao iniciar: {_e_hbg}")
+
     return dict(_auto_estado)
 
 
@@ -826,10 +837,28 @@ def handler_listar_pautas(db, qs: dict[str, str]) -> tuple[int, dict, bytes]:
     # ficava travada em "Coleta 112" e novas pautas nunca apareciam.
     # Solucao: ordenar puramente por captada_em DESC (cronologico real).
     fila_filtrada = list(fila_corte)
+    # V200_16: ordenacao da fila
+    #   1) Materias ja processadas (PUBLICADA, REVISADA, REDIGIDA, TXT OK) vem no topo
+    #   2) Dentro de cada grupo, mais recentes primeiro (captada_em DESC)
+    #   3) TXT... e TXT CURTO vao para o final
+    def _grupo_prioridade(p):
+        texto = str(p.get("cleaned_source_text") or p.get("texto_fonte") or "").strip()
+        status_pauta = str(p.get("status") or "").lower()
+        if status_pauta in {"publicada", "publicado"}:
+            return 0  # ja publicada -> topo
+        if status_pauta == "revisada":
+            return 1  # revisada
+        if status_pauta in {"redigida", "em_redacao", "em_redação", "pronta"}:
+            return 2  # redigida
+        if len(texto) >= 550:
+            return 3  # TXT OK
+        return 9  # TXT.../TXT CURTO/etc -> fundo
     def _captada_key(p):
         return str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
     try:
+        # Sort estavel: primeiro por captada_em desc, depois por grupo (estavel)
         fila_filtrada.sort(key=_captada_key, reverse=True)
+        fila_filtrada.sort(key=_grupo_prioridade)
     except Exception:
         pass
 
@@ -1498,6 +1527,13 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
                 from datetime import datetime as _dt
                 _payload["hidratado_em"] = _dt.now().isoformat(timespec="seconds")
                 db.atualizar_pauta(uid, {"dados_json": json.dumps(_payload, ensure_ascii=False)})
+                # V200_15: sinaliza pro front recarregar a fila para o badge
+                # 'TXT OK' aparecer imediatamente (sem esperar auto-refresh).
+                view["_hidratado_agora"] = True
+                view["txt_chars"] = len(_texto_hidratado)
+                view["txt_rotulo"] = "TXT OK"
+                view["fonte_status"] = "ok"
+                print(f"[ururau_web][HIDRATACAO_ON_DEMAND] uid={uid} persistido com {len(_texto_hidratado)} chars (txt_rotulo=TXT OK)")
             except Exception as _e_persist:
                 print(f"[ururau_web][HIDRATACAO_ON_DEMAND] persist falhou: {_e_persist}")
 
@@ -1607,7 +1643,10 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
     limite = max(20, min(1000, limite_pedido))
     # Janela operacional: 6h (entre 4 e 8h conforme decisao editorial).
     # Cobre matérias publicadas no turno atual sem poluir a fila com antigas.
-    janela_pedida = int(body.get("janela") or 6)
+    # V200_16: janela default = 8h max (com prioridade nas ultimas 4h
+    # via ordenacao no front). Limita a captura para nao trazer materias
+    # velhas que poluem a fila editorial.
+    janela_pedida = int(body.get("janela") or 8)
     janela = max(1, min(8, janela_pedida))
 
     def _trabalho():
