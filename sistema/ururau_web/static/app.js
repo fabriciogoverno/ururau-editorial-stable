@@ -332,6 +332,12 @@ async function carregarTabFonte(p) {
   try {
     const j = await jget(API.pauta(p.uid));
     if (meuSeq !== _selSeq) return;  // descartado: outra pauta foi selecionada
+    // V200_15: se backend acabou de hidratar on-demand, recarrega a fila
+    // pra o badge mudar de TXT... para TXT OK na mesma hora (sem esperar
+    // o auto-refresh de 5s).
+    if (j.pauta?._hidratado_agora) {
+      setTimeout(() => carregarFila(), 100);
+    }
     const tf = limparBoilerplate((j.pauta?.texto_fonte || "").trim());
     const origemTf = j.pauta?.texto_fonte_origem || "vazio";
     const tipoFalha = j.pauta?.tipo_falha_extracao || "";
@@ -477,14 +483,42 @@ async function carregarTabMateria(p) {
         </div>
       </div>
     `;
-    // Liga os handlers (rebind a cada renderizacao)
+    // V200_19: handlers dos botoes inline com validacao + feedback claro
     $("mat-salvar") && ($("mat-salvar").onclick = () => salvarMateriaEditada(false));
     $("mat-pub-rascunho") && ($("mat-pub-rascunho").onclick = async () => {
-      if (await salvarMateriaEditada(true)) _publicarFinal(true);
+      const corpoEl = $("mat-corpo");
+      if (!corpoEl || !corpoEl.value.trim()) {
+        setStatus("Materia sem corpo. Clique em Redigir antes de publicar.", "err");
+        if ($("mat-status")) $("mat-status").innerHTML = `<span class="err">corpo vazio - clique Redigir antes</span>`;
+        return;
+      }
+      $("mat-pub-rascunho").disabled = true;
+      try {
+        const ok = await salvarMateriaEditada(true);
+        if (ok) await _publicarFinal(true);
+      } catch (e) {
+        setStatus("Erro ao publicar rascunho: " + e.message, "err");
+      } finally {
+        $("mat-pub-rascunho").disabled = false;
+      }
     });
     $("mat-pub-ao-vivo") && ($("mat-pub-ao-vivo").onclick = async () => {
+      const corpoEl = $("mat-corpo");
+      if (!corpoEl || !corpoEl.value.trim()) {
+        setStatus("Materia sem corpo. Clique em Redigir antes de publicar.", "err");
+        if ($("mat-status")) $("mat-status").innerHTML = `<span class="err">corpo vazio - clique Redigir antes</span>`;
+        return;
+      }
       if (!confirm("Publicar AO VIVO no CMS?\n\nEssa acao e irreversivel. A materia fica publica imediatamente.")) return;
-      if (await salvarMateriaEditada(true)) _publicarFinal(false);
+      $("mat-pub-ao-vivo").disabled = true;
+      try {
+        const ok = await salvarMateriaEditada(true);
+        if (ok) await _publicarFinal(false);
+      } catch (e) {
+        setStatus("Erro ao publicar ao vivo: " + e.message, "err");
+      } finally {
+        $("mat-pub-ao-vivo").disabled = false;
+      }
     });
   } catch (e) { $("painel-materia").textContent = `erro: ${e.message}`; }
 }
@@ -1449,9 +1483,17 @@ $("btn-feed-coletar").onclick  = () => { $("modal-feed").hidden = false; };
 $("btn-add-manual").onclick = () => { $("modal-manual").hidden = false; };
 $("btn-config").onclick    = () => abrirConfig();
 // btn-health removido (painel saúde foi tirado da coluna direita)
-$("pub-rascunho").onclick  = () => _publicarFinal(true);
-$("pub-aovivo").onclick    = () => _publicarFinal(false);
-$("modal-x").onclick       = () => $("modal").hidden = true;
+// V200_19: handler do modal Publicar (botao da toolbar)
+$("pub-rascunho") && ($("pub-rascunho").onclick = () => {
+  $("modal-publicar").hidden = true;
+  _publicarFinal(true);
+});
+$("pub-aovivo") && ($("pub-aovivo").onclick = () => {
+  $("modal-publicar").hidden = true;
+  _publicarFinal(false);
+});
+// V200_19: removida linha duplicada que sobrescrevia o handler acima
+// (sem fechar o modal). Removida tambem ref a $("modal-x") que nao existe.
 $("link-atalhos") && ($("link-atalhos").onclick = (e) => { e.preventDefault(); mostrarAtalhos(); });
 $("cfg-salvar").onclick    = salvarConfig;
 $("btn-zerar-fila").onclick = async () => {
