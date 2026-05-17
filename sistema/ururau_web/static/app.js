@@ -1131,11 +1131,45 @@ async function _publicarFinal(rascunho) {
   if (!p) return;
   if (!rascunho && !confirm("Confirma publicar AO VIVO no CMS? Não dá para desfazer.")) return;
   $("modal-publicar").hidden = true;
+  const tipoLabel = rascunho ? "rascunho" : "ao vivo";
   try {
     await jpost(API.publicar(p.uid), { confirm: true, rascunho });
-    setStatus(rascunho ? "Enviando rascunho ao CMS..." : "Publicando ao vivo no CMS...", "ok");
+    setStatus(`Enviando ${tipoLabel} ao CMS...`, "ok");
     atualizarJobInfo();
-  } catch (e) { setStatus(`Falha publicar: ${e.message}`, "err"); }
+    // V200_20: polling explicito do job ate concluir (max 60s). Antes o
+    // status ficava em "Enviando..." pra sempre e o usuario nao via se
+    // deu certo ou se algum erro ocorreu no Playwright/CMS.
+    const inicio = Date.now();
+    const uid = p.uid;
+    const poll = setInterval(async () => {
+      if (Date.now() - inicio > 60000) {
+        clearInterval(poll);
+        setStatus(`Publicar ${tipoLabel}: timeout (60s). Veja console do PowerShell.`, "err");
+        return;
+      }
+      try {
+        const j = await jget(API.job(uid));
+        const slot = j.jobs?.ultimo_job;
+        if (slot && slot.tipo === "publicar" && !slot.em_andamento) {
+          clearInterval(poll);
+          atualizarJobInfo();
+          if (slot.status === "ok") {
+            setStatus(`✓ ${tipoLabel} enviado: ${slot.mensagem || "CMS confirmou"}`, "ok");
+            carregarFila();
+          } else {
+            setStatus(`✗ Publicar ${tipoLabel} FALHOU: ${slot.mensagem || slot.status}`, "err");
+            console.error("Publicar falhou:", slot);
+          }
+        }
+      } catch (e) {
+        // erro de polling - continua tentando ate timeout
+        console.warn("polling job falhou:", e.message);
+      }
+    }, 1000);
+  } catch (e) {
+    setStatus(`Falha publicar (HTTP): ${e.message}`, "err");
+    console.error("publicar HTTP error:", e);
+  }
 }
 async function acaoBuscarImagem(uid) {
   uid = uid || (pautaSel() || {}).uid;
