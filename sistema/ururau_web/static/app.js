@@ -73,6 +73,7 @@ let _pautasCache = [];
 let _uidSelecionado = null;
 let _pautaSelecionada = null;
 let _iaCfg = { configurada: false, modelo: "" };
+const _cacheTextoFonte = new Map(); // V200_30: cache do HTML do texto da fonte por uid
 // Token de seleção: incrementa toda vez que troca a pauta. Cada fetch
 // guarda o token dele e descarta a resposta se outra seleção entrou no meio.
 let _selSeq = 0;
@@ -325,6 +326,12 @@ function limparBoilerplate(texto) {
 async function carregarTabFonte(p) {
   if (!p) return;
   const meuSeq = _selSeq;
+  // V200_30: cache - se ja carregou esse uid antes, mostra direto
+  // sem skeleton nem fetch. Texto da fonte nao muda entre cliques.
+  if (_cacheTextoFonte.has(p.uid)) {
+    $("painel-fonte").innerHTML = _cacheTextoFonte.get(p.uid);
+    return;
+  }
   // Thumb da matéria no topo da aba.
   const thumbHtml = p.imagem_thumb
     ? `<div class="tf-thumb"><img src="${escapeHtml(p.imagem_thumb)}" alt="" onerror="this.parentNode.style.display='none'"/></div>`
@@ -417,6 +424,8 @@ async function carregarTabFonte(p) {
             ${linkBtn}
           </div>
         </div>`;
+      // V200_30: salva no cache mesmo em caso de falha (nao re-buscar)
+      try { _cacheTextoFonte.set(p.uid, $("painel-fonte").innerHTML); } catch (e) {}
       return;
     }
     const paragrafos = quebrarParagrafos(tf)
@@ -437,6 +446,8 @@ async function carregarTabFonte(p) {
       ${metaHtml}
       ${avisoOrigem}
       <div class="tf-corpo">${paragrafos}</div>`;
+    // V200_30: salva no cache para nao re-buscar
+    try { _cacheTextoFonte.set(p.uid, $("painel-fonte").innerHTML); } catch (e) {}
   } catch (e) { $("painel-fonte").textContent = `erro: ${e.message}`; }
 }
 async function carregarTabMateria(p) {
@@ -1986,68 +1997,4 @@ document.addEventListener("click", (e) => {
 
 // ════════════════════════════════════════════════════════════════════════
 // V200_26: BOOTSTRAP - chamadas iniciais que estavam faltando
-// Sem essas chamadas, o app.js carregava mas a fila nunca era populada
-// (carregarFila() nunca era disparada na carga inicial - so quando o
-// usuario clicasse em algo).
-// ════════════════════════════════════════════════════════════════════════
-
-async function _atualizar_coleta_status_v200_26() {
-  try {
-    const r = await fetch("/api/coletar/status");
-    if (!r.ok) return;
-    const j = await r.json();
-    const e = j.estado || {};
-    if (typeof atualizarIndColeta === "function") atualizarIndColeta(e);
-  } catch (err) {}
-}
-
-// V200_29: carregar config IA no startup (sem isso _iaCfg.configurada
-// fica false pra sempre e botao Redigir / Copydesk ficam disabled)
-async function _carregar_config_ia_v200_29() {
-  try {
-    const r = await fetch("/api/diag");
-    if (!r.ok) return;
-    const j = await r.json();
-    const ia = j.ia || {};
-    _iaCfg.modelo = ia.modelo || _iaCfg.modelo || "";
-    _iaCfg.configurada = !!(ia.lib_instalada && ia.client_criado);
-    if (typeof atualizarToolbar === "function") atualizarToolbar();
-  } catch (e) { console.warn("config IA falhou:", e); }
-}
-
-async function _bootstrap_v200_26() {
-  try {
-    // 0) V200_29: config IA primeiro (habilita botao Redigir/Copydesk)
-    try { await _carregar_config_ia_v200_29(); } catch (e) {}
-    // 1) Carrega a fila pela primeira vez
-    try { await carregarFila(); }
-    catch (e) { console.error("carregarFila inicial falhou:", e); }
-    // 2) Carrega estatisticas
-    try { await carregarStats(); }
-    catch (e) { console.warn("carregarStats falhou:", e); }
-    // 3) Auto-coleta info no header
-    try { await atualizarAutoColeta(); }
-    catch (e) {}
-    // 4) Status da coleta no rodape
-    try { await _atualizar_coleta_status_v200_26(); }
-    catch (e) {}
-  } catch (e) {
-    console.error("bootstrap V200_26 falhou:", e);
-  }
-}
-
-function _agendar_auto_refresh_v200_26() {
-  // Status da coleta + auto-coleta: cada 2s (rapido pra ver progresso)
-  setInterval(() => {
-    try { _atualizar_coleta_status_v200_26(); } catch (e) {}
-    try { atualizarAutoColeta(); } catch (e) {}
-  }, 2000);
-  // Fila: cada 5s (mostra pautas novas dos chunks salvando)
-  setInterval(() => { try { carregarFila(); } catch (e) {} }, 5000);
-  // Stats: cada 10s
-  setInterval(() => { try { carregarStats(); } catch (e) {} }, 10000);
-}
-
-// Dispara o bootstrap (DOM ja esta pronto porque script esta no fim do body)
-_bootstrap_v200_26();
-_agendar_auto_refresh_v200_26();
+// Sem essas chamadas, o app.js carregava mas a fila nunca
