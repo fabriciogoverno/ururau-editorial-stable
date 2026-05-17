@@ -36,6 +36,11 @@
       <button id="btn-publicar"  class="btn publicar"  title="Publicar no CMS" disabled><svg><use href="#ic-publicar"/></svg> Publicar</button>
       <button id="btn-descartar" class="btn descartar" title="Del - Descartar" disabled><svg><use href="#ic-descartar"/></svg> Descartar</button>
     </div>
+    <!-- V200_22: barra de progresso fina mostra andamento de Redigir/Copydesk/Publicar -->
+    <div id="progresso-acao" class="progresso-acao" style="display:none;">
+      <div class="progresso-acao-track"><div class="progresso-acao-fill" id="progresso-acao-fill"></div></div>
+      <div class="progresso-acao-texto" id="progresso-acao-texto">--</div>
+    </div>
     <div class="tb-group">
       <button id="btn-atualizar"  class="btn atualizar" title="F5"><svg><use href="#ic-atualizar"/></svg> Atualizar F5</button>
       <button id="btn-add-manual" class="btn escuro"    title="Adicionar pauta manualmente"><svg><use href="#ic-add"/></svg> Manual</button>
@@ -387,6 +392,9 @@ clickcampos.com" style="width:100%; background:#0d1024; color:var(--text); borde
     </div>
   </div>
 </div>
+
+<!-- V200_22: container de toasts (notificacao de conclusao do Redigir/Copydesk) -->
+<div id="toast-container" class="toast-container"></div>
 
 <script src="/static/app.js"></script>
 </body>

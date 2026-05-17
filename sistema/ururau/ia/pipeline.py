@@ -348,24 +348,32 @@ def _montar_prompt_geracao(
     # Instrução de tamanho adaptada à fonte
     if _fonte_muito_curta:
         _instrucao_tamanho = (
-            "TAMANHO DO ARTIGO: fonte muito curta. "
-            "Gere um artigo CURTO: 2-4 parágrafos, preservando todos os fatos disponíveis. "
-            "NÃO expanda com informações ausentes da fonte."
+            "TAMANHO DO ARTIGO (V200_23 SEO): fonte muito curta. "
+            "Mire 250-400 palavras. SEM limite numerico de paragrafos - "
+            "use o que o tema exigir (lead + 1-2 paragrafos de desenvolvimento + fecho factual). "
+            "Paragrafos curtos (2-4 frases, 40-80 palavras cada). "
+            "NUNCA expanda com fatos ausentes da fonte. Texto curto e preciso PASSA."
         )
-        _min_pars_instrucao = "2-4"
+        _min_pars_instrucao = "alvo: 250-400 palavras"
     elif _fonte_curta:
         _instrucao_tamanho = (
-            "TAMANHO DO ARTIGO: fonte curta. "
-            "Gere um artigo PROPORCIONAL: 3-5 parágrafos, preservando todos os fatos. "
-            "NÃO expanda com informações ausentes da fonte."
+            "TAMANHO DO ARTIGO (V200_23 SEO): fonte curta. "
+            "Mire 400-700 palavras. SEM limite numerico de paragrafos - "
+            "tantos quantos o tema exigir, com paragrafos curtos (2-4 frases). "
+            "Lead 5W1H + desenvolvimento factual + fecho objetivo. "
+            "NUNCA expanda com fatos ausentes da fonte. Sem jargao de IA."
         )
-        _min_pars_instrucao = "3-5"
+        _min_pars_instrucao = "alvo: 400-700 palavras"
     else:
         _instrucao_tamanho = (
-            "TAMANHO DO ARTIGO: fonte completa. "
-            "Gere artigo completo: 5-8 parágrafos com todos os dados essenciais."
+            "TAMANHO DO ARTIGO (V200_23 SEO): fonte completa. "
+            "Mire 600-1200 palavras. SEM limite numerico de paragrafos - "
+            "estrutura SEO Google: lead 5W1H em 60 palavras + desenvolvimento com "
+            "subtitulos H2 a cada 3-4 paragrafos + 1-2 citacoes diretas se a fonte tiver "
+            "+ fecho factual. Paragrafos curtos (2-4 frases). "
+            "NUNCA invente. Texto longo com fato inventado FALHA."
         )
-        _min_pars_instrucao = "5-8"
+        _min_pars_instrucao = "alvo: 600-1200 palavras"
 
     user_prompt = f"""
 == PORTAL URURAU — GERAÇÃO EDITORIAL (modelo: {modelo if isinstance(modelo, str) else 'gpt-4.1-mini'}) ==
@@ -1199,26 +1207,9 @@ def registrar_aprovacao_manual(
         or dados_materia.get("conteudo", "")
     )
     if texto:
-        # Só salva os primeiros 500 chars (abertura) como exemplo
-        mem.aprender_de_aprovacao("abertura", texto[:500], editoria=editoria, score=7)
-
-
-def registrar_correcao_manual(
-    campo: str,
-    valor_errado: str,
-    valor_correto: str,
-    contexto: str = "",
-    caminho_db: str = "ururau.db",
-):
-    """
-    Chamado quando o editor corrige um campo gerado pela IA.
-    Transforma a correção em memória operacional para próximas execuções.
-    """
-    mem = obter_memoria(caminho_db)
-    mem.aprender_de_correcao_manual(
-        campo=campo,
-        valor_errado=valor_errado,
-        valor_correto=valor_correto,
-        contexto=contexto,
-    )
-    print(f"[PIPELINE] Correção manual registrada: campo='{campo}'")
+        # V200_23: salva matéria gerada no banco para acesso futuro
+        try:
+            db.salvar_materia(uid, dados_materia)
+        except Exception:
+            pass
+    return dados_materia

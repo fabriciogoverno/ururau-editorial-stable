@@ -30,6 +30,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from typing import Any
+from urllib.parse import urlparse
 
 
 # ─────────────────────── Helpers basicos ──────────────────────────────────
@@ -41,6 +42,99 @@ def _norm_para_comparacao(s: str) -> str:
     s = re.sub(r"[^a-z0-9\s]", " ", s.lower())
     s = re.sub(r"\s+", " ", s).strip()
     return s
+
+
+def _termo_para_regex_flexivel(termo: str) -> str:
+    """Regex literal tolerante a acentos, cedilha e espaços variáveis."""
+    mapa = {
+        "a": "aáàãâä",
+        "e": "eéèêë",
+        "i": "iíìîï",
+        "o": "oóòõôö",
+        "u": "uúùûü",
+        "c": "cç",
+    }
+    partes: list[str] = []
+    for ch in str(termo or ""):
+        if ch.isspace():
+            partes.append(r"\s+")
+            continue
+        base = unicodedata.normalize("NFD", ch)[0].lower() if ch else ch
+        if base in mapa:
+            chars = mapa[base]
+            partes.append("[" + re.escape(chars + chars.upper()) + "]")
+        elif ch in "-–—":
+            partes.append(r"[\-–—]")
+        else:
+            partes.append(re.escape(ch))
+    return "".join(partes)
+
+
+def _termos_proibidos_unificados() -> list[str]:
+    termos: list[str] = []
+    try:
+        from ururau.editorial.regras_editoriais_ururau import TERMOS_PROIBIDOS_UNIFICADOS
+        termos.extend(str(t) for t in TERMOS_PROIBIDOS_UNIFICADOS)
+    except Exception:
+        pass
+    try:
+        from ururau.editorial.regras_editoriais import (
+            obter_expressoes_proibidas,
+            obter_frases_genericas_proibidas,
+            obter_termos_ia_proibidos,
+        )
+        termos.extend(str(t) for t in obter_termos_ia_proibidos())
+        termos.extend(str(t) for t in obter_expressoes_proibidas().keys())
+        termos.extend(str(t) for t in obter_frases_genericas_proibidas())
+    except Exception:
+        pass
+    vistos: set[str] = set()
+    out: list[str] = []
+    for termo in termos:
+        chave = _norm_para_comparacao(termo)
+        if chave and chave not in vistos:
+            out.append(termo)
+            vistos.add(chave)
+    return out
+
+
+def _detectar_termos_proibidos_unificados(texto: str) -> list[str]:
+    try:
+        from ururau.editorial.regras_editoriais_ururau import detectar_termos_proibidos
+        ach = detectar_termos_proibidos(texto or "")
+    except Exception:
+        alvo = _norm_para_comparacao(texto or "")
+        ach = [t for t in _termos_proibidos_unificados() if _norm_para_comparacao(t) in alvo]
+    return list(dict.fromkeys(str(t) for t in ach if str(t).strip()))
+
+
+def metas_seo_por_fonte(fonte_texto: str = "", corpo: str = "") -> dict[str, int]:
+    """V200_23: metas baseadas em PALAVRAS (SEO) em vez de paragrafos.
+
+    O minimo de paragrafos vira HINT (nao bloqueia), apenas garante que a IA
+    quebre o texto em paragrafos curtos. O que conta agora e o tamanho em
+    palavras, alinhado com metricas SEO do Google (sweet spot 600-1200).
+    """
+    n = max(len(str(fonte_texto or "")), len(str(corpo or "")))
+    if n >= 4200:
+        return {"paragrafos_min": 4, "paragrafos_alvo": 6,
+                "palavras_min": 800, "palavras_alvo": 1200,
+                "max_chars_paragrafo": 480}
+    if n >= 2600:
+        return {"paragrafos_min": 3, "paragrafos_alvo": 5,
+                "palavras_min": 600, "palavras_alvo": 1000,
+                "max_chars_paragrafo": 480}
+    if n >= 1400:
+        return {"paragrafos_min": 3, "paragrafos_alvo": 4,
+                "palavras_min": 500, "palavras_alvo": 800,
+                "max_chars_paragrafo": 480}
+    if n >= 800:
+        return {"paragrafos_min": 2, "paragrafos_alvo": 3,
+                "palavras_min": 400, "palavras_alvo": 700,
+                "max_chars_paragrafo": 480}
+    return {"paragrafos_min": 2, "paragrafos_alvo": 3,
+            "palavras_min": 250, "palavras_alvo": 400,
+            "max_chars_paragrafo": 480}
 
 
 # ─────────────────── 1) Dedup de frases literais ──────────────────────────
@@ -359,10 +453,41 @@ def aplicar_metricas_seo_google(pacote: dict | None,
     # 1) corpo: dedup + aspas + pontuacao
     corpo = str(corrigido.get("corpo_materia") or corrigido.get("conteudo") or "")
     if corpo:
+        metas = metas_seo_por_fonte(fonte_texto, corpo)
+        fonte_nome = (
+            corrigido.get("_veiculo_origem_para_remover")
+            or corrigido.get("fonte_nome")
+            or corrigido.get("nome_da_fonte")
+            or corrigido.get("fonte")
+            or ""
+        )
+        link_fonte = (
+            corrigido.get("link_da_fonte")
+            or corrigido.get("link_origem")
+            or corrigido.get("url")
+            or ""
+        )
         corpo2, n_dup = deduplicar_frases_repetidas(corpo)
         if n_dup:
             correcoes.append(f"deduplicou_{n_dup}_frase_(s)_repetida(s)")
             corpo = corpo2
+        corpo_pre = corpo
+        corpo, rem_termos = remover_termos_proibidos(corpo)
+        if rem_termos:
+            correcoes.append(f"removeu_{len(rem_termos)}_termo(s)_ia_proibido(s)")
+        corpo, rem_veiculos = remover_citacoes_veiculo_origem(corpo, fonte_nome=fonte_nome, link=link_fonte)
+        if rem_veiculos:
+            correcoes.append("removeu_citacao_veiculo_origem")
+        corpo, corr_genericas = remover_fechos_e_aberturas_genericas(corpo)
+        correcoes.extend(corr_genericas)
+        corpo_dividido = dividir_paragrafo_unico(
+            corpo,
+            alvo_paragrafos=metas["paragrafos_alvo"],
+            max_chars_paragrafo=metas["max_chars_paragrafo"],
+        )
+        if corpo_dividido != corpo:
+            correcoes.append("ajustou_paragrafos_seo")
+            corpo = corpo_dividido
         corpo_pre = corpo
         corpo = corrigir_aspas_tipograficas(corpo)
         if corpo != corpo_pre:
@@ -374,6 +499,8 @@ def aplicar_metricas_seo_google(pacote: dict | None,
         corrigido["corpo_materia"] = corpo
         if "conteudo" in corrigido:
             corrigido["conteudo"] = corpo
+        if "texto_final" in corrigido:
+            corrigido["texto_final"] = corpo
 
     # 2) titulo SEO
     t_seo = str(corrigido.get("titulo_seo") or "").strip()
@@ -434,6 +561,22 @@ def aplicar_metricas_seo_google(pacote: dict | None,
             correcoes.append("normalizou_credito_foto")
         corrigido["credito_foto"] = cf
 
+    corpo_final = str(corrigido.get("corpo_materia") or corrigido.get("conteudo") or "")
+    metas_finais = metas_seo_por_fonte(fonte_texto, corpo_final)
+    termos_residuais = _detectar_termos_proibidos_unificados(corpo_final)
+    fonte_nome_diag = (
+        corrigido.get("_veiculo_origem_para_remover")
+        or corrigido.get("fonte_nome")
+        or corrigido.get("nome_da_fonte")
+        or corrigido.get("fonte")
+        or ""
+    )
+    veiculos_residuais = []
+    link_diag = str(corrigido.get("link_da_fonte") or corrigido.get("link_origem") or corrigido.get("url") or "")
+    for nome in _possiveis_nomes_veiculo(str(fonte_nome_diag), link_diag):
+        if _norm_para_comparacao(nome) in _norm_para_comparacao(corpo_final):
+            veiculos_residuais.append(nome)
+
     # Diagnostico final
     lead = primeiro_paragrafo_tem_lead_5w(corrigido.get("corpo_materia", ""))
     diag = {
@@ -447,6 +590,10 @@ def aplicar_metricas_seo_google(pacote: dict | None,
             bool(palavra_chave) and palavra_chave.lower() in
             corrigido.get("titulo_seo", "").lower()
         ) if palavra_chave else None,
+        "metas_seo": metas_finais,
+        "termos_ia_residuais": termos_residuais,
+        "veiculo_origem_residual": sorted(set(veiculos_residuais)),
+        "padrao_editorial_ok": not termos_residuais and not veiculos_residuais,
     }
 
     return {
@@ -500,6 +647,55 @@ _SUBSTITUICOES_TERMOS_PROIBIDOS_V200_2 = (
     (r"\baté a publicação desta reportagem\b", "ate a publicacao"),
 )
 
+_SUBSTITUICOES_TERMOS_DINAMICOS = {
+    "reforça": "afirma",
+    "reforca": "afirma",
+    "reafirma": "afirma",
+    "reforçou": "afirmou",
+    "reforçando": "afirmando",
+    "ressalta": "informa",
+    "ressaltou": "afirmou",
+    "destaca": "informa",
+    "destacou": "afirmou",
+    "evidencia": "aponta",
+    "evidenciando": "apontando",
+    "sinaliza": "indica",
+    "sinaliza que": "indica que",
+    "mostra que": "indica que",
+    "demonstra": "indica",
+    "ilustra": "mostra",
+    "escancara": "mostra",
+    "robusto": "amplo",
+    "robusta": "ampla",
+    "emblemático": "relevante",
+    "emblematica": "relevante",
+    "emblemática": "relevante",
+}
+
+
+def _substituicoes_termos_proibidos_unificadas() -> dict[str, str]:
+    """Substituicoes vindas da matriz editorial, com fallback local seguro."""
+    subs = dict(_SUBSTITUICOES_TERMOS_DINAMICOS)
+    try:
+        from ururau.editorial.regras_editoriais import (
+            obter_expressoes_proibidas,
+            obter_matriz_editorial,
+        )
+        for termo, repl in obter_expressoes_proibidas().items():
+            chave = _norm_para_comparacao(termo)
+            if not chave:
+                continue
+            if isinstance(repl, str) and repl.strip():
+                subs[chave] = repl.strip()
+            else:
+                subs.setdefault(chave, "")
+        for termo, repl in (obter_matriz_editorial().get("verbos_crutch") or {}).items():
+            if isinstance(repl, str) and repl.strip():
+                subs[_norm_para_comparacao(termo)] = repl.strip()
+    except Exception:
+        pass
+    return subs
+
 
 def remover_termos_proibidos(texto):
     """Substitui termos proibidos e devolve (texto_limpo, lista_removidos)."""
@@ -507,17 +703,116 @@ def remover_termos_proibidos(texto):
         return texto, []
     removidos = []
     out = texto
+    substituicoes = _substituicoes_termos_proibidos_unificadas()
     for rx_src, sub in _SUBSTITUICOES_TERMOS_PROIBIDOS_V200_2:
         rx = re.compile(rx_src, re.IGNORECASE)
         if rx.search(out):
             removidos.append(rx_src)
             out = rx.sub(sub, out)
+    for termo in _detectar_termos_proibidos_unificados(out):
+        termo_norm = _norm_para_comparacao(termo)
+        sub = substituicoes.get(termo_norm, "")
+        rx = re.compile(r"(?<!\w)" + _termo_para_regex_flexivel(termo) + r"(?!\w)", re.IGNORECASE)
+        if rx.search(out):
+            removidos.append(termo)
+            out = rx.sub(sub, out)
+        elif termo_norm in _norm_para_comparacao(out):
+            removidos.append(termo)
     out = re.sub(r"\s+([,\.;:])", r"\1", out)
     out = re.sub(r"\s{2,}", " ", out)
     out = re.sub(r",\s*,+", ",", out)
     out = out.replace(" — ", ", ").replace(" – ", ", ")
     out = out.replace("—", "").replace("–", "")
     return out.strip(), removidos
+
+
+def _possiveis_nomes_veiculo(fonte_nome: str = "", link: str = "") -> list[str]:
+    nomes: list[str] = []
+    for bruto in (fonte_nome or "",):
+        bruto = re.sub(r"\s+", " ", str(bruto)).strip(" -|")
+        if bruto:
+            nomes.append(bruto)
+            nomes.append(re.sub(r"\b(?:noticias|notícias|jornal|portal|site|online)\b", "", bruto, flags=re.I).strip())
+    try:
+        host = urlparse(str(link or "")).netloc.lower()
+        host = host[4:] if host.startswith("www.") else host
+        base = host.split(".")[0]
+        base_curta_valida = len(base) >= 2 and any(c.isdigit() for c in base)
+        if base and (len(base) >= 3 or base_curta_valida):
+            nomes.append(base)
+    except Exception:
+        pass
+    bloqueados = {"redacao", "redação", "reproducao", "reprodução", "assessoria", "internet", "fonte"}
+    out: list[str] = []
+    vistos: set[str] = set()
+    for nome in nomes:
+        nome = re.sub(r"\s+", " ", str(nome or "")).strip()
+        chave = _norm_para_comparacao(nome)
+        nome_curto_valido = len(chave) >= 2 and any(c.isdigit() for c in chave)
+        if (len(chave) < 3 and not nome_curto_valido) or chave in bloqueados or chave in vistos:
+            continue
+        out.append(nome)
+        vistos.add(chave)
+    return out
+
+
+def _nome_para_regex(nome: str) -> str:
+    partes = [re.escape(p) for p in re.split(r"\s+", nome.strip()) if p]
+    return r"\s+".join(partes)
+
+
+def remover_citacoes_veiculo_origem(texto: str, fonte_nome: str = "", link: str = "") -> tuple[str, list[str]]:
+    """Remove atribuições ao veículo de origem no corpo, preservando o crédito em campo próprio."""
+    if not texto:
+        return texto, []
+    out = texto
+    removidos: list[str] = []
+    artigo = r"(?:o|a|os|as|ao|à|aos|às|pelo|pela|pelos|pelas|do|da|dos|das)?"
+    qualificador = r"(?:(?:portal|site|jornal|revista|agência|agencia)\s+)?"
+    for nome in _possiveis_nomes_veiculo(fonte_nome, link):
+        nrx = _nome_para_regex(nome)
+        padroes = [
+            (
+                re.compile(rf"\b(segundo|conforme|de acordo com)\s+{artigo}\s*{qualificador}{nrx}\b", re.I),
+                r"\1 a fonte",
+            ),
+            (
+                re.compile(rf"\b{artigo}\s*{qualificador}{nrx}\s+(?:apurou|informou|noticiou|publicou|divulgou|relatou)\s+que\b", re.I),
+                "A fonte informa que",
+            ),
+            (
+                re.compile(rf"\b(?:em entrevista|ao|à)\s+{artigo}\s*{qualificador}{nrx}\b", re.I),
+                "à fonte",
+            ),
+            (
+                re.compile(rf"\bFonte\s*:\s*{artigo}\s*{qualificador}{nrx}\b[.;]?", re.I),
+                "",
+            ),
+        ]
+        for rx, sub in padroes:
+            if rx.search(out):
+                removidos.append(nome)
+                out = rx.sub(sub, out)
+    out = re.sub(r"\s+([,\.;:])", r"\1", out)
+    out = re.sub(r"[ \t]{2,}", " ", out)
+    return out.strip(), sorted(set(removidos))
+
+
+def remover_fechos_e_aberturas_genericas(texto: str) -> tuple[str, list[str]]:
+    if not texto:
+        return texto, []
+    correcoes: list[str] = []
+    pars = [p.strip() for p in re.split(r"\n\s*\n+", texto) if p.strip()]
+    novos: list[str] = []
+    for p in pars:
+        antes = p
+        p = re.sub(r"^(?:além disso|alem disso|por outro lado|dessa forma|desta forma|nesse contexto|neste contexto|com isso),?\s+", "", p, flags=re.I)
+        p = re.sub(r"^(?:o caso|a situação|a medida|a iniciativa)\s+(?:mostra|reforça|evidencia|demonstra)\s+[^.!?]*[.!?]\s*", "", p, flags=re.I)
+        if p != antes:
+            correcoes.append("removeu_abertura_generica")
+        if p.strip():
+            novos.append(p.strip())
+    return "\n\n".join(novos), correcoes
 
 
 def _split_em_sentencas_v200_2(texto):
@@ -561,7 +856,9 @@ def dividir_paragrafo_unico(texto, alvo_paragrafos=4, max_chars_paragrafo=600):
     return "\n\n".join(paragrafos) if paragrafos else texto
 
 
-def corrigir_corpo_motor_v2(corpo, alvo_paragrafos=4, max_chars_paragrafo=600):
+def corrigir_corpo_motor_v2(corpo, alvo_paragrafos=4, max_chars_paragrafo=600,
+                            *, fonte_texto: str = "", fonte_nome: str = "",
+                            link: str = ""):
     """Aplica remover_termos_proibidos + dividir_paragrafo_unico."""
     correcoes = []
     if not corpo:
@@ -569,25 +866,19 @@ def corrigir_corpo_motor_v2(corpo, alvo_paragrafos=4, max_chars_paragrafo=600):
     corpo_novo, removidos = remover_termos_proibidos(corpo)
     if removidos:
         correcoes.append("removeu_" + str(len(removidos)) + "_termos_proibidos")
+    corpo_novo, veiculos = remover_citacoes_veiculo_origem(corpo_novo, fonte_nome=fonte_nome, link=link)
+    if veiculos:
+        correcoes.append("removeu_citacao_veiculo_origem")
+    corpo_novo, corr_genericas = remover_fechos_e_aberturas_genericas(corpo_novo)
+    correcoes.extend(corr_genericas)
+    if fonte_texto and alvo_paragrafos == 4:
+        alvo_paragrafos = metas_seo_por_fonte(fonte_texto, corpo_novo)["paragrafos_alvo"]
     corpo_dividido = dividir_paragrafo_unico(
         corpo_novo, alvo_paragrafos=alvo_paragrafos,
-        max_chars_paragrafo=max_chars_paragrafo,
+        max_chars_paragrafo=480,
     )
     if corpo_dividido != corpo_novo:
-        correcoes.append("dividiu_paragrafo_unico")
-    return corpo_dividido, correcoes
+        corpo_novo = corpo_dividido
+        correcoes.append("auto_split_paragrafo_unico")
 
-
-__all__ = [
-    "aplicar_metricas_seo_google",
-    "deduplicar_frases_repetidas",
-    "corrigir_aspas_tipograficas",
-    "corrigir_pontuacao_solta",
-    "garantir_titulo_seo_completo",
-    "primeiro_paragrafo_tem_lead_5w",
-    "normalizar_tags",
-    "remover_termos_proibidos",
-    "dividir_paragrafo_unico",
-    "corrigir_corpo_motor_v2",
-]
-
+    return corpo_novo, correcoes

@@ -314,22 +314,44 @@ Parágrafos 2-3 — Contexto: personagens, cargos, histórico do caso, números,
 Parágrafos 4+ — Desdobramento: posição oficial, próximos passos, efeito prático.
 Fecho factual: estágio do caso, investigação, manifestação. NUNCA fecho ornamental.
 
-REGRA DE PROPORÇÃO — TAMANHO DO ARTIGO
-O artigo DEVE ser proporcional à fonte:
-- Fonte muito curta (< 300 chars): 2-3 parágrafos. Sem expansão. Um artigo curto e preciso PASSA.
-- Fonte curta (< 800 chars): 3-5 parágrafos. Preserve todos os fatos disponíveis. Sem expansão artificial.
-- Fonte completa (≥ 800 chars): 5-8 parágrafos com todos os dados essenciais.
-NUNCA force parágrafos extras com informações não presentes na fonte.
-Um artigo curto e correto PASSA. Um artigo longo com dados inventados FALHA.
+REGRA DE TAMANHO — META SEO (V200_23)
+SEM limite numérico de parágrafos. Mire PALAVRAS proporcionais à fonte:
+- Fonte muito curta (< 300 chars): 250-400 palavras. Sem expansão. PASSA se preciso.
+- Fonte curta (300-800 chars): 400-700 palavras. Cobre fatos sem inflar.
+- Fonte média (800-2000 chars): 600-1000 palavras. Cobertura completa.
+- Fonte completa (≥ 2000 chars): 800-1200 palavras. Lead forte + desenvolvimento + fechamento factual.
+
+REGRA DE OURO: a quantidade certa de parágrafos é o que o TEMA exige, com o tamanho
+acima como alvo. Use 2 parágrafos se 2 bastam, use 12 se 12 forem necessários e TODOS
+saírem do texto da fonte. NUNCA force tamanho com expansão artificial, frases-coringa,
+"vale destacar", "no contexto atual", "é importante notar", "cabe ressaltar", "neste
+sentido", "diante disso", "em meio a esse cenário", "no que diz respeito a" — esses
+são jargões de IA e o sistema os bloqueia.
+
+ARTIGOS CURTOS são preferíveis a artigos longos com dados inventados. Google penaliza
+thin content < 250 palavras E penaliza texto inflado. O alvo são palavras COM SUBSTÂNCIA.
 
 FORMATAÇÃO DO CORPO DA MATÉRIA (crítico)
 O campo corpo_materia DEVE conter parágrafos separados por \\n\\n (dois saltos de linha).
 NUNCA entregue o texto como um único bloco sem quebras.
-Cada parágrafo deve ter no máximo 3-4 frases.
-Número de parágrafos: proporcional à fonte (ver REGRA DE PROPORÇÃO acima). Máximo 10.
+Cada parágrafo: 2-4 frases curtas (40-80 palavras). Parágrafos longos prejudicam leitura
+mobile e reduzem ranking no Google. Quebre temas distintos em parágrafos distintos.
 Exemplo de estrutura correta no JSON:
 "corpo_materia": "Parágrafo 1 aqui.\\n\\nParágrafo 2 aqui.\\n\\nParágrafo 3 aqui."
 O \\n\\n é OBRIGATÓRIO entre cada parágrafo. Se entregue como bloco único, a matéria será bloqueada.
+
+ESTRUTURA SEO (V200_23 — Google news + featured snippets)
+1. LEAD (primeiro parágrafo): cobre 5W1H em até 60 palavras. Quem fez o quê, onde,
+   quando, por que, como. O Google extrai o lead para featured snippet — precisa ser
+   completo e factual.
+2. DESENVOLVIMENTO: parágrafos com FATOS NOVOS a cada um. Sem repetir. Sem rodeios.
+   Use citação direta entre aspas quando a fonte tiver fala atribuída (1-2 citações
+   reforçam E-E-A-T para o Google).
+3. CONTEXTO factual: se houver dado anterior na fonte (estatística, decisão prévia,
+   declaração antiga), inclua sem expandir. Se NÃO houver, NÃO invente.
+4. FECHAMENTO: encerra com fato concreto (estágio atual, próximo passo OBJETIVO já
+   citado na fonte, valor envolvido, prazo). NUNCA fecho ornamental tipo "as
+   investigações continuam" se a fonte não disse isso.
 
 REGRAS DE TRAVESSÃO
 NUNCA use travessão (— ou –) no texto. Substituir por:
@@ -373,7 +395,7 @@ AUTO-REVISÃO INTERNA OBRIGATÓRIA ANTES DE ENTREGAR
 □ Retranca específica, não genérica?
 □ tags são lista com {TAGS_MIN}-{TAGS_MAX} elementos específicos e buscáveis?
 □ JSON é válido e parseável?
-□ Texto tem tamanho proporcional à fonte? (fonte muito curta → 2-3 pars; curta → 3-5; longa → 5-8)
+□ Corpo tem 250-1200 palavras conforme a regra de tamanho da fonte (V200_23 SEO)?
 □ Lead no primeiro parágrafo responde quem/o quê/onde/quando/por quê?
 □ corpo_materia tem parágrafos separados por \\n\\n (NÃO é bloco único)?
 □ ZERO expansão artificial com "próximo passo", "investigações seguem", "medida visa garantir"?
@@ -772,12 +794,3 @@ def montar_contexto_para_acao(acao: str, modo_operacional: str = "painel") -> li
         contextos = contextos + [CONTEXTO_FLUXO_PAINEL]
 
     return contextos
-
-# URURAU v47.2 — overrides da matriz editorial única
-try:
-    from ururau.editorial.regras_editoriais import limites as _lim, obter_expressoes_proibidas as _exp, obter_frases_genericas_proibidas as _fg, montar_bloco_prompt_editorial as _bp
-    _L=_lim(); LIMITE_TITULO_SEO=int(_L.get('titulo_seo_max',LIMITE_TITULO_SEO)); LIMITE_TITULO_CAPA=int(_L.get('titulo_capa_max',LIMITE_TITULO_CAPA)); LIMITE_SUBTITULO_CURTO=int(_L.get('subtitulo_curto_max',LIMITE_SUBTITULO_CURTO)); LIMITE_LEGENDA=int(_L.get('legenda_curta_max',LIMITE_LEGENDA)); LIMITE_RETRANCA_PALAVRAS=int(_L.get('retranca_max_words',LIMITE_RETRANCA_PALAVRAS)); TAGS_MIN=int(_L.get('tags_min',TAGS_MIN)); TAGS_MAX=int(_L.get('tags_max',TAGS_MAX)); TEXTO_MINIMO_CHARS=int(_L.get('corpo_min_chars',TEXTO_MINIMO_CHARS))
-    EXPRESSOES_PROIBIDAS={**EXPRESSOES_PROIBIDAS, **_exp()}; FRASES_GENERICAS_PROIBIDAS=_fg() or FRASES_GENERICAS_PROIBIDAS
-    _BASE_MONTAR_SYSTEM_PROMPT_V472=montar_system_prompt
-    def montar_system_prompt(*args, **kwargs): return (str(_BASE_MONTAR_SYSTEM_PROMPT_V472(*args, **kwargs)).rstrip()+'\n\n'+_bp()).strip()
-except Exception: pass

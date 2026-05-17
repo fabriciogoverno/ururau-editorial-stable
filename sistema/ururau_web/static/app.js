@@ -1073,23 +1073,133 @@ async function acaoRedigir() {
     return;
   }
   if (!confirm(`Redigir matéria via IA (${_iaCfg.modelo})?\n\n"${p.titulo}"`)) return;
-  setStatus(`Disparando redação via ${_iaCfg.modelo}...`);
   const btn = $("btn-redigir");
   const orig = btn.innerHTML;
   btn.classList.add("loading");
   btn.innerHTML = `<span class="spinner"></span> Redigindo...`;
   btn.disabled = true;
+  // V200_22: barra animada + polling do job + toast no fim
+  const tituloCurto = (p.titulo || "(sem titulo)").slice(0, 60);
+  iniciarProgressoAcao(`Redigindo: "${tituloCurto}..."`, 22000);
   try {
     await jpost(API.redigir(p.uid), { forcar: false });
-    setStatus("Redação em andamento (background).", "ok");
     const card = document.querySelector(`.card[data-uid="${p.uid}"]`);
     if (card) card.classList.add("tem-job");
     atualizarJobInfo();
+    // Polling do job a cada 1s ate concluir (max 90s)
+    aguardarJobConcluir(p.uid, "redigir", 90000)
+      .then((slot) => {
+        if (slot && slot.status === "ok") {
+          concluirProgressoAcao(true, `✓ Matéria redigida em ${Math.round((slot.duracao_seg || 0))}s`);
+          mostrarToast({
+            tipo: "success",
+            titulo: "📝 Matéria redigida",
+            corpo: `"${tituloCurto}"<br><span style="color:var(--muted)">${escapeHtml(p.fonte || "")} · ${escapeHtml(p.canal || "")}</span>`,
+            acao: { label: "Abrir matéria", onclick: () => { _uidSelecionado = p.uid; selecionarTab("materia"); carregarTabMateria(p); } },
+            timeoutMs: 8000,
+          });
+          carregarFila();
+          carregarTabMateria(p);
+        } else {
+          const msg = (slot && (slot.mensagem || slot.status)) || "Falha desconhecida";
+          concluirProgressoAcao(false, `✗ Falha: ${msg}`);
+          mostrarToast({ tipo: "error", titulo: "✗ Redigir falhou", corpo: escapeHtml(msg), timeoutMs: 10000 });
+        }
+      })
+      .catch((e) => {
+        concluirProgressoAcao(false, `✗ Timeout: ${e.message}`);
+        mostrarToast({ tipo: "error", titulo: "✗ Redigir timeout", corpo: escapeHtml(e.message), timeoutMs: 8000 });
+      });
   } catch (e) {
+    concluirProgressoAcao(false, `✗ HTTP: ${e.message}`);
     setStatus(`Falha redigir: ${e.message}`, "err");
   } finally {
-    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove("loading"); atualizarToolbar(); }, 1000);
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove("loading"); atualizarToolbar(); }, 1500);
   }
+}
+
+// ─────────────────── V200_22: Barra de progresso da acao ──────────────────
+let _progressoTimer = null;
+let _progressoFimEstimado = 0;
+function iniciarProgressoAcao(texto, duracaoMs) {
+  const bar = $("progresso-acao");
+  const fill = $("progresso-acao-fill");
+  const txt = $("progresso-acao-texto");
+  if (!bar || !fill || !txt) return;
+  if (_progressoTimer) clearInterval(_progressoTimer);
+  bar.style.display = "flex";
+  fill.classList.remove("ok", "err");
+  fill.style.width = "0%";
+  txt.textContent = texto || "Processando...";
+  const inicio = Date.now();
+  _progressoFimEstimado = inicio + (duracaoMs || 20000);
+  // anima ate 85% suavemente
+  _progressoTimer = setInterval(() => {
+    const passado = Date.now() - inicio;
+    const total = (_progressoFimEstimado - inicio);
+    let pct = Math.min(85, (passado / total) * 85);
+    // easing cubic-out
+    pct = 85 * (1 - Math.pow(1 - (pct / 85), 3));
+    fill.style.width = pct.toFixed(1) + "%";
+    if (pct >= 84.9) { clearInterval(_progressoTimer); _progressoTimer = null; }
+  }, 200);
+}
+function concluirProgressoAcao(sucesso, texto) {
+  const bar = $("progresso-acao");
+  const fill = $("progresso-acao-fill");
+  const txt = $("progresso-acao-texto");
+  if (!bar || !fill || !txt) return;
+  if (_progressoTimer) { clearInterval(_progressoTimer); _progressoTimer = null; }
+  fill.classList.remove("ok", "err");
+  fill.classList.add(sucesso ? "ok" : "err");
+  fill.style.width = "100%";
+  txt.textContent = texto || (sucesso ? "Concluído" : "Falhou");
+  setTimeout(() => { bar.style.display = "none"; fill.style.width = "0%"; }, sucesso ? 2500 : 5000);
+}
+
+async function aguardarJobConcluir(uid, tipo, timeoutMs) {
+  const inicio = Date.now();
+  while (Date.now() - inicio < (timeoutMs || 60000)) {
+    await new Promise((r) => setTimeout(r, 1000));
+    try {
+      const j = await jget(API.job(uid));
+      const slot = j.jobs?.ultimo_job;
+      if (slot && (slot.tipo === tipo || tipo === "*") && !slot.em_andamento) {
+        return slot;
+      }
+    } catch (e) {
+      // ignora erros de polling pontuais
+    }
+  }
+  throw new Error(`timeout aguardando job ${tipo}`);
+}
+
+// ─────────────────── V200_22: Toasts ──────────────────────────────────────
+function mostrarToast({ tipo = "info", titulo, corpo, acao, timeoutMs = 6000 }) {
+  const cont = $("toast-container");
+  if (!cont) return;
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${tipo}`;
+  const acaoBtn = acao ? `<div class="toast-action" data-act="run">${escapeHtml(acao.label || "Abrir")}</div>` : "";
+  toast.innerHTML = `
+    <div class="toast-head">
+      <span>${titulo || ""}</span>
+      <button class="toast-close" title="Fechar">×</button>
+    </div>
+    <div class="toast-body">${corpo || ""}</div>
+    ${acaoBtn}
+  `;
+  cont.appendChild(toast);
+  const fechar = () => {
+    toast.classList.add("toast-fade-out");
+    setTimeout(() => toast.remove(), 400);
+  };
+  toast.querySelector(".toast-close").onclick = fechar;
+  if (acao && typeof acao.onclick === "function") {
+    const ab = toast.querySelector(".toast-action");
+    if (ab) ab.onclick = () => { try { acao.onclick(); } catch (e) {} fechar(); };
+  }
+  setTimeout(fechar, timeoutMs);
 }
 function acaoCopydesk() {
   // Botão da toolbar agora abre a aba "Copydesk" para o editor
@@ -1758,204 +1868,5 @@ document.addEventListener("click", (e) => {
   const link = t.dataset.link;
   if (act === "abrir" && link) window.open(link, "_blank", "noreferrer,noopener");
   else if (act === "buscar-imagem" && uid) acaoBuscarImagem(uid);
-  else if (act === "aprovar" && uid) acaoAprovar(uid);
-  else if (act === "reativar" && uid) acaoReativar(uid);
+  else if (act === "aprovar" && uid) acaoAprovarBaixoScore(uid);
 });
-
-function navegarFila(delta) {
-  const cards = Array.from(document.querySelectorAll("#fila .card"));
-  if (!cards.length) return;
-  let idx = cards.findIndex((c) => c.classList.contains("selecionada"));
-  if (idx < 0) idx = (delta > 0 ? -1 : cards.length);
-  let novo = idx + delta;
-  if (novo < 0) novo = 0;
-  if (novo >= cards.length) novo = cards.length - 1;
-  if (novo === idx) return;
-  const card = cards[novo];
-  cards.forEach((c) => c.classList.remove("selecionada"));
-  card.classList.add("selecionada");
-  _selSeq++;  // invalida fetches anteriores
-  _uidSelecionado = card.dataset.uid;
-  _pautaSelecionada = _pautasCache.find((p) => p.uid === _uidSelecionado);
-  card.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  renderCentro(_pautaSelecionada);
-  selecionarTab("fonte");
-  carregarTabFonte(_pautaSelecionada);
-}
-
-// Atalhos
-document.addEventListener("keydown", (e) => {
-  if (["INPUT","SELECT","TEXTAREA"].includes(e.target.tagName)) return;
-  // Setas e navegação na fila.
-  if (e.key === "ArrowDown") { e.preventDefault(); navegarFila(+1); return; }
-  if (e.key === "ArrowUp")   { e.preventDefault(); navegarFila(-1); return; }
-  if (e.key === "PageDown")  { e.preventDefault(); navegarFila(+10); return; }
-  if (e.key === "PageUp")    { e.preventDefault(); navegarFila(-10); return; }
-  if (e.key === "Home")      { e.preventDefault(); navegarFila(-9999); return; }
-  if (e.key === "End")       { e.preventDefault(); navegarFila(+9999); return; }
-  if (e.key === "Enter" && _uidSelecionado) {
-    e.preventDefault();
-    // Enter abre a aba Matéria gerada se existe, senão Texto da fonte.
-    const p = pautaSel();
-    if (p && p.materia_pronta) { selecionarTab("materia"); carregarTabMateria(p); }
-    else if (p) { selecionarTab("fonte"); carregarTabFonte(p); }
-    return;
-  }
-  // Trocar de aba via 1/2/3/4.
-  if (/^[1-4]$/.test(e.key)) {
-    const tabs = ["perfil", "fonte", "materia", "copydesk"];
-    e.preventDefault();
-    const nome = tabs[Number(e.key) - 1];
-    selecionarTab(nome);
-    const p = pautaSel();
-    if (p) {
-      if (nome === "fonte") carregarTabFonte(p);
-      else if (nome === "materia") carregarTabMateria(p);
-      else if (nome === "copydesk") carregarTabCopydesk(p);
-    }
-    return;
-  }
-  // Atalhos de ação.
-  if (e.key === "F5") { e.preventDefault(); carregarFila(); }
-  else if (e.ctrlKey && /^[gG]$/.test(e.key)) { e.preventDefault(); dispararColeta(); }
-  else if (e.ctrlKey && /^[wW]$/.test(e.key)) { e.preventDefault(); acaoRedigir(); }
-  else if (e.ctrlKey && /^[kK]$/.test(e.key)) { e.preventDefault(); acaoCopydesk(); }
-  else if (e.ctrlKey && /^[pP]$/.test(e.key)) { e.preventDefault(); acaoPreview(); }
-  else if (e.ctrlKey && /^[fF]$/.test(e.key)) { e.preventDefault(); $("inp-busca").focus(); }
-  else if (e.key === "Delete") { e.preventDefault(); acaoDescartar(); }
-  else if (e.key === "Escape") {
-    document.querySelectorAll(".modal").forEach((m) => m.hidden = true);
-  } else if (e.key === "?" && e.shiftKey) {
-    e.preventDefault();
-    mostrarAtalhos();
-  }
-});
-
-function mostrarAtalhos() {
-  const txt = `
-ATALHOS DE TECLADO
-
-↑ / ↓               Navegar entre pautas
-PageUp / PageDown   Avançar 10 pautas
-Home / End          Primeira / última pauta
-Enter               Abrir matéria (ou texto da fonte)
-1 / 2 / 3 / 4       Trocar aba (Perfil / Fonte / Matéria / Copydesk)
-
-F5                  Atualizar fila
-Ctrl + G            Coletar agora
-Ctrl + W            Redigir via IA
-Ctrl + K            Copydesk
-Ctrl + P            Preview da matéria
-Ctrl + F            Focar busca
-Delete              Descartar pauta
-Esc                 Fechar modal
-?                   Mostrar atalhos
-`.trim();
-  $("modal-titulo").textContent = "Atalhos de teclado";
-  $("modal-corpo").innerHTML = `<pre class="mono" style="font-size:12px; line-height:1.6;">${escapeHtml(txt)}</pre>`;
-  $("modal").hidden = false;
-}
-
-// ── Resizers (colunas arrastáveis) ───────────────────────────────────────
-function setupResizers() {
-  const body = document.querySelector(".body");
-  if (!body) return;
-  // Restaura larguras salvas
-  const savedFila  = localStorage.getItem("ururau-w-fila");
-  const savedStats = localStorage.getItem("ururau-w-stats");
-  if (savedFila)  body.style.setProperty("--w-fila", savedFila);
-  if (savedStats) body.style.setProperty("--w-stats", savedStats);
-  // Sem largura salva para a fila: abre com Fila e Centro dividindo
-  // o espaço útil meio-a-meio (descontando Stats e os 2 resizers).
-  if (!savedFila) {
-    const stats = parseInt(savedStats, 10) || 340;
-    const disponivel = body.clientWidth - stats - 12 - 12; // 2 resizers + padding interno
-    const metade = Math.max(280, Math.floor(disponivel / 2));
-    body.style.setProperty("--w-fila", `${metade}px`);
-  }
-
-  document.querySelectorAll(".resizer").forEach((r) => {
-    r.addEventListener("mousedown", (ev) => {
-      ev.preventDefault();
-      const target = r.dataset.target; // 'fila' ou 'stats'
-      const col = document.querySelector(`.col-${target}`);
-      if (!col) return;
-      const startX = ev.clientX;
-      const startW = col.getBoundingClientRect().width;
-      r.classList.add("dragging");
-      document.body.classList.add("resizing");
-
-      const minW = parseInt(getComputedStyle(col).minWidth, 10) || 220;
-      const maxW = Math.min(window.innerWidth * 0.55, 800);
-
-      const onMove = (e) => {
-        let delta = e.clientX - startX;
-        if (target === "stats") delta = -delta; // stats cresce para a esquerda
-        let newW = Math.max(minW, Math.min(maxW, startW + delta));
-        body.style.setProperty(`--w-${target}`, `${newW}px`);
-      };
-      const onUp = () => {
-        r.classList.remove("dragging");
-        document.body.classList.remove("resizing");
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onUp);
-        const final = body.style.getPropertyValue(`--w-${target}`);
-        if (final) localStorage.setItem(`ururau-w-${target}`, final);
-      };
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onUp);
-    });
-    // Duplo clique reseta para o padrão
-    r.addEventListener("dblclick", () => {
-      const target = r.dataset.target;
-      body.style.removeProperty(`--w-${target}`);
-      localStorage.removeItem(`ururau-w-${target}`);
-    });
-  });
-}
-
-// ── Init ─────────────────────────────────────────────────────────────────
-(async function init() {
-  setupResizers();
-  try {
-    const h = await jget(API.health);
-    _iaCfg.configurada = !!h.ia_configurada;
-    _iaCfg.modelo      = h.ia_modelo || "";
-    setStatusInd("status-ia",
-      _iaCfg.configurada ? `IA: ${_iaCfg.modelo}` : "IA: não configurada",
-      _iaCfg.configurada ? "ok" : "alerta");
-    setStatusInd("status-banco", `banco: ${h.arquivo_db} · v${h.versao || "?"}`, "");
-    setStatus(`Servidor OK · publicação automática: ${h.publicacao_automatica ? "ATIVA(?!)" : "DESLIGADA"}`, h.publicacao_automatica ? "err" : "ok");
-  } catch (e) {
-    setStatus(`Servidor indisponível: ${e.message}`, "err");
-  }
-  await carregarFila();
-  await carregarStats();
-  atualizarToolbar();
-  setInterval(async () => {
-    try {
-      const j = await jget(API.coletaSt);
-      atualizarIndColeta(j.estado || {});
-    } catch {}
-  }, 5000);
-  // Stats se renovam a cada 60s; isso também detecta a virada do dia.
-  setInterval(() => { carregarStats(); }, 60000);
-  // Auto-coleta: renova badge a cada 15s.
-  atualizarAutoColeta();
-  setInterval(() => { atualizarAutoColeta(); }, 15000);
-  // Quando uma coleta automática completar, recarrega a fila.
-  let _ultimaExecAuto = 0;
-  setInterval(async () => {
-    try {
-      const j = await jget("/api/auto-coleta/status");
-      const ac = (j && j.auto_coleta) || {};
-      if (ac.execucoes && ac.execucoes > _ultimaExecAuto) {
-        if (_ultimaExecAuto > 0) {
-          // Houve nova execução automática — espera 5s para coleta terminar e recarrega
-          setTimeout(() => { carregarFila(); carregarStats(); }, 5000);
-        }
-        _ultimaExecAuto = ac.execucoes;
-      }
-    } catch {}
-  }, 30000);
-})();
