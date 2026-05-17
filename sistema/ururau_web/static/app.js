@@ -1870,3 +1870,55 @@ document.addEventListener("click", (e) => {
   else if (act === "buscar-imagem" && uid) acaoBuscarImagem(uid);
   else if (act === "aprovar" && uid) acaoAprovarBaixoScore(uid);
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// V200_26: BOOTSTRAP - chamadas iniciais que estavam faltando
+// Sem essas chamadas, o app.js carregava mas a fila nunca era populada
+// (carregarFila() nunca era disparada na carga inicial - so quando o
+// usuario clicasse em algo).
+// ════════════════════════════════════════════════════════════════════════
+
+async function _atualizar_coleta_status_v200_26() {
+  try {
+    const r = await fetch("/api/coletar/status");
+    if (!r.ok) return;
+    const j = await r.json();
+    const e = j.estado || {};
+    if (typeof atualizarIndColeta === "function") atualizarIndColeta(e);
+  } catch (err) {}
+}
+
+async function _bootstrap_v200_26() {
+  try {
+    // 1) Carrega a fila pela primeira vez
+    try { await carregarFila(); }
+    catch (e) { console.error("carregarFila inicial falhou:", e); }
+    // 2) Carrega estatisticas
+    try { await carregarStats(); }
+    catch (e) { console.warn("carregarStats falhou:", e); }
+    // 3) Auto-coleta info no header
+    try { await atualizarAutoColeta(); }
+    catch (e) {}
+    // 4) Status da coleta no rodape
+    try { await _atualizar_coleta_status_v200_26(); }
+    catch (e) {}
+  } catch (e) {
+    console.error("bootstrap V200_26 falhou:", e);
+  }
+}
+
+function _agendar_auto_refresh_v200_26() {
+  // Status da coleta + auto-coleta: cada 2s (rapido pra ver progresso)
+  setInterval(() => {
+    try { _atualizar_coleta_status_v200_26(); } catch (e) {}
+    try { atualizarAutoColeta(); } catch (e) {}
+  }, 2000);
+  // Fila: cada 5s (mostra pautas novas dos chunks salvando)
+  setInterval(() => { try { carregarFila(); } catch (e) {} }, 5000);
+  // Stats: cada 10s
+  setInterval(() => { try { carregarStats(); } catch (e) {} }, 10000);
+}
+
+// Dispara o bootstrap (DOM ja esta pronto porque script esta no fim do body)
+_bootstrap_v200_26();
+_agendar_auto_refresh_v200_26();
