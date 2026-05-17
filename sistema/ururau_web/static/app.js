@@ -1996,5 +1996,54 @@ document.addEventListener("click", (e) => {
 })();
 
 // ════════════════════════════════════════════════════════════════════════
-// V200_26: BOOTSTRAP - chamadas iniciais que estavam faltando
-// Sem essas chamadas, o app.js carregava mas a fila nunca
+// V200_26 + V200_29 + V200_31: BOOTSTRAP - chamadas iniciais
+// Sem essas chamadas, o app.js carrega mas a fila NUNCA enche e _iaCfg
+// fica zerada (botoes Redigir/Copydesk disabled).
+//
+// Quatro funcoes garantidas:
+//   1) _carregar_config_ia_bootstrap()  - le /api/diag e popula _iaCfg
+//      (rehabilita Redigir/Copydesk).
+//   2) carregarFila()                   - primeira renderizacao da fila.
+//   3) carregarEstatisticas()           - painel direito.
+//   4) setInterval refresh fila         - a cada 30s.
+//
+// CHAMADAS DEFENSIVAS: tudo dentro de try/catch, se uma falhar nao
+// derruba as outras. Espera DOMContentLoaded para garantir que o HTML
+// ja foi parseado.
+// ════════════════════════════════════════════════════════════════════════
+async function _carregar_config_ia_bootstrap() {
+  try {
+    const r = await fetch("/api/diag", { cache: "no-store" });
+    if (!r.ok) return;
+    const j = await r.json();
+    const ia = (j && j.ia) || {};
+    const configurada = !!(ia.lib_instalada && ia.client_criado);
+    _iaCfg = { configurada: configurada, modelo: ia.modelo_redacao || "" };
+    try { atualizarToolbar(); } catch (e) {}
+  } catch (e) {}
+}
+
+function _bootstrap_v200_31() {
+  // 1) Config IA (rehabilita Redigir)
+  try { _carregar_config_ia_bootstrap(); } catch (e) {}
+  // 2) Fila inicial
+  try { carregarFila(); } catch (e) {}
+  // 3) Estatisticas
+  try { if (typeof carregarEstatisticas === "function") carregarEstatisticas(); } catch (e) {}
+  // 4) Auto-refresh da fila a cada 30s
+  try {
+    if (!window._autoRefreshFilaTimer) {
+      window._autoRefreshFilaTimer = setInterval(() => {
+        try { carregarFila(); } catch (e) {}
+        try { if (typeof carregarEstatisticas === "function") carregarEstatisticas(); } catch (e) {}
+      }, 30000);
+    }
+  } catch (e) {}
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", _bootstrap_v200_31);
+} else {
+  // DOM ja pronto
+  _bootstrap_v200_31();
+}
