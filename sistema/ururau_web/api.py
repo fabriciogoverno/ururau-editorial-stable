@@ -870,9 +870,26 @@ def handler_listar_pautas(db, qs: dict[str, str]) -> tuple[int, dict, bytes]:
                 return datetime.fromisoformat(cap) if cap else _agora_br
             except Exception:
                 return _agora_br
+        # V200_24: tolerancia para datas zeradas (Google News retorna pubDate
+        # "17/05/2026 00:00" - meia-noite do dia, hora real desconhecida).
+        # Regra ampliada:
+        #   - Se a data de publicacao >= limite (8h atras), passa
+        #   - OU se captada nas ultimas 8h (independente de pub_dt), passa
+        #   - OU se status e em_redacao/revisada/pronta/publicada, passa
+        # Isso garante que toda materia COLETADA RECENTEMENTE entre na fila,
+        # mesmo que a fonte tenha pubDate impreciso.
+        def _captada_recente(p):
+            cap_iso = str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
+            if not cap_iso:
+                return False
+            try:
+                return datetime.fromisoformat(cap_iso) >= _limite_dt
+            except Exception:
+                return False
         fila_corte = [
             p for p in fila_corte
             if _pub_dt(p) >= _limite_dt
+            or _captada_recente(p)
             or str(p.get("status") or "").lower() in {
                 "em_redacao", "revisada", "pronta", "publicada", "publicado",
             }
@@ -1836,8 +1853,13 @@ def handler_coletar(db, body: dict) -> tuple[int, dict, bytes]:
             try:
                 _tpath = _path_termos()
                 if _tpath.exists():
-                    _t = json.loads(_tpath.read_text(encoding="utf-8"))
-                    for _grp_lst in (_t.get("grupos", {}) or {}).values():
+                    # V200_24: era "_t = json.loads(...)" que SOBRESCREVIA o
+                    # modulo time importado como _t no inicio de _trabalho.
+                    # Resultado: ao chegar em "int(_t.time() - t_inicio)" no
+                    # fim da coleta, _t era dict e gerava AttributeError.
+                    # Renomeado para _termos_json (nao colide com nada).
+                    _termos_json = json.loads(_tpath.read_text(encoding="utf-8"))
+                    for _grp_lst in (_termos_json.get("grupos", {}) or {}).values():
                         for _t_item in (_grp_lst or []):
                             _t_clean = str(_t_item or "").strip()
                             # Ignora termos com 'site:' (são auxiliares de busca, nao
