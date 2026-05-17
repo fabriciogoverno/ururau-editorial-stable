@@ -830,6 +830,56 @@ def handler_listar_pautas(db, qs: dict[str, str]) -> tuple[int, dict, bytes]:
             if st in {"em_redacao", "revisada", "pronta"} and p not in fila_corte:
                 fila_corte.append(p)
 
+    # V200_17: filtro de janela de PUBLICACAO DA FONTE (8h max).
+    # Considera a hora em que a materia foi publicada no site original,
+    # NAO a hora da coleta. Antes uma materia de 15/05 captada em 17/05
+    # ficava no topo porque captada_em era recente.
+    try:
+        from datetime import timedelta as _td
+        try:
+            from zoneinfo import ZoneInfo as _ZI
+            _agora_br = datetime.now(_ZI("America/Sao_Paulo")).replace(tzinfo=None)
+        except Exception:
+            _agora_br = datetime.now()
+        _JANELA_MAX_H = int(os.environ.get("URURAU_FILA_JANELA_MAX_H", "8"))
+        _limite_dt = _agora_br - _td(hours=_JANELA_MAX_H)
+        def _pub_dt(p):
+            """Data de publicacao real da fonte, com fallback para captada_em."""
+            for k in ("data_pub_fonte", "data_fonte", "published_iso",
+                      "published", "pub_date", "pubDate", "datePublished",
+                      "data_publicacao"):
+                v = p.get(k)
+                if isinstance(v, str) and v.strip() and not v.lower().startswith("captada:"):
+                    try:
+                        s = v.replace("T", " ")[:19].replace(" ", "T")
+                        return datetime.fromisoformat(s)
+                    except Exception:
+                        # tenta dd/mm/aaaa
+                        import re as _re
+                        m = _re.match(r"(\d{1,2})/(\d{1,2})/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?", v.strip())
+                        if m:
+                            d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                            h = int(m.group(4) or 0); mi = int(m.group(5) or 0)
+                            try:
+                                return datetime(y, mo, d, h, mi)
+                            except Exception:
+                                pass
+            # fallback: captada_em
+            cap = str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
+            try:
+                return datetime.fromisoformat(cap) if cap else _agora_br
+            except Exception:
+                return _agora_br
+        fila_corte = [
+            p for p in fila_corte
+            if _pub_dt(p) >= _limite_dt
+            or str(p.get("status") or "").lower() in {
+                "em_redacao", "revisada", "pronta", "publicada", "publicado",
+            }
+        ]
+    except Exception as _e_jan:
+        print(f"[ururau_web] V200_17 filtro janela publicacao falhou: {_e_jan}")
+
     # ── v1.14.3 WEB: NAO usa o filtro V200 do desktop (filtrar_pendentes)
     # porque ele prioriza a "ultima coleta" baseado no contador legado
     # coleta_seq_v123 (que chegou em 112) e oculta as coletas novas do
@@ -853,11 +903,25 @@ def handler_listar_pautas(db, qs: dict[str, str]) -> tuple[int, dict, bytes]:
         if len(texto) >= 550:
             return 3  # TXT OK
         return 9  # TXT.../TXT CURTO/etc -> fundo
-    def _captada_key(p):
+    def _data_pub_key(p):
+        """V200_17: ordena por data de publicacao REAL da fonte, nao por
+        captada_em. Garante que materias mais recentes da fonte fiquem
+        no topo, e nao materias antigas captadas hoje."""
+        for k in ("data_pub_fonte", "data_fonte", "published_iso",
+                  "published", "pub_date", "pubDate", "datePublished"):
+            v = p.get(k)
+            if isinstance(v, str) and v.strip() and not v.lower().startswith("captada:"):
+                try:
+                    return datetime.fromisoformat(
+                        v.replace("T", " ")[:19].replace(" ", "T")
+                    ).isoformat()
+                except Exception:
+                    pass
+        # fallback: captada_em
         return str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
     try:
-        # Sort estavel: primeiro por captada_em desc, depois por grupo (estavel)
-        fila_filtrada.sort(key=_captada_key, reverse=True)
+        # Sort estavel: primeiro por data de publicacao desc, depois por grupo
+        fila_filtrada.sort(key=_data_pub_key, reverse=True)
         fila_filtrada.sort(key=_grupo_prioridade)
     except Exception:
         pass

@@ -77,6 +77,67 @@ def _link_pauta(p: dict[str, Any]) -> str:
     return ""
 
 
+def _data_publicacao_iso(p: dict[str, Any]) -> str:
+    """V200_17: extrai a data de publicacao REAL da fonte (quando foi
+    publicado no site original), com fallback em varios campos.
+
+    Ordem: data_pub_fonte, data_fonte, published_iso, published,
+    pub_date, dataPublicacao, datePublished, data_publicacao.
+
+    Aceita formatos:
+      - ISO: 2026-05-15T10:30:00 ou 2026-05-15 10:30:00
+      - RFC822: Wed, 15 May 2026 10:30:00 -0300
+      - dd/mm/aaaa hh:mm
+      - dd/mm/aaaa
+    Retorna ISO YYYY-MM-DDTHH:MM:SS ou string vazia.
+    """
+    import re
+    raw = ""
+    for k in ("data_pub_fonte", "data_fonte", "published_iso", "published",
+              "pub_date", "pubDate", "datePublished", "data_publicacao",
+              "dataPublicacao"):
+        v = p.get(k)
+        if isinstance(v, str) and v.strip():
+            raw = v.strip()
+            break
+    if not raw:
+        return ""
+    # Limpa prefixo "Captada: " que aparece no view (fallback)
+    if raw.lower().startswith("captada:"):
+        return ""  # se so tem "Captada: ...", nao serve como data de fonte
+    # Tenta ISO
+    try:
+        # Trata "2026-05-15 10:30:00" ou "2026-05-15T10:30:00..."
+        s = raw.replace("T", " ")[:19].replace(" ", "T")
+        dt = datetime.fromisoformat(s)
+        return dt.isoformat(timespec="seconds")
+    except Exception:
+        pass
+    # Tenta dd/mm/aaaa hh:mm[:ss]
+    m = re.match(
+        r"(\d{1,2})/(\d{1,2})/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?",
+        raw,
+    )
+    if m:
+        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        h = int(m.group(4) or 0)
+        mi = int(m.group(5) or 0)
+        se = int(m.group(6) or 0)
+        try:
+            return datetime(y, mo, d, h, mi, se).isoformat(timespec="seconds")
+        except Exception:
+            pass
+    # Tenta RFC822 via email.utils
+    try:
+        from email.utils import parsedate_to_datetime
+        dt = parsedate_to_datetime(raw)
+        if dt is not None:
+            return dt.replace(tzinfo=None).isoformat(timespec="seconds")
+    except Exception:
+        pass
+    return ""
+
+
 def _selecionar_candidatas(db) -> list[dict[str, Any]]:
     """Retorna pautas TXT... dentro da janela de 8h, priorizando 4h."""
     try:
@@ -104,15 +165,27 @@ def _selecionar_candidatas(db) -> list[dict[str, Any]]:
                     continue
             except Exception:
                 pass
-        # Janela temporal
-        cap_iso = str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
+        # V200_17: janela considera data de publicacao da FONTE (quando a
+        # materia foi publicada no site original), NAO a hora da coleta.
+        # Antes: uma materia de 15/05 captada em 17/05 entrava no filtro
+        # de "ultimas 8h" porque captada_em era recente.
+        # Fallback cascateado: data_pub_fonte -> data_fonte -> published ->
+        # captada_em (so se nao tem nenhuma data de publicacao).
+        pub_iso = _data_publicacao_iso(p)
         try:
-            cap_dt = datetime.fromisoformat(cap_iso) if cap_iso else agora
+            pub_dt = datetime.fromisoformat(pub_iso) if pub_iso else None
         except Exception:
-            cap_dt = agora
-        if cap_dt < janela_max:
+            pub_dt = None
+        if pub_dt is None:
+            # Sem data de publicacao confiavel -> usa captada_em como fallback
+            cap_iso = str(p.get("captada_em") or p.get("atualizada_em") or "")[:19]
+            try:
+                pub_dt = datetime.fromisoformat(cap_iso) if cap_iso else agora
+            except Exception:
+                pub_dt = agora
+        if pub_dt < janela_max:
             continue
-        prio = 0 if cap_dt >= janela_prio else 1  # 0 = mais prioritário
+        prio = 0 if pub_dt >= janela_prio else 1  # 0 = mais prioritário
         candidatas.append((prio, p))
     # Ordena: prioridade asc, captada_em desc
     candidatas.sort(key=lambda x: (
@@ -273,7 +346,6 @@ def _loop(db) -> None:
     )
     with _estado_lock:
         _estado["rodando"] = True
-    # Pequeno warmup pra deixar o server subir tranquilo
     if _stop_event.wait(timeout=10.0):
         return
     while not _stop_event.is_set():
@@ -295,7 +367,6 @@ def _loop(db) -> None:
             with _estado_lock:
                 _estado["ultimo_erro"] = f"{type(e).__name__}: {str(e)[:100]}"
             logger.warning("%s ciclo falhou: %s", PREFIX, e)
-        # Aguarda o intervalo (mas pode acordar antes se receber stop)
         if _stop_event.wait(timeout=INTERVALO_SEG):
             break
     with _estado_lock:
