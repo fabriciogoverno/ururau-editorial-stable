@@ -103,6 +103,9 @@ function badgeTxt(p) {
   if (r === "BLOQUEADO") return `<span class="badge s-bloqueada">BLOQUEADO</span>`;
   if (r === "DUPLICADO") return `<span class="badge s-rejeitada">DUPLICADO</span>`;
   if (r === "PUBLICADA") return `<span class="badge s-publicada">PUBLICADA</span>`;
+  // V200_14: pautas com materia gerada / revisada
+  if (r === "REDIGIDA")  return `<span class="badge s-redigida" title="Materia ja foi redigida pela IA">📝 REDIGIDA</span>`;
+  if (r === "REVISADA")  return `<span class="badge s-revisada" title="Materia ja foi redigida e revisada (Copydesk aplicado)">✓ REVISADA</span>`;
   return `<span class="badge txt-vazio">TXT ?</span>`;
 }
 function badgeStatus(s) {
@@ -172,6 +175,11 @@ function renderFila(pautas) {
     const card = document.createElement("div");
     card.className = "card";
     if ((p.txt_rotulo || "").toUpperCase() === "BLOQUEADO") card.classList.add("bloqueado");
+    // V200_14: destaque visual para materias ja redigidas/revisadas
+    const _rot = (p.txt_rotulo || "").toUpperCase();
+    if (_rot === "REDIGIDA")  card.classList.add("card-redigida");
+    if (_rot === "REVISADA")  card.classList.add("card-revisada");
+    if (_rot === "PUBLICADA") card.classList.add("card-publicada");
     if (p.uid === _uidSelecionado) card.classList.add("selecionada");
     card.dataset.uid = p.uid || "";
     card.style.setProperty("--marca", marca);

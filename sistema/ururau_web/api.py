@@ -558,6 +558,11 @@ def _status_visual_v200(p: dict) -> dict[str, str]:
         rotulo = "BLOQUEADO"
     elif "duplic" in status_pauta:
         rotulo = "DUPLICADO"
+    # V200_14: separa visualmente pautas redigidas/revisadas das brutas TXT OK
+    elif status_pauta in {"revisada"}:
+        rotulo = "REVISADA"
+    elif status_pauta in {"redigida", "em_redacao", "em_redação", "pronta"}:
+        rotulo = "REDIGIDA"
     elif chars >= 550:
         rotulo = "TXT OK"
     elif "429" in fonte_status or "429" in status_pauta:
@@ -2308,12 +2313,12 @@ def dispatch(*, method, path, query, body, headers=None, db=None):
     if path.startswith("/api/pautas/") and path.endswith("/job") and method == "GET":
         uid = path[len("/api/pautas/"):-len("/job")]
         return acoes.handler_job_status(db, uid)
-    if path.startswith("/api/pautas/") and path.endswith("/materia") and method == "GET":
-        uid = path[len("/api/pautas/"):-len("/materia")]
-        return acoes.handler_materia(db, uid)
     if path.startswith("/api/pautas/") and path.endswith("/materia/salvar") and method == "POST":
         uid = path[len("/api/pautas/"):-len("/materia/salvar")]
         return acoes.handler_salvar_materia(db, uid, _parse_json_body(body))
+    if path.startswith("/api/pautas/") and path.endswith("/materia") and method == "GET":
+        uid = path[len("/api/pautas/"):-len("/materia")]
+        return acoes.handler_materia(db, uid)
     if path.startswith("/api/pautas/") and path.endswith("/redigir") and method == "POST":
         uid = path[len("/api/pautas/"):-len("/redigir")]
         return acoes.handler_redigir(db, uid, _parse_json_body(body))
