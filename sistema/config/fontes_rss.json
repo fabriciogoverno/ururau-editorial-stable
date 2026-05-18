@@ -63,13 +63,17 @@
     "ordem": 7
   },
   {
-    "url": "https://agenciabrasil.ebc.com.br/rss.xml",
+    "url": "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml",
     "nome": "Agência Brasil",
-    "canal_forcado": "",
+    "canal_forcado": "Brasil e Mundo",
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 8
+    "ordem": 8,
+    "_obs": "RSS oficial ultimas noticias - validado HTTP 200, 10 itens, com imagem-destaque",
+    "links": [
+      "https://agenciabrasil.ebc.com.br/"
+    ]
   },
   {
     "url": "https://g1.globo.com/rss/g1/politica/",
@@ -168,8 +172,7 @@
     "ativo": true,
     "tipo_coleta": "jina_home",
     "max_por_link": 8,
-    "ordem": 20,
-    "_auto_detect": "JINA_HOME: 83 links na home"
+    "ordem": 20
   },
   {
     "url": "https://campos24horas.com.br/",
@@ -178,8 +181,7 @@
     "ativo": true,
     "tipo_coleta": "jina_home",
     "max_por_link": 8,
-    "ordem": 21,
-    "_auto_detect": "JINA_HOME: /noticia/ pattern"
+    "ordem": 21
   },
   {
     "url": "https://www.jornalterceiravia.com.br/feed/",
@@ -206,8 +208,7 @@
     "ativo": true,
     "tipo_coleta": "jina_home",
     "max_por_link": 8,
-    "ordem": 24,
-    "_auto_detect": "JINA_HOME: SPA - RSS so traz resumo"
+    "ordem": 24
   },
   {
     "url": "https://j3news.com/feed/",
@@ -216,8 +217,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 25,
-    "_auto_detect": "RSS direto: j3news.com (sem .br)"
+    "ordem": 25
   },
   {
     "url": "https://www.portalozk.com/vaf/",
@@ -241,11 +241,10 @@
     "url": "https://news.google.com/rss/search?q=site%3Amancheterj.com.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
     "nome": "Manchete RJ (BR)",
     "canal_forcado": "",
-    "ativo": false,
+    "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 28,
-    "_auto_detect": "DUPLICADO redireciona p/ mancheterio"
+    "ordem": 28
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Abrpolitico.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -254,9 +253,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 29,
-    "_burlesco_dominio": "brpolitico.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 29
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Acorreio24horas.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -265,9 +262,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 30,
-    "_burlesco_dominio": "correio24horas.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 30
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Acorreio.rac.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -276,9 +271,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 31,
-    "_burlesco_dominio": "correio.rac.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 31
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Acrusoe.uol.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -287,9 +280,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 32,
-    "_burlesco_dominio": "crusoe.uol.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 32
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Adiarinho.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -298,9 +289,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 33,
-    "_burlesco_dominio": "diarinho.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 33
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Adiariopopular.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -309,9 +298,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 34,
-    "_burlesco_dominio": "diariopopular.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 34
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Adiariodaregiao.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -320,9 +307,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 35,
-    "_burlesco_dominio": "diariodaregiao.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 35
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Adiariodecanoas.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -331,9 +316,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 36,
-    "_burlesco_dominio": "diariodecanoas.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 36
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Adgabc.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -342,9 +325,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 37,
-    "_burlesco_dominio": "dgabc.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 37
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Abrasil.elpais.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -353,9 +334,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 38,
-    "_burlesco_dominio": "brasil.elpais.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 38
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aem.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -364,9 +343,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 39,
-    "_burlesco_dominio": "em.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 39
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aexame.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -375,9 +352,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 40,
-    "_burlesco_dominio": "exame.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 40
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Afolhadelondrina.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -386,9 +361,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 41,
-    "_burlesco_dominio": "folhadelondrina.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 41
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Agazetaonline.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -397,9 +370,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 42,
-    "_burlesco_dominio": "gazetaonline.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 42
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Agazetadopovo.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -408,9 +379,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 43,
-    "_burlesco_dominio": "gazetadopovo.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 43
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Agauchazh.clicrbs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -419,9 +388,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 44,
-    "_burlesco_dominio": "gauchazh.clicrbs.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 44
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Ajota.info%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -430,9 +397,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 45,
-    "_burlesco_dominio": "jota.info",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 45
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Ajornalnh.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -441,9 +406,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 46,
-    "_burlesco_dominio": "jornalnh.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 46
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Apioneiro.clicrbs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -452,9 +415,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 47,
-    "_burlesco_dominio": "pioneiro.clicrbs.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 47
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Ajornalvs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -463,9 +424,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 48,
-    "_burlesco_dominio": "jornalvs.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 48
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Ansctotal.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -474,9 +433,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 49,
-    "_burlesco_dominio": "nsctotal.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 49
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aestadao.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -485,9 +442,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 50,
-    "_burlesco_dominio": "estadao.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 50
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aoglobo.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -496,9 +451,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 51,
-    "_burlesco_dominio": "oglobo.globo.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 51
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aobservador.pt%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -507,9 +460,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 52,
-    "_burlesco_dominio": "observador.pt",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 52
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aquatrorodas.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -518,9 +469,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 53,
-    "_burlesco_dominio": "quatrorodas.abril.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 53
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Arevistaoeste.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -529,9 +478,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 54,
-    "_burlesco_dominio": "revistaoeste.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 54
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aseudinheiro.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -540,9 +487,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 55,
-    "_burlesco_dominio": "seudinheiro.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 55
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Asuper.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -551,9 +496,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 56,
-    "_burlesco_dominio": "super.abril.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 56
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Avalor.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -562,9 +505,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 57,
-    "_burlesco_dominio": "valor.globo.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 57
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aveja.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -573,9 +514,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 58,
-    "_burlesco_dominio": "veja.abril.com.br",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 58
   },
   {
     "url": "https://news.google.com/rss/search?q=site%3Aepoca.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
@@ -584,9 +523,7 @@
     "ativo": true,
     "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 59,
-    "_burlesco_dominio": "epoca.globo.com",
-    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+    "ordem": 59
   },
   {
     "url": "https://www.ioerj.com.br/portal/modules/conteudoonline/mostra_edicao.php?",
@@ -596,8 +533,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 60,
-    "_origem": "oficiais_prioritarias",
-    "_obs": "Requer scraping customizado — desativado por padrão"
+    "_obs": "Requer scraping customizado — desativado por padrão",
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.alerj.rj.gov.br/index.php/noticias?format=feed&type=rss",
@@ -607,11 +544,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 61,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.alerj.rj.gov.br/index.php/noticias?format=feed&type=rss",
       "https://www.alerj.rj.gov.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.tce.rj.gov.br/noticias/rss",
@@ -621,11 +558,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 62,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.tce.rj.gov.br/noticias/rss",
       "https://www.tce.rj.gov.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.mprj.mp.br/noticias/rss",
@@ -635,11 +572,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 63,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.mprj.mp.br/noticias/rss",
       "https://www.mprj.mp.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.campos.rj.gov.br/rss.php",
@@ -649,11 +586,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 10,
     "ordem": 64,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.campos.rj.gov.br/ultimas-noticias.php"
     ],
-    "_obs": "RSS oficial nativo (RSS 0.92 com items individuais)"
+    "_obs": "RSS oficial nativo (RSS 0.92 com items individuais)",
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.cmcg.rj.gov.br/noticias/rss",
@@ -663,11 +600,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 65,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.cmcg.rj.gov.br/noticias/rss",
       "https://www.cmcg.rj.gov.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.sjb.rj.gov.br/",
@@ -677,8 +614,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 66,
-    "_origem": "oficiais_prioritarias",
-    "_obs": "Sem RSS identificado — monitorar scraping leve"
+    "_obs": "Sem RSS identificado — monitorar scraping leve",
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.portodoacu.com.br/noticias/rss",
@@ -688,11 +625,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 67,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.portodoacu.com.br/noticias/rss",
       "https://www.portodoacu.com.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.tjrj.jus.br/noticias/rss",
@@ -702,11 +639,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 68,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.tjrj.jus.br/noticias/rss",
       "https://www.tjrj.jus.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://www.tre-rj.jus.br/noticias/rss",
@@ -716,11 +653,11 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 69,
-    "_origem": "oficiais_prioritarias",
     "links": [
       "https://www.tre-rj.jus.br/noticias/rss",
       "https://www.tre-rj.jus.br/"
-    ]
+    ],
+    "_origem": "oficiais_prioritarias"
   },
   {
     "url": "https://noticias.stf.jus.br/feed/",
@@ -730,8 +667,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 70,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www.tse.jus.br/rss",
@@ -741,8 +678,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 71,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www.gov.br/rss.xml",
@@ -752,8 +689,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 72,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www12.senado.leg.br/noticias/rss.xml",
@@ -763,8 +700,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 73,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www.camara.leg.br/rss/noticias.xml",
@@ -774,8 +711,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 74,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://res.stj.jus.br/hrestp-c-portalp/RSS.xml",
@@ -785,8 +722,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 75,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www.alerj.rj.gov.br/Noticias/rss",
@@ -796,8 +733,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 76,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://www.rj.gov.br/noticias/rss",
@@ -807,8 +744,8 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 77,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   },
   {
     "url": "https://defensoria.rj.def.br/rss/noticias",
@@ -818,7 +755,7 @@
     "tipo_coleta": "homepage_scraping",
     "max_por_link": 5,
     "ordem": 78,
-    "_origem": "especiais_v129",
-    "_obs": "Sem RSS identificado - precisa scraping customizado"
+    "_obs": "Sem RSS identificado - precisa scraping customizado",
+    "_origem": "especiais_v129"
   }
 ]
