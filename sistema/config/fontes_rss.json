@@ -37,10 +37,10 @@
   },
   {
     "url": "https://agendadopoder.com.br/feed/",
-    "nome": "Agenda do Poder",
+    "nome": "Agendadopoder",
     "canal_forcado": "",
     "ativo": true,
-    "tipo_coleta": "rss",
+    "tipo_coleta": "auto_v131",
     "max_por_link": 5,
     "ordem": 5
   },
@@ -64,14 +64,12 @@
   },
   {
     "url": "https://agenciabrasil.ebc.com.br/rss.xml",
-    "nome": "Agenciabrasil Ebc",
+    "nome": "Agência Brasil",
     "canal_forcado": "",
     "ativo": true,
-    "tipo_coleta": "auto_v131",
+    "tipo_coleta": "rss",
     "max_por_link": 5,
-    "ordem": 8,
-    "perfil_v131_id": "8b0a0f312f3d",
-    "diagnostico_v131": true
+    "ordem": 8
   },
   {
     "url": "https://g1.globo.com/rss/g1/politica/",
@@ -137,11 +135,11 @@
     "ordem": 15
   },
   {
-    "url": "https://www.metropoles.com/feed",
-    "nome": "Metrópoles",
+    "url": "https://www.metropoles.com/portal/feed/",
+    "nome": "Metropoles",
     "canal_forcado": "",
     "ativo": true,
-    "tipo_coleta": "rss",
+    "tipo_coleta": "auto_v131",
     "max_por_link": 5,
     "ordem": 16
   },
@@ -171,5 +169,665 @@
     "tipo_coleta": "rss",
     "max_por_link": 5,
     "ordem": 19
+  },
+  {
+    "url": "https://folha1.com.br/",
+    "nome": "Folha 1",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "jina_home",
+    "max_por_link": 8,
+    "ordem": 20,
+    "_auto_detect": "JINA_HOME: 83 links na home"
+  },
+  {
+    "url": "https://campos24horas.com.br/",
+    "nome": "Campos 24 Horas",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "jina_home",
+    "max_por_link": 8,
+    "ordem": 21,
+    "_auto_detect": "JINA_HOME: /noticia/ pattern"
+  },
+  {
+    "url": "https://www.jornalterceiravia.com.br/feed/",
+    "nome": "Jornal Terceira Via",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 22
+  },
+  {
+    "url": "https://www.clickcampos.com/feed/",
+    "nome": "Click Campos",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 23
+  },
+  {
+    "url": "https://www.nfnoticias.com.br/",
+    "nome": "NF Noticias",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "jina_home",
+    "max_por_link": 8,
+    "ordem": 24,
+    "_auto_detect": "JINA_HOME: SPA - RSS so traz resumo"
+  },
+  {
+    "url": "https://j3news.com/feed/",
+    "nome": "J3 News",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 25,
+    "_auto_detect": "RSS direto: j3news.com (sem .br)"
+  },
+  {
+    "url": "https://www.portalozk.com/vaf/",
+    "nome": "Portal OZK",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "jina_home",
+    "max_por_link": 8,
+    "ordem": 26
+  },
+  {
+    "url": "https://www.odebateon.com.br/feed/",
+    "nome": "O Debate On",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 27
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Amancheterj.com.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Manchete RJ (BR)",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 28,
+    "_auto_detect": "DUPLICADO redireciona p/ mancheterio"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Abrpolitico.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "BRPolitico (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 29,
+    "_burlesco_dominio": "brpolitico.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Acorreio24horas.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Correio 24 Horas (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 30,
+    "_burlesco_dominio": "correio24horas.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Acorreio.rac.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Correio Popular (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 31,
+    "_burlesco_dominio": "correio.rac.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Acrusoe.uol.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Crusoe (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 32,
+    "_burlesco_dominio": "crusoe.uol.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Adiarinho.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Diarinho (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 33,
+    "_burlesco_dominio": "diarinho.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Adiariopopular.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Diario Popular (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 34,
+    "_burlesco_dominio": "diariopopular.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Adiariodaregiao.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Diario da Regiao (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 35,
+    "_burlesco_dominio": "diariodaregiao.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Adiariodecanoas.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Diario de Canoas (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 36,
+    "_burlesco_dominio": "diariodecanoas.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Adgabc.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Diario do Grande ABC (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 37,
+    "_burlesco_dominio": "dgabc.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Abrasil.elpais.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "El Pais Brasil (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 38,
+    "_burlesco_dominio": "brasil.elpais.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aem.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Estado de Minas (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 39,
+    "_burlesco_dominio": "em.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aexame.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Exame (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 40,
+    "_burlesco_dominio": "exame.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Afolhadelondrina.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Folha de Londrina (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 41,
+    "_burlesco_dominio": "folhadelondrina.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Agazetaonline.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Gazeta Online (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 42,
+    "_burlesco_dominio": "gazetaonline.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Agazetadopovo.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Gazeta do Povo (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 43,
+    "_burlesco_dominio": "gazetadopovo.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Agauchazh.clicrbs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "GauchaZH (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 44,
+    "_burlesco_dominio": "gauchazh.clicrbs.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Ajota.info%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "JOTA (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 45,
+    "_burlesco_dominio": "jota.info",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Ajornalnh.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Jornal NH (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 46,
+    "_burlesco_dominio": "jornalnh.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Apioneiro.clicrbs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Jornal Pioneiro (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 47,
+    "_burlesco_dominio": "pioneiro.clicrbs.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Ajornalvs.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Jornal VS (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 48,
+    "_burlesco_dominio": "jornalvs.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Ansctotal.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "NSC Total (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 49,
+    "_burlesco_dominio": "nsctotal.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aestadao.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Estadao (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 50,
+    "_burlesco_dominio": "estadao.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aoglobo.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "O Globo (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 51,
+    "_burlesco_dominio": "oglobo.globo.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aobservador.pt%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Observador (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 52,
+    "_burlesco_dominio": "observador.pt",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aquatrorodas.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Quatro Rodas (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 53,
+    "_burlesco_dominio": "quatrorodas.abril.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Arevistaoeste.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Revista Oeste (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 54,
+    "_burlesco_dominio": "revistaoeste.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aseudinheiro.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Seu Dinheiro (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 55,
+    "_burlesco_dominio": "seudinheiro.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Asuper.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Superinteressante (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 56,
+    "_burlesco_dominio": "super.abril.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Avalor.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Valor Economico (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 57,
+    "_burlesco_dominio": "valor.globo.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aveja.abril.com.br%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Veja (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 58,
+    "_burlesco_dominio": "veja.abril.com.br",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Aepoca.globo.com%20when%3A24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Epoca (Burlesco)",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 59,
+    "_burlesco_dominio": "epoca.globo.com",
+    "_auto_detect": "Burlesco V200_6: Google News 24h fallback"
+  },
+  {
+    "url": "https://www.ioerj.com.br/portal/modules/conteudoonline/mostra_edicao.php?",
+    "nome": "DOERJ - Diário Oficial RJ",
+    "canal_forcado": "Estado RJ",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 60,
+    "_origem": "oficiais_prioritarias",
+    "_obs": "Requer scraping customizado — desativado por padrão"
+  },
+  {
+    "url": "https://www.alerj.rj.gov.br/index.php/noticias?format=feed&type=rss",
+    "nome": "ALERJ - Notícias",
+    "canal_forcado": "Política",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 61,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.alerj.rj.gov.br/index.php/noticias?format=feed&type=rss",
+      "https://www.alerj.rj.gov.br/"
+    ]
+  },
+  {
+    "url": "https://www.tce.rj.gov.br/noticias/rss",
+    "nome": "TCE-RJ",
+    "canal_forcado": "Estado RJ",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 62,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.tce.rj.gov.br/noticias/rss",
+      "https://www.tce.rj.gov.br/"
+    ]
+  },
+  {
+    "url": "https://www.mprj.mp.br/noticias/rss",
+    "nome": "MPRJ",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 63,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.mprj.mp.br/noticias/rss",
+      "https://www.mprj.mp.br/"
+    ]
+  },
+  {
+    "url": "https://news.google.com/rss/search?q=site%3Acampos.rj.gov.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "nome": "Prefeitura Campos dos Goytacazes",
+    "canal_forcado": "Cidades",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 64,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://news.google.com/rss/search?q=site%3Acampos.rj.gov.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+      "https://www.campos.rj.gov.br/"
+    ]
+  },
+  {
+    "url": "https://www.cmcg.rj.gov.br/noticias/rss",
+    "nome": "Câmara Municipal de Campos",
+    "canal_forcado": "Política",
+    "ativo": false,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 65,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.cmcg.rj.gov.br/noticias/rss",
+      "https://www.cmcg.rj.gov.br/"
+    ]
+  },
+  {
+    "url": "https://www.sjb.rj.gov.br/",
+    "nome": "Prefeitura São João da Barra",
+    "canal_forcado": "Cidades",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 66,
+    "_origem": "oficiais_prioritarias",
+    "_obs": "Sem RSS identificado — monitorar scraping leve"
+  },
+  {
+    "url": "https://www.portodoacu.com.br/noticias/rss",
+    "nome": "Porto do Açu - Prumo",
+    "canal_forcado": "Economia",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 67,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.portodoacu.com.br/noticias/rss",
+      "https://www.portodoacu.com.br/"
+    ]
+  },
+  {
+    "url": "https://www.tjrj.jus.br/noticias/rss",
+    "nome": "TJRJ",
+    "canal_forcado": "",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 68,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.tjrj.jus.br/noticias/rss",
+      "https://www.tjrj.jus.br/"
+    ]
+  },
+  {
+    "url": "https://www.tre-rj.jus.br/noticias/rss",
+    "nome": "TRE-RJ",
+    "canal_forcado": "Política",
+    "ativo": true,
+    "tipo_coleta": "rss",
+    "max_por_link": 5,
+    "ordem": 69,
+    "_origem": "oficiais_prioritarias",
+    "links": [
+      "https://www.tre-rj.jus.br/noticias/rss",
+      "https://www.tre-rj.jus.br/"
+    ]
+  },
+  {
+    "url": "https://noticias.stf.jus.br/feed/",
+    "nome": "STF",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 70,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www.tse.jus.br/rss",
+    "nome": "TSE",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 71,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www.gov.br/rss.xml",
+    "nome": "Gov.br",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 72,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www12.senado.leg.br/noticias/rss.xml",
+    "nome": "Senado",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 73,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www.camara.leg.br/rss/noticias.xml",
+    "nome": "Câmara",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 74,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://res.stj.jus.br/hrestp-c-portalp/RSS.xml",
+    "nome": "STJ",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 75,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www.alerj.rj.gov.br/Noticias/rss",
+    "nome": "Alerj",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 76,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://www.rj.gov.br/noticias/rss",
+    "nome": "Governo RJ",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 77,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
+  },
+  {
+    "url": "https://defensoria.rj.def.br/rss/noticias",
+    "nome": "Defensoria RJ",
+    "canal_forcado": "",
+    "ativo": false,
+    "tipo_coleta": "homepage_scraping",
+    "max_por_link": 5,
+    "ordem": 78,
+    "_origem": "especiais_v129",
+    "_obs": "Sem RSS identificado - precisa scraping customizado"
   }
 ]
