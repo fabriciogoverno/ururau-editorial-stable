@@ -612,6 +612,71 @@ def _detectar_imagem_url(p: dict) -> str:
     return ""
 
 
+def _texto_tem_boilerplate_lista(texto: str) -> bool:
+    """V200_44: detecta se o texto tem o padrao caracteristico de "lista de
+    outras noticias" vazando para o corpo (caso da Prefeitura de Campos).
+
+    Heuristica: se acha pelo menos 3 linhas batendo em qualquer um destes
+    padroes, considera contaminado:
+      - "- DD/MM/AAAA HH:MM:SS Titulo"
+      - "DDMM HHhMM Titulo" (compacto sem espaco)
+      - "NTitulo" (numero colado, ex: "2Cartao")
+    """
+    if not texto or len(texto) < 100:
+        return False
+    import re as _re
+    pad_a = _re.compile(r"^\s*-?\s*\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}(?::\d{2})?\s+\S")
+    pad_b = _re.compile(r"^\s*\d{4}\s+\d{1,2}h\d{2}\S")
+    pad_c = _re.compile(r"^\s*\d{1,2}[A-ZÁ-Úa-zá-ú][a-zá-ú]{3,}")
+    cnt = 0
+    for l in texto.split("\n"):
+        l = (l or "").strip()
+        if not l:
+            continue
+        if pad_a.match(l) or pad_b.match(l) or pad_c.match(l):
+            cnt += 1
+            if cnt >= 3:
+                return True
+    return False
+
+
+def _limpar_boilerplate_listas(texto: str, link: str = "") -> str:
+    """V200_44: pos-processamento conservador - corta texto a partir da
+    primeira linha de lista lateral, se identificar 3+ ocorrencias.
+
+    Versao mais agressiva (threshold baixo de 80 chars) para nao deixar lixo
+    quando o corpo real nao esta no texto. Se sobra menos que 80 chars (so
+    titulo), retorna texto vazio para sinalizar que precisa rehidratar.
+    """
+    if not texto or len(texto) < 100:
+        return texto
+    import re as _re
+    linhas = texto.split("\n")
+    pad_a = _re.compile(r"^\s*-?\s*\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}(?::\d{2})?\s+\S")
+    pad_b = _re.compile(r"^\s*\d{4}\s+\d{1,2}h\d{2}\S")
+    pad_c = _re.compile(r"^\s*\d{1,2}[A-ZÁ-Úa-zá-ú][a-zá-ú]{3,}")
+    def _eh(l):
+        l = (l or "").strip()
+        return bool(l and (pad_a.match(l) or pad_b.match(l) or pad_c.match(l)))
+    # Acha primeira janela de 3 linhas-lista
+    idx_corte = -1
+    for i in range(len(linhas) - 2):
+        if _eh(linhas[i]) and _eh(linhas[i+1]) and _eh(linhas[i+2]):
+            idx_corte = i
+            # Volta backwards por linhas em branco
+            while idx_corte > 0 and not linhas[idx_corte - 1].strip():
+                idx_corte -= 1
+            break
+    if idx_corte <= 0:
+        return texto
+    texto_limpo = "\n".join(linhas[:idx_corte]).rstrip()
+    # Se sobrou pouco (so titulo+subtitulo), retorna vazio - sinaliza que
+    # precisa rehidratar via pipeline_v90 com isolamento V200_43.
+    if len(texto_limpo) < 80:
+        return ""
+    return texto_limpo
+
+
 def _link_pauta_para_hidratacao(p: dict) -> str:
     """Retorna o melhor URL real disponivel para hidratar texto da fonte."""
     for k in (
@@ -1095,7 +1160,9 @@ def handler_fontes_post(db, body: dict) -> tuple[int, dict, bytes]:
         nome = str(f.get("nome") or "").strip()
         if not url or not nome:
             continue
-        limpas.append({
+        # V200_35: preserva campos extras (links, _obs, _origem) para
+        # fontes oficiais/especiais que entraram na UI via merge.
+        item = {
             "url": url,
             "nome": nome,
             "canal_forcado": str(f.get("canal_forcado") or "").strip(),
@@ -1103,7 +1170,15 @@ def handler_fontes_post(db, body: dict) -> tuple[int, dict, bytes]:
             "tipo_coleta": str(f.get("tipo_coleta") or "rss"),
             "max_por_link": int(f.get("max_por_link") or 5),
             "ordem": int(f.get("ordem") or (i + 1)),
-        })
+        }
+        links_extra = f.get("links")
+        if isinstance(links_extra, list) and links_extra:
+            item["links"] = [str(x).strip() for x in links_extra if str(x).strip()]
+        if f.get("_obs"):
+            item["_obs"] = str(f.get("_obs")).strip()
+        if f.get("_origem"):
+            item["_origem"] = str(f.get("_origem")).strip()
+        limpas.append(item)
     p = _path_fontes_rss()
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -1419,6 +1494,23 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
     except Exception:
         extra = {}
     merged = {**pauta, **(extra if isinstance(extra, dict) else {})}
+
+    # V200_44: invalida cleaned_source_text contaminado com boilerplate de lista
+    # lateral (caso Prefeitura de Campos). Forca re-extracao na hidratacao
+    # on-demand abaixo, que usa pipeline_v90 com isolamento V200_43.
+    try:
+        _texto_existente = str(merged.get("cleaned_source_text") or "")
+        if _texto_existente and _texto_tem_boilerplate_lista(_texto_existente):
+            print(f"[ururau_web][V200_44] uid={uid} texto contaminado com lista lateral detectado - invalidando para rehidratar")
+            merged["cleaned_source_text"] = ""
+            merged["texto_fonte"] = ""
+            for _k_invalida in ("fonte_status", "status_fonte_v105", "fonte_chars_v105",
+                                "texto_fonte_chars", "hidratacao_on_demand",
+                                "hidratado_em", "_hidratador_bg_tentado_em"):
+                merged.pop(_k_invalida, None)
+    except Exception as _e_inv:
+        print(f"[ururau_web][V200_44] deteccao falhou uid={uid}: {_e_inv}")
+
     view = _pauta_view(merged)
     # v1.15.5: HIDRATACAO ON-DEMAND.
     # Se nao ha texto hidratado completo (cleaned_source_text/texto_fonte) e
@@ -1634,6 +1726,15 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
         or (merged.get("resumo") or "").strip()
         or (merged.get("summary") or "").strip()
     )
+
+    # V200_44: pos-processamento - limpa boilerplate de listas em sites
+    # municipais quando o texto ja vem sujo do banco. Funciona retroativa-
+    # mente para pautas captadas antes do fix do extrator.
+    try:
+        _texto_final = _limpar_boilerplate_listas(_texto_final, _link_pauta)
+    except Exception as _e_clean:
+        print(f"[ururau_web][POS_LIMPEZA] falhou uid={uid}: {_e_clean}")
+
     view["texto_fonte"] = _texto_final
     # Sinaliza para a UI quando o texto veio do RSS resumo (nao da hidratacao
     # completa). Considera tambem o resultado da hidratacao on-demand v1.15.5.
