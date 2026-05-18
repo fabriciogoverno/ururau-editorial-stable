@@ -1213,6 +1213,61 @@ def filtrar_contra_banco(
         except Exception:
             pass
 
+        # 0d. V200_49: bloqueio defensivo por PADRAO de URL/dominio - sistemas
+        # admin e sites que NUNCA tem noticia editorial. Cobre fontes como
+        # suap.*, /accounts/login, /wp-admin, detran (admin), aplicacoes.educacao.
+        try:
+            if link:
+                _link_low = link.lower()
+                # Subdominios sempre-admin (qualquer dominio)
+                _subdominios_admin = (
+                    "suap.", "admin.", "adm.", "intranet.", "extranet.",
+                    "painel.", "sso.", "auth.",
+                )
+                # Paths sempre-admin
+                _paths_admin = (
+                    "/accounts/login", "/accounts/signin", "/auth/login",
+                    "/admin/login", "/wp-admin", "/wp-login", "/cpanel",
+                    "/login.php", "/login.aspx", "/sign-in", "/signin",
+                    "/oauth", "/sso/", "/painel/",
+                )
+                # Dominios inteiros bloqueados (sistemas admin/consulta)
+                _dominios_bloqueados_pre = (
+                    "suap.campos.rj.gov.br",
+                    "detran.rj.gov.br",
+                    "aplicacoes.educacao.rj.gov.br",
+                )
+                _bloqueado = False
+                _motivo_bloqueio = ""
+                for _sub in _subdominios_admin:
+                    if "://" + _sub in _link_low or "://www." + _sub in _link_low:
+                        _bloqueado = True
+                        _motivo_bloqueio = f"subdominio_admin:{_sub}"
+                        break
+                if not _bloqueado:
+                    for _p in _paths_admin:
+                        if _p in _link_low:
+                            _bloqueado = True
+                            _motivo_bloqueio = f"path_admin:{_p}"
+                            break
+                if not _bloqueado:
+                    for _d in _dominios_bloqueados_pre:
+                        if _d in _link_low:
+                            _bloqueado = True
+                            _motivo_bloqueio = f"dominio_admin:{_d}"
+                            break
+                if _bloqueado:
+                    resumo["descartadas"] += 1
+                    print(f"[FILTRO][BLOQUEIO][ADMIN_V200_49] {_motivo_bloqueio}: {titulo[:80]}")
+                    # Tambem bloqueia permanentemente para nao reaparecer
+                    try:
+                        db.bloquear_link(link, uid or "", titulo, motivo=_motivo_bloqueio)
+                    except Exception:
+                        pass
+                    continue
+        except Exception as _e_admin:
+            pass
+
         # 1. Já publicada no Ururau?
         if db.pauta_ja_publicada(link, uid):
             resumo["publicadas"] += 1

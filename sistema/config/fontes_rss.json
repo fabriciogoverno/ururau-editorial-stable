@@ -81,15 +81,6 @@
     "ordem": 9
   },
   {
-    "url": "https://admin.cnnbrasil.com.br/feed/",
-    "nome": "CNN Brasil",
-    "canal_forcado": "",
-    "ativo": true,
-    "tipo_coleta": "rss",
-    "max_por_link": 5,
-    "ordem": 10
-  },
-  {
     "url": "https://feeds.folha.uol.com.br/poder/rss091.xml",
     "nome": "Folha Poder",
     "canal_forcado": "",
