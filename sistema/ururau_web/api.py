@@ -572,7 +572,13 @@ def _status_visual_v200(p: dict) -> dict[str, str]:
     # V200_14: separa visualmente pautas redigidas/revisadas das brutas TXT OK
     elif status_pauta in {"revisada"}:
         rotulo = "REVISADA"
-    elif status_pauta in {"redigida", "em_redacao", "em_redação", "pronta"}:
+    # V200_57: separa em_redacao de redigida. Antes ambos eram REDIGIDA,
+    # o que enganava o usuario quando o job de redacao travava sem salvar.
+    # em_redacao = job em andamento ou travado (rotulo "RASCUNHO").
+    # redigida/pronta = materia gerada com sucesso ("REDIGIDA").
+    elif status_pauta in {"em_redacao", "em_redação"}:
+        rotulo = "RASCUNHO"
+    elif status_pauta in {"redigida", "pronta"}:
         rotulo = "REDIGIDA"
     elif chars >= 550:
         rotulo = "TXT OK"
