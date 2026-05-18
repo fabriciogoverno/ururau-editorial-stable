@@ -1519,7 +1519,31 @@ def extrair_materia_v90(
                     _body.append(_titulo_el.extract())
                 if _img_el:
                     _body.append(_img_el.extract())
-                _body.append(_alvo.extract())
+                # V200_47: HTML da prefeitura tem <p class="materia"><div>p1</div>
+                # <div>p2</div></p> - BS conta como 1 paragrafo so. Extrai cada
+                # <div> de dentro e cria <p> separados (HTML valido). Assim o
+                # criterio_aceite_v90 conta multiplos paragrafos uteis.
+                _paragrafos_textos: list[str] = []
+                for _d in _alvo.find_all("div"):
+                    _t = _d.get_text(" ", strip=True)
+                    if _t and len(_t) > 10:
+                        _paragrafos_textos.append(_t)
+                if _paragrafos_textos:
+                    # Cria <p>s separados em vez de manter <p><div>s</div></p>
+                    _container = _novo.new_tag("article")
+                    _container["class"] = "imateria-clean"
+                    for _txt in _paragrafos_textos:
+                        _p = _novo.new_tag("p")
+                        _p.string = _txt
+                        _container.append(_p)
+                    _body.append(_container)
+                    logger.info(
+                        "%s V200_47 quebrou imateria em %d paragrafos",
+                        PREFIX, len(_paragrafos_textos),
+                    )
+                else:
+                    # Fallback: mantem comportamento original
+                    _body.append(_alvo.extract())
                 soup = _novo
                 html = str(soup)
                 _isolou = True
