@@ -477,7 +477,10 @@ FORMATO DE SAÍDA (JSON exato):
 }}
 """
     try:
-        resposta = client.responses.create(model=modelo, input=prompt)
+        # V200_61: timeout duro de 90s para evitar travamento silencioso
+        import os as _os_v200_61
+        _tmo = int(_os_v200_61.getenv("URURAU_OPENAI_TIMEOUT_S", "90"))
+        resposta = client.responses.create(model=modelo, input=prompt, timeout=_tmo)
         bruto = resposta.output_text.strip()
         if "```" in bruto:
             bruto = re.sub(r"```(?:json)?", "", bruto).strip()

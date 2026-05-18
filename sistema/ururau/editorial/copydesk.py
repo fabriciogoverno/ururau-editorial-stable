@@ -175,19 +175,38 @@ MAPA DE EVIDÊNCIAS (use para verificar consistência):
 """
 
     fonte_integral_v103 = str(dados.get("cleaned_source_text") or dados.get("raw_source_text") or "")[:12000]
+    try:
+        from ururau.editorial.pos_processador_redacao import metas_seo_por_fonte
+        metas_v200 = metas_seo_por_fonte(fonte_integral_v103, dados.get("corpo_materia") or dados.get("conteudo") or "")
+    except Exception:
+        metas_v200 = {"paragrafos_min": 5, "paragrafos_alvo": 6}
+
+    # Orientação extra do editor (web local v1.12+). Aceita string no dados.
+    _orientacao_editor = str(dados.get("_orientacao_editor_web", "") or "").strip()
+    _bloco_orientacao = ""
+    if _orientacao_editor:
+        _bloco_orientacao = (
+            "\n\nINSTRUÇÕES ADICIONAIS DO EDITOR (PRIORIDADE MÁXIMA — aplicar):\n"
+            + _orientacao_editor[:2000]
+            + "\n"
+        )
 
     prompt = f"""
 Você é o copydesk de um portal jornalístico profissional brasileiro.
 Revise a matéria abaixo e devolva APENAS JSON com os campos corrigidos.
+{_bloco_orientacao}
 
 MODO v103 OBRIGATÓRIO:
 - A revisão deve conferir a matéria contra o TEXTO-FONTE INTEGRAL abaixo.
 - Se a matéria estiver rasa, curta, repetitiva ou em parágrafo único, reescreva o corpo inteiro usando somente os fatos do TEXTO-FONTE.
 - Não entregue resumo. Entregue matéria jornalística completa, com lead, desenvolvimento, contexto factual e fechamento informativo.
 - Corpo em 5 a 8 parágrafos quando a fonte permitir; nunca em bloco único.
+- Para esta fonte, use no mínimo {metas_v200.get('paragrafos_min', 5)} parágrafos reais, separados por linha em branco, se houver fatos suficientes.
 - Não use intertítulos no corpo.
 - Nome da fonte deve ser "Redação" para publicação pelo robô. O link da fonte permanece no campo próprio.
 - Crédito da foto: tente preservar crédito real se existir; se não existir, use "Reprodução".
+- Identifique se o corpo cita o veículo de origem (ex.: "segundo o portal", "de acordo com o site", "ao G1", "o UOL apurou"). Remova o nome do veículo do corpo e atribua o fato à fonte real quando ela constar no texto-fonte; caso contrário, use "segundo a fonte".
+- Varie a arquitetura da matéria conforme o fato. Não repita fórmula fixa de lead + contexto genérico + fechamento ornamental.
 
 {BRIEFING_EDITORIAL}
 
@@ -244,7 +263,10 @@ Não explique as alterações. Apenas devolva o JSON revisado.
         return dados
 
     try:
-        resposta = client.responses.create(model=modelo, input=prompt)
+        # V200_61: timeout duro 90s evita travamento silencioso
+        import os as _os_v200_61
+        _tmo = int(_os_v200_61.getenv("URURAU_OPENAI_TIMEOUT_S", "90"))
+        resposta = client.responses.create(model=modelo, input=prompt, timeout=_tmo)
         bruto = resposta.output_text.strip()
         if "```" in bruto:
             bruto = re.sub(r"```(?:json)?", "", bruto).strip()
@@ -314,6 +336,13 @@ def pipeline_copydesk(
     Retorna (dados_revisados, lista_de_problemas_residuais).
     """
     # Etapa 1: limpeza local — normaliza todos os aliases do corpo
+    dados["_veiculo_origem_para_remover"] = (
+        dados.get("_veiculo_origem_para_remover")
+        or dados.get("fonte_nome")
+        or dados.get("nome_da_fonte")
+        or dados.get("fonte")
+        or ""
+    )
     _corpo = dados.get("corpo_materia") or dados.get("conteudo") or dados.get("texto_final", "")
     _corpo_limpo = limpar_local(_corpo)
     dados["corpo_materia"] = _corpo_limpo
@@ -332,6 +361,20 @@ def pipeline_copydesk(
     dados["corpo_materia"] = _corpo2_limpo
     dados["conteudo"]      = _corpo2_limpo
     dados["texto_final"]   = _corpo2_limpo
+
+    # Etapa 4b: trava determinística final de estilo/SEO/veículo de origem.
+    try:
+        from ururau.editorial.pos_processador_redacao import aplicar_metricas_seo_google
+        fonte_pp = str(dados.get("cleaned_source_text") or dados.get("raw_source_text") or "")
+        pp = aplicar_metricas_seo_google(dados, fonte_texto=fonte_pp)
+        if isinstance(pp.get("pacote"), dict):
+            dados.update(pp["pacote"])
+        dados["pos_processador_copydesk"] = {
+            "correcoes": pp.get("correcoes", []),
+            "diagnostico": pp.get("diagnostico", {}),
+        }
+    except Exception as _e_pp:
+        dados["pos_processador_copydesk"] = {"erro": str(_e_pp)}
 
     # Etapa 5: problemas residuais
     problemas_finais = detectar_problemas(dados)
