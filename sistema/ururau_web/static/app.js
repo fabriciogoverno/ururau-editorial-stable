@@ -2161,3 +2161,44 @@ if (document.readyState === "loading") {
     if (usado) { e.preventDefault(); e.stopPropagation(); }
   });
 })();
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// V200_34: PRIORIZAR HIDRATACAO AO CLICAR
+//
+// Quando usuario clica numa pauta que ainda nao esta TXT OK, dispara
+// uma chamada fire-and-forget para o backend marcar essa pauta como
+// prioritaria no proximo ciclo do hidratador BG. Resultado: pauta
+// clicada e hidratada em ate 30s, ao inves de esperar a janela normal.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+(function _priorizar_hidratacao_v200_34() {
+  function _precisaHidratar(p) {
+    if (!p) return false;
+    const rot = String(p.txt_rotulo || "").toUpperCase();
+    // TXT OK / REDIGIDA / REVISADA / PUBLICADA -> nao precisa
+    if (rot === "TXT OK" || rot === "REDIGIDA" ||
+        rot === "REVISADA" || rot === "PUBLICADA") {
+      return false;
+    }
+    return true;
+  }
+
+  const _filaEl = document.getElementById("fila");
+  if (!_filaEl) return;
+
+  _filaEl.addEventListener("click", (e) => {
+    try {
+      const card = e.target.closest(".card");
+      if (!card) return;
+      const uid = card.dataset.uid;
+      if (!uid) return;
+      const pauta = (Array.isArray(_pautasCache) ? _pautasCache : [])
+        .find((x) => x && x.uid === uid);
+      if (!_precisaHidratar(pauta)) return;
+      // fire-and-forget
+      fetch(`/api/pautas/${encodeURIComponent(uid)}/priorizar-hidratacao`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      }).catch(() => {});
+    } catch (_) {}
+  }, true);  // capture: dispara ANTES do handler que carrega texto
+})();

@@ -54,6 +54,42 @@ _estado = {
 }
 _estado_lock = threading.Lock()
 
+# V200_34: fila de prioridade explicita.
+# UIDs adicionados aqui sao processados no proximo ciclo, antes dos
+# selecionados pela janela temporal. Usado quando o usuario clica numa
+# pauta - ela "fura" a fila do BG e e hidratada imediatamente.
+_prioridade_uids: list[str] = []
+_prioridade_lock = threading.Lock()
+
+
+def marcar_prioridade(uid: str) -> None:
+    """Marca um uid para hidratacao prioritaria no proximo ciclo do BG."""
+    if not uid:
+        return
+    uid = str(uid).strip()
+    if not uid:
+        return
+    with _prioridade_lock:
+        # Move para o topo (se ja estiver na fila) ou adiciona
+        try:
+            _prioridade_uids.remove(uid)
+        except ValueError:
+            pass
+        _prioridade_uids.insert(0, uid)
+        # Cap em 50 para nao crescer indefinidamente
+        if len(_prioridade_uids) > 50:
+            del _prioridade_uids[50:]
+
+
+def _drenar_prioridade() -> list[str]:
+    """Retorna a lista atual de prioridade e a esvazia. Thread-safe."""
+    with _prioridade_lock:
+        if not _prioridade_uids:
+            return []
+        out = list(_prioridade_uids)
+        _prioridade_uids.clear()
+        return out
+
 
 def _texto_chars(p: dict[str, Any]) -> int:
     t = str(p.get("cleaned_source_text") or p.get("texto_fonte") or "").strip()
@@ -417,8 +453,41 @@ def _persistir(db, p: dict[str, Any], resultado: dict[str, Any]) -> None:
 
 
 def _ciclo(db) -> dict[str, int]:
-    """Roda um ciclo de hidratação e retorna stats."""
+    """Roda um ciclo de hidratação e retorna stats.
+
+    V200_34: pautas marcadas como prioritarias rodam ANTES das selecionadas
+    pela janela temporal. Sao processadas sem quarentena (acabou de clicar).
+    """
+    # V200_34: drena fila de prioridade
+    prio_uids = _drenar_prioridade()
+    prio_pautas: list[dict] = []
+    if prio_uids:
+        try:
+            todas = db.query_fila_ativa(incluir_baixo_score=True, limite=500)
+            por_uid = {str(p.get("uid") or ""): p for p in todas if p.get("uid")}
+            for uid in prio_uids:
+                p = por_uid.get(str(uid))
+                if not p:
+                    continue
+                if not _link_pauta(p):
+                    continue
+                # Mesmo se ja tem texto e imagem, na prioridade NAO pula -
+                # significa que o usuario clicou e quer hidratacao agora.
+                # Mas se ja tem ambos, evita trabalho duplo.
+                if _texto_chars(p) >= TEXTO_MIN_CHARS and _imagem_ok(p):
+                    continue
+                prio_pautas.append(p)
+        except Exception as e:
+            logger.warning("%s drenar prioridade falhou: %s", PREFIX, e)
+
     candidatas = _selecionar_candidatas(db)
+    # Junta prioridade (ordem do clique) + candidatas, removendo duplicatas
+    uids_prio = {str(p.get("uid") or "") for p in prio_pautas}
+    candidatas_finais = prio_pautas + [
+        p for p in candidatas if str(p.get("uid") or "") not in uids_prio
+    ]
+    # Cap no batch
+    candidatas = candidatas_finais[:BATCH]
     if not candidatas:
         return {"candidatas": 0, "hidratadas": 0, "falhas": 0}
 
@@ -516,4 +585,4 @@ def status() -> dict[str, Any]:
         return dict(_estado)
 
 
-__all__ = ["iniciar", "parar", "status"]
+__all__ = ["iniciar", "parar", "status", "marcar_prioridade"]

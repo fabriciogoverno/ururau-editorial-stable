@@ -2458,6 +2458,15 @@ def dispatch(*, method, path, query, body, headers=None, db=None):
     if path.startswith("/api/pautas/") and path.endswith("/job") and method == "GET":
         uid = path[len("/api/pautas/"):-len("/job")]
         return acoes.handler_job_status(db, uid)
+    # V200_34: prioriza essa pauta no proximo ciclo do hidratador BG
+    if path.startswith("/api/pautas/") and path.endswith("/priorizar-hidratacao") and method == "POST":
+        uid = path[len("/api/pautas/"):-len("/priorizar-hidratacao")]
+        try:
+            from ururau.coleta.hidratador_background_v200 import marcar_prioridade
+            marcar_prioridade(uid)
+            return _json_response({"ok": True, "uid": uid})
+        except Exception as _e:
+            return _json_response({"ok": False, "erro": str(_e)})
     if path.startswith("/api/pautas/") and path.endswith("/materia/salvar") and method == "POST":
         uid = path[len("/api/pautas/"):-len("/materia/salvar")]
         return acoes.handler_salvar_materia(db, uid, _parse_json_body(body))
