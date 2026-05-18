@@ -1488,6 +1488,49 @@ def extrair_materia_v90(
             tentativas,
         )
 
+    # --- ETAPA 3b: V200_41 - Pre-limpeza HTML por dominio (boilerplate especifico) ---
+    # Sites com sidebar de "mais noticias" no mesmo container poluem o texto da
+    # materia. Pre-removemos esses blocos ANTES da extracao por adapter/trafilatura.
+    # Tambem reescreve o html para que os adapters que recebem html cru se beneficiem.
+    try:
+        _dom_lower = (dominio or "").lower()
+        _seletores_remover: list[str] = []
+        if "campos.rj.gov.br" in _dom_lower:
+            # Listagem lateral "Mais noticias" + tabs + lista no rodape da materia
+            _seletores_remover = [
+                "div.box-mais-noticias",
+                "ul.ul-noticias-detail",
+                "ul.nav-tabs.mais-noticias-tabs",
+                "div.mais-noticias",
+                "div.nav.nav-tabs",
+                "div.tab-content",  # tabs internas com listas de mais noticias
+                "div.box-fluid-midia-social",
+                "div.box-icons-media",
+                "div.bg-fluid-midia-social",
+                "div.addthis_toolbox",
+            ]
+        if _seletores_remover:
+            _removidos = 0
+            for _sel in _seletores_remover:
+                try:
+                    for _el in soup.select(_sel):
+                        _el.decompose()
+                        _removidos += 1
+                except Exception:
+                    pass
+            if _removidos:
+                logger.info(
+                    "%s pre-limpeza V200_41 dominio=%s removeu %d blocos boilerplate",
+                    PREFIX, _dom_lower, _removidos,
+                )
+                # Re-serializa html limpo para que adapters que usam string crua tambem se beneficiem
+                try:
+                    html = str(soup)
+                except Exception:
+                    pass
+    except Exception as _e:
+        logger.debug("%s pre-limpeza V200_41 falhou (nao critico): %s", PREFIX, _e)
+
     # --- ETAPA 4: Adaptador específico ---
     tipo_adapter = (tipo_site or "generic").strip().lower()
     adapter = get_adapter(tipo_adapter)
