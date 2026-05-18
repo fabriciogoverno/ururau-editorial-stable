@@ -157,9 +157,16 @@ def handler_redigir(db, uid: str, body: dict):
             )
             pauta["_uid"] = uid_eff
             wf = WorkflowPublicacao(db, client, modelo)
-            if not wf.etapa_gate_antiduplicacao(uid_eff, pauta, modo="redigir"):
-                core._job_fim(uid, "redigir", "bloqueado", "gate antiduplicacao bloqueou")
-                return
+            # V200_56: gate antiduplicacao DESATIVADO no Redigir manual.
+            # O usuario pediu para nao bloquear a redacao por duplicidade
+            # (decisao editorial humana - se quer redigir, redige). Gate
+            # continua valido no monitor 24h automatico via wf.etapa_*.
+            # Para reativar, defina URURAU_REDIGIR_GATE_DEDUP=1.
+            import os as _os_v200_56
+            if _os_v200_56.getenv("URURAU_REDIGIR_GATE_DEDUP", "0").strip().lower() in {"1","true","sim","yes","s","on"}:
+                if not wf.etapa_gate_antiduplicacao(uid_eff, pauta, modo="redigir"):
+                    core._job_fim(uid, "redigir", "bloqueado", "gate antiduplicacao bloqueou")
+                    return
             wf.etapa_coleta_texto(uid_eff, pauta)
             wf.etapa_imagem(uid_eff, pauta)
             materia = wf.etapa_redacao(uid_eff, pauta)
