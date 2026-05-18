@@ -13,7 +13,8 @@ TZ_BR = ZoneInfo("America/Sao_Paulo")
 TZ_UTC = ZoneInfo("UTC")
 
 
-def janela_publicacao_horas(default: int = 4) -> int:
+def janela_publicacao_horas(default: int = 8) -> int:
+    """V200_51: janela max default 8h (era 4h). Alinha com hidratador BG."""
     try:
         return max(1, int(os.getenv("URURAU_V100_JANELA_PUBLICACAO_HORAS", os.getenv("URURAU_V99_JANELA_PUBLICACAO_HORAS", os.getenv("URURAU_JANELA_PUBLICACAO_HORAS", str(default))))))
     except Exception:
@@ -33,7 +34,15 @@ _DOMINIOS_REGIONAIS_JANELA_AMPLA = {
 
 
 def janela_para_fonte_v200(fonte=None, url_feed: str = "", nome_fonte: str = "") -> int:
-    """Janela em horas adequada para a fonte."""
+    """V200_51: janela UNIFORME para todas as fontes.
+
+    Decisao do usuario: 8h max para TODAS (regional, oficial, normal).
+    Alinha com a regra do hidratador BG (JANELA_MAX_H=8, PRIORIDADE_H=4).
+    Antes regional=24h e oficial=12h - removido para uniformidade.
+
+    Pode ser overridado com env URURAU_V200_JANELA_REGIONAL_HORAS /
+    URURAU_V200_JANELA_OFICIAL_HORAS se precisar reativar diferenca.
+    """
     base = janela_publicacao_horas()
     try:
         url_l = (url_feed or "").lower()
@@ -45,6 +54,7 @@ def janela_para_fonte_v200(fonte=None, url_feed: str = "", nome_fonte: str = "")
             host = urlparse(url_l).netloc
         except Exception:
             host = ""
+        # V200_51: so amplia se env explicito (default = base 8h)
         is_regional = bool(
             fonte.get("regional_prioritaria")
             or fonte.get("regional_prioritaria_v1304")
@@ -56,10 +66,14 @@ def janela_para_fonte_v200(fonte=None, url_feed: str = "", nome_fonte: str = "")
             or "tribunanf" in nome_l
         )
         if is_regional:
+            # V200_51: respeita env, mas default agora e base (8h) - nao mais 24h
             try:
-                return max(base, int(os.getenv("URURAU_V200_JANELA_REGIONAL_HORAS", "24")))
+                env_val = os.getenv("URURAU_V200_JANELA_REGIONAL_HORAS")
+                if env_val:
+                    return max(base, int(env_val))
             except Exception:
-                return max(base, 24)
+                pass
+            return base  # uniforme com base (8h)
         is_oficial = bool(
             fonte.get("bypass_score")
             or ".gov.br" in url_l
@@ -69,9 +83,12 @@ def janela_para_fonte_v200(fonte=None, url_feed: str = "", nome_fonte: str = "")
         )
         if is_oficial:
             try:
-                return max(base, int(os.getenv("URURAU_V200_JANELA_OFICIAL_HORAS", "12")))
+                env_val = os.getenv("URURAU_V200_JANELA_OFICIAL_HORAS")
+                if env_val:
+                    return max(base, int(env_val))
             except Exception:
-                return max(base, 12)
+                pass
+            return base  # uniforme com base (8h)
     except Exception:
         pass
     return base
