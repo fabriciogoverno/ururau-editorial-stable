@@ -246,6 +246,25 @@ def _etapa_fonte_credito(materia: Any) -> dict:
     return {"fatal": False, "motivos": [], "alertas": alertas}
 
 
+def _etapa_apuracao(materia: Any, texto_fonte: str) -> dict:
+    """V200_62: detecta apuracao jornalistica transformada em confirmacao
+    oficial. Delega ao validador_apuracao_v200.
+    """
+    if not texto_fonte:
+        return {"ok": True}
+    try:
+        from ururau.editorial.validador_apuracao_v200 import validar_atribuicao_apuracao
+        r = validar_atribuicao_apuracao(texto_fonte, materia)
+        status = r.get("status", "OK")
+        if status == "BLOQUEIO":
+            return {"fatal": True, "motivo": r.get("motivo", "apuracao tratada como confirmacao oficial")}
+        if status == "ALERTA":
+            return {"alerta": r.get("motivo", "atribuicao parcial de apuracao")}
+        return {"ok": True}
+    except Exception as e:
+        return {"alerta": f"validador_apuracao falhou: {e}"}
+
+
 def _etapa_juridico(materia: Any) -> dict:
     """Etapa 21: precisao juridica (spec sec. 21).
 
@@ -301,6 +320,8 @@ def validar_pos_gpt(materia: Any, texto_fonte: str = "") -> dict:
         ("travessao",             lambda: _etapa_travessao(materia)),
         ("fonte_credito",         lambda: _etapa_fonte_credito(materia)),
         ("juridico",              lambda: _etapa_juridico(materia)),
+        # V200_62: detecta apuracao transformada em confirmacao oficial
+        ("apuracao_vs_oficial",   lambda: _etapa_apuracao(materia, texto_fonte)),
     ]
 
     for nome, fn in ordem:
