@@ -48,7 +48,11 @@ def materia_ok() -> dict:
             "A relacao inclui jogadores que atuam na Europa e no Brasil. A expectativa "
             "gira em torno da presenca do atacante Neymar, do Santos.\n\n"
             "Ancelotti afirmou que tem quase todos os nomes definidos, restando apenas "
-            "duas vagas para anuncio na coletiva."
+            "duas vagas para anuncio na coletiva, que sera realizada apos o anuncio.\n\n"
+            "O Brasil estreia na Copa do Mundo em junho de 2026 contra adversario ainda "
+            "a ser definido pelo sorteio da Fifa. A comissao tecnica concluiu observacoes "
+            "no fim de semana e selecionou nomes do Flamengo, Palmeiras, Real Madrid e "
+            "Manchester City. A delegacao se concentra em Granja Comary apos a divulgacao."
         ),
         "tags": "Selecao Brasileira, Copa do Mundo 2026, Neymar, CBF, Esportes, Convocacao",
         "retranca": "Esportes",

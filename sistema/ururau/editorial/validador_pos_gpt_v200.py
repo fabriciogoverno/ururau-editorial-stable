@@ -347,9 +347,16 @@ def validar_pos_gpt(materia: Any, texto_fonte: str = "") -> dict:
                 alertas.append(f"[{nome}] {a}")
                 score -= 3
 
+    # V200_66 (Fase 6 fix): qualquer violacao fatal -> BLOQUEADO SEMPRE.
+    # Antes: "BLOQUEADO if score < 60 else RASCUNHO" permitia que titulo > 89,
+    # termo IA, retranca longa virassem RASCUNHO se score >= 60. Spec sec.40
+    # exige bloqueio sempre para essas violacoes fatais.
+    # RASCUNHO so para casos sem motivos_bloqueio mas com muitos alertas (score baixo).
     status = "APROVADO"
     if motivos_bloqueio:
-        status = "BLOQUEADO" if score < 60 else "RASCUNHO"
+        status = "BLOQUEADO"  # spec sec.40: fatal sempre bloqueia
+    elif score < 80:
+        status = "RASCUNHO"   # sem fatal, mas score baixo -> revisao manual
 
     return {
         "status": status,
