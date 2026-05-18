@@ -1587,6 +1587,13 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
             print("[ururau_web][HIDRATACAO_ON_DEMAND] resolver falhou uid=" + str(uid) + ": " + str(_e_res))
 
         # ESCADA 1: pipeline premium v90 ja concentra adaptadores, fallbacks e Jina.
+        # V200_48: se pipeline_v90 ACEITA via adapter especializado (oficial/article,
+        # globo/article-article, uol/article, bypass_burlesco_rule), CONFIA no
+        # resultado mesmo abaixo de TEXTO_MIN_UTIL=1500. Esses adapters ja tem
+        # critério_aceite_v90 validando paragrafos uteis. Senao, as escadas
+        # seguintes (leitura_fonte, googlebot, trafilatura) podem SOBRESCREVER
+        # texto limpo do adapter com lixo de pagina inteira (caso campos.rj.gov.br).
+        _pipeline_v90_aceito_por_adapter = False
         if not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL:
             try:
                 from ururau.coleta.extract_pipeline_v90 import extrair_materia_v90
@@ -1609,13 +1616,28 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
                     view["link"] = _pipe_url_final
                 if _pipe.get("aceita") and len(_pipe_texto) >= 700:
                     _texto_hidratado = _pipe_texto
-                    _metodo_hidratacao = "pipeline_v90:" + str(_pipe.get("metodo") or "extrair_materia")
-                    print("[ururau_web][HIDRATACAO_ON_DEMAND][pipeline_v90] uid=" + str(uid) + " chars=" + str(len(_texto_hidratado)) + " metodo=" + str(_pipe.get("metodo") or ""))
+                    _pipe_metodo = str(_pipe.get("metodo") or "")
+                    _metodo_hidratacao = "pipeline_v90:" + _pipe_metodo
+                    # V200_48: marca confianca quando adapter especializado entregou
+                    _adapters_confiaveis = (
+                        "oficial/", "globo/", "uol/", "folha/", "agenciabrasil/",
+                        "wordpress/", "bypass_",
+                    )
+                    if any(_pipe_metodo.startswith(p) for p in _adapters_confiaveis):
+                        _pipeline_v90_aceito_por_adapter = True
+                    print("[ururau_web][HIDRATACAO_ON_DEMAND][pipeline_v90] uid=" + str(uid) + " chars=" + str(len(_texto_hidratado)) + " metodo=" + _pipe_metodo + " confiavel=" + str(_pipeline_v90_aceito_por_adapter))
             except Exception as _e_pipe:
                 print("[ururau_web][HIDRATACAO_ON_DEMAND] pipeline_v90 falhou uid=" + str(uid) + ": " + str(_e_pipe))
 
+        # V200_48: se adapter especializado deu sucesso, NAO disparar escadas
+        # seguintes mesmo se texto < TEXTO_MIN_UTIL. As outras escadas podem
+        # contaminar com texto de pagina inteira.
+        if _pipeline_v90_aceito_por_adapter:
+            print("[ururau_web][HIDRATACAO_ON_DEMAND] V200_48 - adapter especializado entregou texto limpo, pulando escadas 2-5")
+
         # ESCADA 2: leitura_fonte reaproveita heuristicas historicas do painel.
-        if not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL:
+        # V200_48: pula se pipeline_v90 ja entregou texto limpo via adapter.
+        if not _pipeline_v90_aceito_por_adapter and (not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL):
             try:
                 from ururau.coleta.leitura_fonte import ler_fonte_pauta
                 _pauta_lf = {**merged}
@@ -1637,29 +1659,32 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
                 print("[ururau_web][HIDRATACAO_ON_DEMAND] leitura_fonte falhou uid=" + str(uid) + ": " + str(_e_lf))
 
         # ESCADA 3: trafilatura
-        try:
-            import trafilatura as _traf
-            _downloaded = _traf.fetch_url(_link_pauta)
-            if _downloaded:
-                _result = _traf.extract(
-                    _downloaded, url=_link_pauta,
-                    include_comments=False, include_tables=False,
-                    favor_recall=True, with_metadata=False,
-                    output_format="txt", target_language="pt",
-                )
-                # v1.15.9: aceita >=500 chars (era 200). Texto curto cai pra Jina.
-                if _result and len(_result.strip()) >= _TEXTO_MIN_UTIL:
-                    _texto_hidratado = _result.strip()
-                    _metodo_hidratacao = "trafilatura"
-                    print(f"[ururau_web][HIDRATACAO_ON_DEMAND][trafilatura] uid={uid} chars={len(_texto_hidratado)}")
-        except ImportError:
-            pass
-        except Exception as _e_traf:
-            print(f"[ururau_web][HIDRATACAO_ON_DEMAND] trafilatura falhou uid={uid}: {_e_traf}")
+        # V200_48: pula se pipeline_v90 ja entregou texto limpo via adapter especializado.
+        if not _pipeline_v90_aceito_por_adapter and (not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL):
+            try:
+                import trafilatura as _traf
+                _downloaded = _traf.fetch_url(_link_pauta)
+                if _downloaded:
+                    _result = _traf.extract(
+                        _downloaded, url=_link_pauta,
+                        include_comments=False, include_tables=False,
+                        favor_recall=True, with_metadata=False,
+                        output_format="txt", target_language="pt",
+                    )
+                    # v1.15.9: aceita >=500 chars (era 200). Texto curto cai pra Jina.
+                    if _result and len(_result.strip()) >= _TEXTO_MIN_UTIL:
+                        _texto_hidratado = _result.strip()
+                        _metodo_hidratacao = "trafilatura"
+                        print(f"[ururau_web][HIDRATACAO_ON_DEMAND][trafilatura] uid={uid} chars={len(_texto_hidratado)}")
+            except ImportError:
+                pass
+            except Exception as _e_traf:
+                print(f"[ururau_web][HIDRATACAO_ON_DEMAND] trafilatura falhou uid={uid}: {_e_traf}")
 
         # ESCADA 4: Googlebot (tecnica Burlesco - libera paywall poroso
         # de Estadao, Globo, Veja, Exame, Crusoe etc)
-        if not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL:
+        # V200_48: pula se pipeline_v90 ja entregou texto limpo via adapter.
+        if not _pipeline_v90_aceito_por_adapter and (not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL):
             try:
                 from ururau.coleta.googlebot_extractor import extrair_via_googlebot
                 _gb = extrair_via_googlebot(_link_pauta, timeout=15, min_chars=_TEXTO_MIN_UTIL)
@@ -1671,7 +1696,8 @@ def handler_detalhe_pauta(db, uid: str) -> tuple[int, dict, bytes]:
                 print("[ururau_web][HIDRATACAO_ON_DEMAND] googlebot excecao uid=" + str(uid) + ": " + str(_e_gb))
 
         # ESCADA 5: Jina Reader (ultimo recurso para SPAs e bloqueios)
-        if not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL:
+        # V200_48: pula se pipeline_v90 ja entregou texto limpo via adapter.
+        if not _pipeline_v90_aceito_por_adapter and (not _texto_hidratado or len(_texto_hidratado) < _TEXTO_MIN_UTIL):
             try:
                 from ururau.coleta.jina_extractor import extrair_via_jina
                 _jina = extrair_via_jina(_link_pauta, timeout=20, min_chars=300)
