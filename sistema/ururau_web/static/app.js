@@ -106,7 +106,7 @@ function badgeTxt(p) {
   if (r === "PUBLICADA") return `<span class="badge s-publicada">PUBLICADA</span>`;
   // V200_14: pautas com materia gerada / revisada
   if (r === "REDIGIDA")  return `<span class="badge s-redigida" title="Materia ja foi redigida pela IA">📝 REDIGIDA</span>`;
-  if (r === "REVISADA")  return `<span class="badge s-revisada" title="Materia ja foi redigida e revisada (Copydesk aplicado)">✓ REVISADA</span>`;
+  if (r === "REVISADA")  return `<span class="badge s-redigida" title="Materia ja foi redigida pela IA">📝 REDIGIDA</span> <span class="badge s-revisada" title="Materia ja foi revisada (Copydesk aplicado)">✓ REVISADA</span>`;  // V200_37 badge
   return `<span class="badge txt-vazio">TXT ?</span>`;
 }
 function badgeStatus(s) {
@@ -202,7 +202,7 @@ function renderFila(pautas) {
       ${thumbHtml}
       <div class="corpo">
         <div class="linha1">
-          ${badgeTxt(p)} ${badgeStatus(p.status_pauta)} ${termosBadges}${extraTermos}
+          ${badgeTxt(p)} ${["REDIGIDA","REVISADA","PUBLICADA"].includes(String(p.txt_rotulo||"").toUpperCase()) ? "" : badgeStatus(p.status_pauta)} ${termosBadges}${extraTermos}
           <div class="titulo" title="${escapeHtml(p.titulo)}">${escapeHtml(p.titulo || "(sem título)")}</div>
         </div>
         <div class="linha2">

@@ -103,10 +103,18 @@ def _parsear_feed_resiliente_v200(url_feed: str):
     if timeout_cronico:
         try:
             from ururau.coleta.http_fetch_v109 import fetch_rss_v109
+            _to_cronico = int(os.getenv("URURAU_V200_GIROJ_TIMEOUT", "12") or "12")
+            try:
+                from ururau.coleta.fontes_blocklist_v200 import (
+                    timeout_recomendado_para_dominio as _to_dom_cronico,
+                )
+                _to_cronico = _to_dom_cronico(url_efetiva, default=_to_cronico)
+            except Exception:
+                pass
             r = fetch_rss_v109(
                 url_efetiva,
-                timeout=int(os.getenv("URURAU_V200_GIROJ_TIMEOUT", "45") or "45"),
-                max_retries=int(os.getenv("URURAU_V200_GIROJ_RETRIES", "3") or "3"),
+                timeout=_to_cronico,
+                max_retries=int(os.getenv("URURAU_V200_GIROJ_RETRIES", "1") or "1"),
                 referer="https://www.google.com/",
             )
             if r.ok:
@@ -313,7 +321,11 @@ def _uid_pauta(link: str, titulo: str) -> str:
 
 def _limpar_html(texto: str) -> str:
     """Remove tags HTML básicas de resumos RSS."""
-    texto = re.sub(r"<[^>]+>", " ", texto or "")
+    import html as _html
+
+    texto = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", texto or "", flags=re.S)
+    texto = re.sub(r"<[^>]+>", " ", texto)
+    texto = _html.unescape(texto)
     texto = re.sub(r"\s+", " ", texto).strip()
     return texto
 
@@ -495,6 +507,19 @@ def _campos_data_publicacao(entry: dict, dt: Optional[datetime.datetime]) -> dic
     }
 
 
+def _campos_data_captada_sem_data_v2004(agora: datetime.datetime) -> dict:
+    """Usa horario da coleta quando o feed publico nao traz pubDate confiavel."""
+    return {
+        "data_pub_fonte": formatar_br(agora),
+        "data_pub_fonte_br": formatar_br(agora),
+        "data_pub_fonte_original": "",
+        "data_pub_metodo_v99": "sem_data_assumida_captura_v2004",
+        "_data_pub_ordem": ordenar_iso(agora),
+        "captada_em": agora.strftime("%Y-%m-%d %H:%M:%S"),
+        "_sem_data_publicacao_assumida_v2004": True,
+    }
+
+
 def _dt_para_str(dt: Optional[datetime.datetime]) -> str:
     """Formata datetime já normalizado para horário de Brasília."""
     return formatar_br(dt)
@@ -568,6 +593,15 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
     agora    = datetime.datetime.now(_ZI("America/Sao_Paulo")).replace(tzinfo=None)
     filtradas = 0
     motivos_filtro: dict[str, int] = {}
+    try:
+        intervalo_entre_fontes = max(0.0, float(str(os.getenv("URURAU_RSS_INTERVALO_ENTRE_FONTES", "0.05")).replace(",", ".")))
+    except Exception:
+        intervalo_entre_fontes = 0.05
+    try:
+        autocura_max_por_coleta = max(0, int(os.getenv("URURAU_V200_AUTOCURA_MAX_POR_COLETA", "1") or "1"))
+    except Exception:
+        autocura_max_por_coleta = 1
+    autocuras_usadas = 0
 
     # V200_2: zera o cache de auto-cura no inicio de cada coleta geral
     try:
@@ -589,6 +623,7 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
     # timeout duro (ver _parsear_feed_resiliente_v200). O loop abaixo so
     # processa o resultado ja em cache. Desativavel: URURAU_RSS_PREFETCH_PARALELO=0
     _feeds_prefetch: dict[str, object] = {}
+    _feeds_prefetch_abandonados: set[str] = set()
     try:
         if os.getenv("URURAU_RSS_PREFETCH_PARALELO", "1").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
             from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -623,7 +658,12 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                         except Exception as _e_pf:
                             print(f"[RSS v200_3][PREFETCH_ERR] {_u[:70]}: {_e_pf}", flush=True)
                 except Exception as _e_ceiling:
-                    _faltam = len(_urls_feed) - len(_feeds_prefetch)
+                    _feeds_prefetch_abandonados = {
+                        _u for _u in _urls_feed if _u not in _feeds_prefetch
+                    }
+                    for _u in _feeds_prefetch_abandonados:
+                        _feeds_prefetch[_u] = feedparser.parse("")
+                    _faltam = len(_feeds_prefetch_abandonados)
                     print(f"[RSS v200_3] teto de {_ceiling}s atingido — {_faltam} feed(s) "
                           f"lento(s) abandonado(s), seguindo com {len(_feeds_prefetch)}.", flush=True)
                 # Nao espera stragglers: como toda chamada de rede ja tem
@@ -634,6 +674,7 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
     except Exception as _e_pf_geral:
         print(f"[RSS v200_3] prefetch paralelo indisponivel, seguindo sequencial: {_e_pf_geral}", flush=True)
         _feeds_prefetch = {}
+        _feeds_prefetch_abandonados = set()
 
     for fonte in fontes_config:
         if fonte.get("ativo", True) is False:
@@ -643,7 +684,10 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
         canal      = ""  # v117: canal da fonte ignorado; editoria é contextual
         try:
             st_v114 = _v114_status_fonte_por_log(fonte) if _v114_status_fonte_por_log else ""
-            if st_v114 == "quarentena":
+            # v1.15.2: respeita URURAU_FONTES_INCLUIR_QUARENTENA — se o usuario
+            # decidiu manter fontes "em quarentena" via env, NAO pula aqui.
+            _incluir_q_v152 = os.getenv("URURAU_FONTES_INCLUIR_QUARENTENA", "0").lower() in {"1", "true", "sim", "yes", "s"}
+            if st_v114 == "quarentena" and not _incluir_q_v152:
                 print(f"[RSS][v111.4][QUARENTENA] pulando fonte sem produtividade recente: {nome_fonte}")
                 continue
         except Exception:
@@ -652,12 +696,48 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
         if not url_feed:
             continue
 
+        # v1.15.7: tipo_coleta=jina_home -> usa coletor proprio via Jina Reader
+        # Para sites SEM RSS funcional (NF Noticias, Portal OZK, etc.).
+        # Baixa a home, extrai links de materias, hidrata cada uma via Jina.
+        if fonte.get("tipo_coleta") == "jina_home":
+            try:
+                from ururau.coleta.jina_home_collector import coletar_via_jina_home
+                limite = int(fonte.get("max_por_link") or 10)
+                pautas_jh = coletar_via_jina_home(
+                    home_url=url_feed,
+                    nome_fonte=nome_fonte,
+                    limite_materias=limite,
+                    hidratar=True,
+                )
+                # Converte para o formato esperado pelo loop principal e
+                # adiciona em pautas_coletadas direto.
+                for ph in pautas_jh:
+                    pauta = {
+                        "titulo": ph["titulo"],
+                        "link": ph["link"],
+                        "fonte_nome": nome_fonte,
+                        "canal_forcado": canal,
+                        "resumo_origem": ph["resumo_origem"][:600],
+                        "cleaned_source_text": ph.get("cleaned_source_text", ""),
+                        "captada_em": ph["captada_em"],
+                        "data_pub": ph["data_pub"],
+                        "uid_origem": ph["uid"],
+                        "tipo_origem_v1157": "jina_home",
+                    }
+                    pautas.append(pauta)
+                print(f"[RSS][JINA_HOME] {nome_fonte}: {len(pautas_jh)} pautas hidratadas via Jina")
+            except Exception as _e_jh:
+                print(f"[RSS][JINA_HOME] {nome_fonte} falhou: {_e_jh}")
+            continue  # ja processou, nao tenta feedparser
+
         try:
             # V200_3: usa o feed ja baixado no prefetch paralelo; se nao
             # estiver no cache (prefetch desligado ou falhou), busca agora.
             feed = _feeds_prefetch.get(url_feed)
             if feed is None:
                 feed = _parsear_feed_resiliente_v200(url_feed)
+            elif url_feed in _feeds_prefetch_abandonados:
+                print(f"[RSS v200_3][PREFETCH_SKIP] {nome_fonte}: feed lento ignorado neste ciclo", flush=True)
             entradas = feed.get("entries", [])
             print(f"[RSS] {nome_fonte}: {len(entradas)} entradas")
 
@@ -667,7 +747,9 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
             # por dominio. Politica: so sinaliza, nunca desativa.
             if not entradas:
                 try:
-                    if os.getenv("URURAU_V200_AUTOCURA_COLETA", "1").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
+                    autocura_habilitada = os.getenv("URURAU_V200_AUTOCURA_COLETA", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}
+                    if autocura_habilitada and autocuras_usadas < autocura_max_por_coleta:
+                        autocuras_usadas += 1
                         from ururau.coleta.diagnostico_auto_v200 import auto_curar_fonte_v200
                         _cura = auto_curar_fonte_v200(
                             url_feed, nome=nome_fonte,
@@ -683,6 +765,12 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                                     _pc.setdefault("_origem_autocura_v200", True)
                                     _pc.setdefault("fonte_nome", nome_fonte)
                                     pautas.append(_pc)
+                    elif autocura_habilitada:
+                        print(
+                            f"[RSS][AUTOCURA_V200] {nome_fonte}: pulada por limite "
+                            f"URURAU_V200_AUTOCURA_MAX_POR_COLETA={autocura_max_por_coleta}",
+                            flush=True,
+                        )
                 except Exception as _e_cura:
                     print(f"[RSS][AUTOCURA_V200] {nome_fonte}: auto-cura falhou: {_e_cura}")
             try:
@@ -695,7 +783,7 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
             for entry in entradas[:30]:
                 if max_por_link_v117 > 0 and aceitas_fonte_v117 >= max_por_link_v117:
                     break
-                titulo = (entry.get("title") or "").strip()
+                titulo = _limpar_html(entry.get("title") or "")
                 link   = (entry.get("link") or "").strip()
                 if not titulo or not link:
                     continue
@@ -713,7 +801,13 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
 
                 # Data de publicação original na fonte, convertida para Brasília
                 dt = _extrair_dt(entry)
-                campos_data = _campos_data_publicacao(entry, dt)
+                sem_data_assumida_v2004 = False
+                if dt is None and os.getenv("URURAU_RSS_USAR_CAPTADA_SEM_DATA", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
+                    dt = agora
+                    campos_data = _campos_data_captada_sem_data_v2004(agora)
+                    sem_data_assumida_v2004 = True
+                else:
+                    campos_data = _campos_data_publicacao(entry, dt)
                 data_pub = campos_data["data_pub_fonte"]
 
                 # Filtro temporal v100/v200 — janela diferenciada por tipo de fonte.
@@ -753,6 +847,8 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                     "prioridade":      prio,   # v99: 3=última hora, 2=até 2h, 1=até 4h
                     "_janela_aplicada_v200_horas": janela_fonte,
                 }
+                if sem_data_assumida_v2004:
+                    pauta["_sem_data_publicacao_assumida_v2004"] = True
                 pauta = _aplicar_preconteudo_rss_v106(pauta, entry, titulo)
                 pauta = _v1304_aplicar_flags_fonte_rss(pauta, fonte, nome_fonte, url_feed)
                 try:
@@ -801,7 +897,8 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
         except Exception as e:
             print(f"[RSS] Falha ao processar feed {url_feed}: {e}")
 
-        time.sleep(0.3)  # Pausa gentil entre feeds
+        if intervalo_entre_fontes > 0:
+            time.sleep(intervalo_entre_fontes)
 
     if filtradas:
         detalhes = ", ".join(f"{k}={v}" for k, v in sorted(motivos_filtro.items())) or "sem detalhe"
@@ -823,13 +920,19 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                 entradas = feed.get("entries", [])
                 print(f"[RSS-OFICIAL] {fo_config['nome']}: {len(entradas)} entradas")
                 for entry in entradas[:20]:
-                    titulo = (entry.get("title") or "").strip()
+                    titulo = _limpar_html(entry.get("title") or "")
                     link   = (entry.get("link") or "").strip()
                     if not titulo or not link:
                         continue
                     resumo = _limpar_html(entry.get("summary") or entry.get("description") or "")
                     dt = _extrair_dt(entry)
-                    campos_data = _campos_data_publicacao(entry, dt)
+                    sem_data_assumida_v2004 = False
+                    if dt is None and os.getenv("URURAU_RSS_USAR_CAPTADA_SEM_DATA", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}:
+                        dt = agora
+                        campos_data = _campos_data_captada_sem_data_v2004(agora)
+                        sem_data_assumida_v2004 = True
+                    else:
+                        campos_data = _campos_data_publicacao(entry, dt)
                     data_pub = campos_data["data_pub_fonte"]
                     prio = _calcular_prioridade(dt, agora)
                     if prio == 0:
@@ -847,6 +950,8 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                         "prioridade":      prio,
                         "sinal_fonte_oficial": True,  # flag para scoring
                     }
+                    if sem_data_assumida_v2004:
+                        pauta["_sem_data_publicacao_assumida_v2004"] = True
                     pauta = _aplicar_preconteudo_rss_v106(pauta, entry, titulo)
                     try:
                         from ururau.editorial.classificador_editorial_contextual_v117 import aplicar_editoria_contextual
@@ -856,7 +961,8 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                     pautas.append(pauta)
             except Exception as e_fo:
                 print(f"[RSS-OFICIAL] Falha ao processar {fo_config['nome']}: {e_fo}")
-            time.sleep(0.3)
+            if intervalo_entre_fontes > 0:
+                time.sleep(intervalo_entre_fontes)
 
     # ── Enriquece com intel editorial ─────────────────────────────────────────
     pautas = _enriquecer_pautas_com_intel(pautas)
@@ -926,7 +1032,7 @@ def coletar_google_news(
             print(f"[GNEWS v110] Termo '{termo}': {len(entradas)} entradas")
 
             for entry in entradas[:max_por_termo]:
-                titulo = (entry.get("title") or "").strip()
+                titulo = _limpar_html(entry.get("title") or "")
                 link   = (entry.get("link") or "").strip()
                 if not titulo or not link:
                     continue
@@ -1080,6 +1186,33 @@ def filtrar_contra_banco(
         except AttributeError:
             pass  # db mais antigo sem o método — segue com os checks normais
 
+        # 0b. V200_37: barreira por hash titulo+fonte. Cobre o caso da mesma
+        #     materia entrando por feeds diferentes (Google News vs RSS direto,
+        #     Burlesco vs URL real). Bloqueia em qualquer dominio.
+        try:
+            from ururau.core.database import _hash_titulo_fonte as _htf
+            fonte_nome = pauta.get("fonte_nome", "") or pauta.get("fonte", "")
+            tf_hash = _htf(titulo, fonte_nome)
+            if tf_hash and db.link_esta_bloqueado(tf_hash):
+                resumo["descartadas"] += 1
+                print(f"[FILTRO][BLOQUEIO][TF] mesma noticia ja descartada/publicada: {titulo[:80]}")
+                continue
+        except Exception:
+            pass
+
+        # 0c. V200_37: normaliza link (sem query/fragmento) e checa tambem
+        try:
+            if link:
+                from urllib.parse import urlsplit, urlunsplit
+                s = urlsplit(link)
+                norm = urlunsplit((s.scheme, s.netloc, s.path, "", ""))
+                if norm and norm != link and db.link_esta_bloqueado(norm):
+                    resumo["descartadas"] += 1
+                    print(f"[FILTRO][BLOQUEIO][NORM] link normalizado bloqueado: {titulo[:80]}")
+                    continue
+        except Exception:
+            pass
+
         # 1. Já publicada no Ururau?
         if db.pauta_ja_publicada(link, uid):
             resumo["publicadas"] += 1
@@ -1145,40 +1278,11 @@ def deduplicar(pautas, limiar_similaridade=0.65):
             continue
         duplicata = False
         for titulo_aceito in titulos_aceitos:
-            if _similaridade(titulo, titulo_aceito) >= limiar_similaridade:
+            if _similaridade_titulos(pauta.get("titulo",""), titulo_aceito) > 0.85:
                 duplicata = True
                 break
-        if not duplicata:
-            unicas.append(pauta)
-            titulos_aceitos.append(titulo)
-    print(f"[RSS] Deduplicacao: {len(pautas)} -> {len(unicas)} pautas")
+        if duplicata:
+            continue
+        unicas.append(pauta)
+        titulos_aceitos.append(pauta.get("titulo",""))
     return unicas
-
-
-def coletar_source_hunter_premium_v88():
-    try:
-        import os
-        if os.getenv("URURAU_V91_SOURCE_HUNTER", "1").lower() in ("1","true","sim","yes","s"):
-            from ururau.coleta.v91_pipeline_bridge import coletar_e_prevalidar_v91
-            limite = int(os.getenv("URURAU_V91_MAX_TOTAL", os.getenv("URURAU_V88_MAX_TOTAL", "120")))
-            janela = int(os.getenv("JANELA_BUSCA_MAXIMA_HORAS", "4"))
-            return coletar_e_prevalidar_v91(limite=limite, janela=janela)
-        if os.getenv("URURAU_V88_SOURCE_HUNTER", "1").lower() not in ("1","true","sim","yes","s"):
-            return []
-        from ururau.coleta.source_hunter_v88 import coletar_source_hunter_v88
-        return coletar_source_hunter_v88()
-    except Exception as e:
-        print(f"[v91][SOURCE_HUNTER] indisponivel: {e}")
-        return []
-
-
-def obter_termos_radar_audiencia_v88():
-    try:
-        import os
-        if os.getenv("URURAU_V88_RADAR_AUDIENCIA", "1").lower() not in ("1","true","sim","yes","s"):
-            return []
-        from ururau.coleta.radar_audiencia_v88 import termos_para_google_news_v88
-        return termos_para_google_news_v88()
-    except Exception as e:
-        print(f"[v88][RADAR] indisponivel: {e}")
-        return []

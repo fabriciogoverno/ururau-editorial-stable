@@ -41,6 +41,37 @@ def _cache_has(link: str) -> bool:
         return link.strip() in _links_bloqueados_cache
 
 
+def _hash_titulo_fonte(titulo: str, fonte: str) -> str:
+    """V200_37: normaliza titulo+fonte para gerar pseudo-link bloqueavel.
+
+    Mesma materia entrando por feeds diferentes (Google News, RSS direto,
+    Burlesco) tem URLs diferentes mas o mesmo titulo+fonte. Esse hash
+    permite bloquear a materia em qualquer feed que tente trazer ela.
+
+    Formato: 'tf::<titulo_normalizado>|<fonte_normalizada>'
+    Retorna string vazia se nao tem titulo OU nao tem fonte.
+    """
+    import unicodedata
+    import re as _re
+    t = (titulo or "").strip()
+    f = (fonte or "").strip()
+    if not t or not f:
+        return ""
+    def _norm(s: str) -> str:
+        s = unicodedata.normalize("NFKD", s)
+        s = "".join(ch for ch in s if not unicodedata.combining(ch))
+        s = s.lower()
+        s = _re.sub(r"[^a-z0-9 ]+", " ", s)
+        s = _re.sub(r"\s+", " ", s).strip()
+        # limita pra evitar variantes longas com sufixo
+        return s[:120]
+    tn = _norm(t)
+    fn = _norm(f)
+    if not tn or not fn:
+        return ""
+    return f"tf::{tn}|{fn}"
+
+
 class Database:
     """Camada de persistência SQLite thread-safe."""
 
@@ -1251,10 +1282,17 @@ class Database:
         """
         Marca uma pauta como rejeitada de forma PERMANENTE.
 
+        V200_37: bloqueia AGORA todos os links variantes que possam trazer a
+        mesma materia de volta (link_origem, link_origem_resolvido, url_final,
+        canonical_url) + um hash de titulo+fonte para casos onde a mesma
+        noticia entra por feeds diferentes (Google News vs RSS direto).
+
         Dupla garantia:
           1. Atualiza status='rejeitada' na tabela pautas (se existir)
           2. Garante upsert na tabela pautas (INSERT OR REPLACE) se pauta dict fornecido
-          3. Insere link na tabela links_bloqueados (barreira definitiva)
+          3. Insere todos os links variantes na tabela links_bloqueados
+          4. Insere hash 'tf::<titulo_normalizado>|<fonte>' como pseudo-link
+             (compartilha tabela/cache com URLs reais).
         """
         # 1. Tenta atualizar status na tabela pautas (pode não existir ainda)
         self.atualizar_status_pauta(uid, "rejeitada")
@@ -1269,11 +1307,47 @@ class Database:
             except Exception:
                 pass
 
-        # 3. Registra link no bloqueio permanente
-        link   = (pauta or {}).get("link_origem", "") if pauta else ""
+        # 3. V200_37: bloqueia TODOS os links variantes da pauta
         titulo = (pauta or {}).get("titulo_origem", "") if pauta else ""
-        if link:
-            self.bloquear_link(link, uid, titulo, motivo=motivo or "descarte")
+        fonte = ""
+        if pauta:
+            fonte = str(pauta.get("fonte_nome") or pauta.get("fonte") or "")
+        motivo_final = motivo or "descarte"
+        links_para_bloquear: list[str] = []
+        if pauta:
+            for k in (
+                "link_origem", "link_origem_resolvido", "url_final",
+                "canonical_url", "link_origem_original", "link", "url",
+                "fonte_url", "origem_url",
+            ):
+                v = pauta.get(k)
+                if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
+                    raw = v.strip()
+                    if raw not in links_para_bloquear:
+                        links_para_bloquear.append(raw)
+                    # tambem bloqueia versao normalizada (sem query/fragmento)
+                    try:
+                        from urllib.parse import urlsplit, urlunsplit
+                        s = urlsplit(raw)
+                        norm = urlunsplit((s.scheme, s.netloc, s.path, "", ""))
+                        if norm and norm != raw and norm not in links_para_bloquear:
+                            links_para_bloquear.append(norm)
+                    except Exception:
+                        pass
+        for lnk in links_para_bloquear:
+            try:
+                self.bloquear_link(lnk, uid, titulo, motivo=motivo_final)
+            except Exception:
+                pass
+
+        # 4. V200_37: hash titulo+fonte como pseudo-link bloqueado
+        try:
+            tf_hash = _hash_titulo_fonte(titulo, fonte)
+            if tf_hash:
+                self.bloquear_link(tf_hash, uid, titulo,
+                                   motivo=f"{motivo_final}:titulo_fonte")
+        except Exception:
+            pass
 
         if motivo:
             self.log_auditoria(uid, "descarte", motivo, sucesso=False)
