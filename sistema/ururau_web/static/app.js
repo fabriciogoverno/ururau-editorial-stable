@@ -2047,3 +2047,117 @@ if (document.readyState === "loading") {
   // DOM ja pronto
   _bootstrap_v200_31();
 }
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// V200_32: ATALHOS DE TECLADO
+//
+// Setas (â†‘/â†“) e J/K navegam a fila de pautas. Ao selecionar, dispara
+// click programatico no card -> handler existente carrega texto da fonte.
+// Pula atalhos se foco esta em input/textarea/select/contentEditable.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+(function _atalhos_v200_32() {
+  function _focoEditavel() {
+    const a = document.activeElement;
+    if (!a) return false;
+    const tag = (a.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return true;
+    if (a.isContentEditable) return true;
+    return false;
+  }
+
+  function _cards() {
+    return Array.from(document.querySelectorAll("#fila .card"));
+  }
+
+  function _indiceAtual(cards) {
+    if (!cards.length) return -1;
+    const sel = document.querySelector("#fila .card.selecionada");
+    if (!sel) return -1;
+    return cards.indexOf(sel);
+  }
+
+  function _selecionar(idx) {
+    const cards = _cards();
+    if (!cards.length) return;
+    if (idx < 0) idx = 0;
+    if (idx >= cards.length) idx = cards.length - 1;
+    const card = cards[idx];
+    if (!card) return;
+    // Dispara click programatico - reusa toda a logica existente
+    card.click();
+    // Scroll suave para manter card visivel
+    try {
+      card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    } catch (e) {
+      card.scrollIntoView();
+    }
+  }
+
+  function _navProximo()  { const c = _cards(); _selecionar(_indiceAtual(c) + 1); }
+  function _navAnterior() { const c = _cards(); _selecionar(_indiceAtual(c) - 1); }
+  function _navPularFrente() { const c = _cards(); _selecionar(_indiceAtual(c) + 10); }
+  function _navPularTras()   { const c = _cards(); _selecionar(_indiceAtual(c) - 10); }
+  function _navPrimeiro() { _selecionar(0); }
+  function _navUltimo()   { const c = _cards(); _selecionar(c.length - 1); }
+
+  function _abrirDialogAtalhos() {
+    let dlg = document.getElementById("_dlg_atalhos_v32");
+    if (dlg) { dlg.style.display = "flex"; return; }
+    dlg = document.createElement("div");
+    dlg.id = "_dlg_atalhos_v32";
+    dlg.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;";
+    dlg.innerHTML = `
+      <div style="background:#1a1a1f;color:#e7e7ea;border:1px solid #333;border-radius:10px;padding:24px 28px;min-width:360px;max-width:520px;font-family:system-ui,sans-serif;">
+        <div style="font-size:16px;font-weight:600;margin-bottom:14px;color:#f5a623;">Atalhos de teclado</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tbody>
+            <tr><td style="padding:6px 0;color:#aaa;width:140px;"><kbd>â†“</kbd> ou <kbd>J</kbd></td><td>PrÃ³xima pauta</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>â†‘</kbd> ou <kbd>K</kbd></td><td>Pauta anterior</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>PgDn</kbd></td><td>+10 pautas</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>PgUp</kbd></td><td>-10 pautas</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>Home</kbd></td><td>Primeira pauta</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>End</kbd></td><td>Ãšltima pauta</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>?</kbd></td><td>Mostra esta janela</td></tr>
+            <tr><td style="padding:6px 0;color:#aaa;"><kbd>Esc</kbd></td><td>Fecha esta janela</td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:18px;text-align:right;">
+          <button id="_dlg_atalhos_v32_ok" style="background:#3a3a44;color:#fff;border:1px solid #555;border-radius:6px;padding:6px 16px;cursor:pointer;">OK</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+    const fechar = () => { dlg.style.display = "none"; };
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) fechar(); });
+    document.getElementById("_dlg_atalhos_v32_ok").onclick = fechar;
+  }
+
+  function _fecharDialogAtalhos() {
+    const dlg = document.getElementById("_dlg_atalhos_v32");
+    if (dlg) dlg.style.display = "none";
+  }
+
+  // Expose mostrarAtalhos (referenciado pelo link [?] atalhos)
+  if (typeof window.mostrarAtalhos !== "function") {
+    window.mostrarAtalhos = _abrirDialogAtalhos;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (_focoEditavel()) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    let usado = false;
+    switch (e.key) {
+      case "ArrowDown":
+      case "j": case "J": _navProximo(); usado = true; break;
+      case "ArrowUp":
+      case "k": case "K": _navAnterior(); usado = true; break;
+      case "PageDown": _navPularFrente(); usado = true; break;
+      case "PageUp":   _navPularTras();   usado = true; break;
+      case "Home": _navPrimeiro(); usado = true; break;
+      case "End":  _navUltimo();   usado = true; break;
+      case "?": _abrirDialogAtalhos(); usado = true; break;
+      case "Escape": _fecharDialogAtalhos(); break;
+    }
+    if (usado) { e.preventDefault(); e.stopPropagation(); }
+  });
+})();
