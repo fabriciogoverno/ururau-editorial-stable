@@ -2004,7 +2004,7 @@ document.addEventListener("click", (e) => {
 //   1) _carregar_config_ia_bootstrap()  - le /api/diag e popula _iaCfg
 //      (rehabilita Redigir/Copydesk).
 //   2) carregarFila()                   - primeira renderizacao da fila.
-//   3) carregarEstatisticas()           - painel direito.
+//   3) carregarStats()           - painel direito.
 //   4) setInterval refresh fila         - a cada 30s.
 //
 // CHAMADAS DEFENSIVAS: tudo dentro de try/catch, se uma falhar nao
@@ -2029,13 +2029,13 @@ function _bootstrap_v200_31() {
   // 2) Fila inicial
   try { carregarFila(); } catch (e) {}
   // 3) Estatisticas
-  try { if (typeof carregarEstatisticas === "function") carregarEstatisticas(); } catch (e) {}
+  try { if (typeof carregarStats === "function") carregarStats(); } catch (e) {}
   // 4) Auto-refresh da fila a cada 30s
   try {
     if (!window._autoRefreshFilaTimer) {
       window._autoRefreshFilaTimer = setInterval(() => {
         try { carregarFila(); } catch (e) {}
-        try { if (typeof carregarEstatisticas === "function") carregarEstatisticas(); } catch (e) {}
+        try { if (typeof carregarStats === "function") carregarStats(); } catch (e) {}
       }, 30000);
     }
   } catch (e) {}
