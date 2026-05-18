@@ -139,7 +139,11 @@ def _data_publicacao_iso(p: dict[str, Any]) -> str:
 
 
 def _selecionar_candidatas(db) -> list[dict[str, Any]]:
-    """Retorna pautas TXT... dentro da janela de 8h, priorizando 4h."""
+    """Retorna pautas TXT... dentro da janela de 8h, priorizando 4h.
+
+    V200_33: tambem retorna pautas que JA tem texto OK mas falta imagem,
+    para que o hidratador resolva o og:image em ciclo separado.
+    """
     try:
         pautas = db.query_fila_ativa(incluir_baixo_score=False, limite=200)
     except Exception as e:
@@ -150,18 +154,23 @@ def _selecionar_candidatas(db) -> list[dict[str, Any]]:
     janela_prio = agora - timedelta(hours=JANELA_PRIORIDADE_H)
     candidatas: list[tuple[int, dict]] = []
     for p in pautas:
-        # Já tem texto suficiente? pula
-        if _texto_chars(p) >= TEXTO_MIN_CHARS and _imagem_ok(p):
+        tem_texto = _texto_chars(p) >= TEXTO_MIN_CHARS
+        tem_imagem = _imagem_ok(p)
+        # Ja tem texto suficiente E imagem? pula
+        if tem_texto and tem_imagem:
             continue
         # Tem link real?
         if not _link_pauta(p):
             continue
-        # Já tentou hidratar e falhou recentemente? pula por 1h
+        # V200_33: quarentena diferenciada
+        #  - falha completa (sem texto e sem imagem): 1h
+        #  - so falta imagem (texto ja OK): 30min (mais frequente)
         ult_tentativa = p.get("_hidratador_bg_tentado_em") or ""
         if ult_tentativa:
             try:
                 dt = datetime.fromisoformat(ult_tentativa[:19])
-                if (agora - dt) < timedelta(hours=1):
+                quarentena = timedelta(minutes=30) if tem_texto else timedelta(hours=1)
+                if (agora - dt) < quarentena:
                     continue
             except Exception:
                 pass
@@ -202,17 +211,114 @@ def _iso_to_ts(s: str) -> float:
         return 0.0
 
 
+def _resolver_link_real(url: str, titulo: str, fonte: str) -> str:
+    """V200_33: resolve URL do Google News para a URL real da fonte
+    (g1, folha, etc.) ANTES de tentar extrair. Se nao for Google News
+    ou nao conseguir resolver, retorna a URL original.
+    """
+    if not url:
+        return url
+    try:
+        if "news.google.com" not in url.lower():
+            return url
+        from ururau.coleta.link_resolver_v90 import resolver_url_final_v90
+        r = resolver_url_final_v90(url, titulo or "", fonte or "")
+        if r and r.get("ok") and r.get("url_final"):
+            return str(r["url_final"]).strip()
+    except Exception as e:
+        logger.debug("%s resolve_link falhou url=%s: %s", PREFIX, url[:80], e)
+    return url
+
+
+def _extrair_og_image_leve(url: str, timeout: int = 8) -> str:
+    """V200_33: GET leve + parse de og:image. Usado quando ja temos
+    texto OK mas falta imagem. Nao requer JS, so o HTML inicial.
+    """
+    if not url or not url.startswith(("http://", "https://")):
+        return ""
+    try:
+        import re
+        import requests
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.5",
+        }
+        resp = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+        if resp.status_code != 200:
+            return ""
+        # Limita o trecho analisado pra nao gastar muito (head do HTML basta)
+        html = resp.text[:120_000]
+        # Procura og:image / twitter:image / link rel="image_src"
+        padroes = [
+            r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
+            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']',
+            r'<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']',
+            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+name=["\']twitter:image["\']',
+            r'<link[^>]+rel=["\']image_src["\'][^>]+href=["\']([^"\']+)["\']',
+        ]
+        for pat in padroes:
+            m = re.search(pat, html, flags=re.IGNORECASE)
+            if m:
+                src = m.group(1).strip()
+                if src.startswith("//"):
+                    src = "https:" + src
+                elif src.startswith("/"):
+                    from urllib.parse import urlparse
+                    pu = urlparse(url)
+                    src = f"{pu.scheme}://{pu.netloc}{src}"
+                if src.startswith(("http://", "https://")):
+                    return src
+    except Exception as e:
+        logger.debug("%s og_image leve falhou url=%s: %s", PREFIX, url[:80], e)
+    return ""
+
+
 def _hidratar_pauta(p: dict[str, Any]) -> dict[str, Any]:
     """Extrai texto + imagem da pauta usando o mesmo pipeline da on-demand.
 
-    Retorna dict: {ok: bool, texto, imagem_url, metodo, motivo}
+    V200_33:
+      - Resolve URL do Google News antes (para ter URL real da fonte).
+      - Se ja tem texto OK e so falta imagem, pula extracao de texto
+        e busca apenas og:image (modo rapido/leve).
+
+    Retorna dict: {ok, texto, imagem_url, metodo, motivo, url_resolvida}
     """
-    url = _link_pauta(p)
-    if not url:
+    url_original = _link_pauta(p)
+    if not url_original:
         return {"ok": False, "motivo": "sem_url"}
 
     titulo = str(p.get("titulo_origem") or p.get("titulo") or "")
+    fonte = str(p.get("fonte_nome") or p.get("fonte") or "")
 
+    # V200_33: resolve Google News -> URL real
+    url = _resolver_link_real(url_original, titulo, fonte)
+    url_resolvida = url if url != url_original else ""
+
+    ja_tem_texto = _texto_chars(p) >= TEXTO_MIN_CHARS
+    ja_tem_imagem = _imagem_ok(p)
+
+    # MODO IMAGEM-ONLY: ja tem texto, so falta a imagem
+    if ja_tem_texto and not ja_tem_imagem:
+        img = _extrair_og_image_leve(url, timeout=TIMEOUT_PAUTA)
+        if img:
+            return {
+                "ok": True,
+                "texto": "",  # nao sobrescreve texto existente
+                "imagem_url": img,
+                "metodo": "og_image_leve",
+                "motivo": "so_imagem",
+                "url_resolvida": url_resolvida,
+            }
+        # nao achou imagem, marca tentativa e retorna falha leve
+        return {"ok": False, "motivo": "og_image_nao_encontrada",
+                "url_resolvida": url_resolvida}
+
+    # MODO COMPLETO: precisa de texto (e imagem se possivel)
     # ESCADA 1: pipeline_v90 (adapters + trafilatura + Jina interno)
     try:
         from ururau.coleta.extract_pipeline_v90 import extrair_materia_v90
@@ -231,12 +337,16 @@ def _hidratar_pauta(p: dict[str, Any]) -> dict[str, Any]:
                 str(r.get("imagem") or "").strip()
                 or str(r.get("og_image") or "").strip()
             )
+            # V200_33: se nao trouxe imagem, tenta og:image leve
+            if not imagem:
+                imagem = _extrair_og_image_leve(url, timeout=TIMEOUT_PAUTA)
             return {
                 "ok": True,
                 "texto": texto,
                 "imagem_url": imagem,
                 "metodo": "pipeline_v90:" + str(r.get("metodo") or ""),
                 "motivo": "ok",
+                "url_resolvida": url_resolvida,
             }
     except Exception as e:
         logger.debug("%s pipeline_v90 falhou uid=%s: %s",
@@ -249,16 +359,20 @@ def _hidratar_pauta(p: dict[str, Any]) -> dict[str, Any]:
         if r.get("ok"):
             texto = (r.get("texto") or "").strip()
             if len(texto) >= TEXTO_MIN_CHARS:
+                # V200_33: Jina nao traz imagem, mas tentamos og:image leve
+                imagem = _extrair_og_image_leve(url, timeout=TIMEOUT_PAUTA)
                 return {
                     "ok": True, "texto": texto,
-                    "imagem_url": "",
+                    "imagem_url": imagem,
                     "metodo": "jina_bg",
                     "motivo": r.get("motivo") or "ok",
+                    "url_resolvida": url_resolvida,
                 }
     except Exception as e:
         logger.debug("%s jina falhou uid=%s: %s", PREFIX, p.get("uid"), e)
 
-    return {"ok": False, "motivo": "todos_metodos_falharam"}
+    return {"ok": False, "motivo": "todos_metodos_falharam",
+            "url_resolvida": url_resolvida}
 
 
 def _persistir(db, p: dict[str, Any], resultado: dict[str, Any]) -> None:
@@ -272,16 +386,21 @@ def _persistir(db, p: dict[str, Any], resultado: dict[str, Any]) -> None:
     extra.pop("_uid", None)
 
     if resultado.get("ok"):
-        extra["cleaned_source_text"] = resultado["texto"]
-        extra["fonte_status"] = "ok"
-        extra["status_fonte_v105"] = "ok"
-        extra["fonte_chars_v105"] = len(resultado["texto"])
-        extra["texto_fonte_chars"] = len(resultado["texto"])
+        # V200_33: modo so_imagem nao sobrescreve texto existente
+        if resultado.get("motivo") != "so_imagem" and resultado.get("texto"):
+            extra["cleaned_source_text"] = resultado["texto"]
+            extra["fonte_status"] = "ok"
+            extra["status_fonte_v105"] = "ok"
+            extra["fonte_chars_v105"] = len(resultado["texto"])
+            extra["texto_fonte_chars"] = len(resultado["texto"])
         extra["hidratacao_on_demand"] = resultado.get("metodo") or "hidratador_bg"
         extra["hidratado_em"] = datetime.now().isoformat(timespec="seconds")
         extra["_hidratador_bg_tentado_em"] = extra["hidratado_em"]
         if resultado.get("imagem_url"):
             extra["imagem_url"] = resultado["imagem_url"]
+        # V200_33: persiste URL resolvida para futuras hidratacoes
+        if resultado.get("url_resolvida"):
+            extra["link_origem_resolvido"] = resultado["url_resolvida"]
     else:
         # Marca tentativa pra não martelar a mesma pauta em loop
         extra["_hidratador_bg_tentado_em"] = datetime.now().isoformat(
