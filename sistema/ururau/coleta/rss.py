@@ -696,6 +696,34 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
         if not url_feed:
             continue
 
+        # V200_50: tipo_coleta=homepage_scraping_v200 -> scraper especifico por
+        # dominio (folha1.com.br, campos24horas.com.br) que extrai links de
+        # materia direto do HTML da homepage com regex/seletor especifico.
+        # Mais robusto que Jina Reader (que tem 402 Payment Required).
+        if fonte.get("tipo_coleta") == "homepage_scraping_v200":
+            try:
+                from ururau.coleta.homepage_scraper_regional_v200 import scrape_fonte_regional
+                itens = scrape_fonte_regional(url_feed)
+                from datetime import datetime as _dt
+                for it in itens:
+                    pauta = {
+                        "titulo": it["titulo"],
+                        "link": it["link"],
+                        "fonte_nome": nome_fonte,
+                        "canal_forcado": canal,
+                        "resumo_origem": it.get("resumo", "")[:600],
+                        "cleaned_source_text": "",
+                        "captada_em": _dt.now().isoformat(timespec="seconds"),
+                        "data_pub": it.get("published", ""),
+                        "uid_origem": "",
+                        "tipo_origem_v1157": "homepage_scraping_v200",
+                    }
+                    pautas.append(pauta)
+                print(f"[RSS][HOMEPAGE_V200_50] {nome_fonte}: {len(itens)} URLs extraidas")
+            except Exception as _e_hs:
+                print(f"[RSS][HOMEPAGE_V200_50] {nome_fonte} falhou: {_e_hs}")
+            continue  # ja processou, nao tenta feedparser
+
         # v1.15.7: tipo_coleta=jina_home -> usa coletor proprio via Jina Reader
         # Para sites SEM RSS funcional (NF Noticias, Portal OZK, etc.).
         # Baixa a home, extrai links de materias, hidrata cada uma via Jina.

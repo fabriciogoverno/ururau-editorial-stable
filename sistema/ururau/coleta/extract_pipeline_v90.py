@@ -1495,9 +1495,19 @@ def extrair_materia_v90(
     try:
         _dom_lower = (dominio or "").lower()
         _isolou = False
+        # V200_50: tabela de seletores por dominio para isolamento agressivo
+        _seletor_corpo = None
+        _tipo_quebra_div = False  # se True, quebra <div>s internos em <p>s
         if "campos.rj.gov.br" in _dom_lower:
-            # campos.rj.gov.br: corpo esta em div.imateria
-            _alvo = soup.select_one("div.imateria") or soup.select_one(".imateria")
+            _seletor_corpo = "div.imateria"
+            _tipo_quebra_div = True  # HTML mal formado <p><div></div></p>
+        elif "folha1.com.br" in _dom_lower:
+            _seletor_corpo = "div.materia-corpo"
+        elif "campos24horas.com.br" in _dom_lower:
+            _seletor_corpo = "div.conteudoNoticia"
+
+        if _seletor_corpo:
+            _alvo = soup.select_one(_seletor_corpo)
             if _alvo:
                 # Captura tambem o titulo (h1) e a imagem destacada antes de isolar
                 _titulo_el = soup.select_one("h1") or soup.select_one("h2")
@@ -1519,15 +1529,31 @@ def extrair_materia_v90(
                     _body.append(_titulo_el.extract())
                 if _img_el:
                     _body.append(_img_el.extract())
-                # V200_47: HTML da prefeitura tem <p class="materia"><div>p1</div>
-                # <div>p2</div></p> - BS conta como 1 paragrafo so. Extrai cada
-                # <div> de dentro e cria <p> separados (HTML valido). Assim o
-                # criterio_aceite_v90 conta multiplos paragrafos uteis.
+                # V200_47/V200_50: HTML mal formado (caso campos.rj.gov.br)
+                # tem <p><div>p1</div><div>p2</div></p>. BS conta 1 paragrafo.
+                # Quando _tipo_quebra_div=True, extrai cada <div> e cria <p>
+                # separado. Para outros dominios (folha1, campos24h), so usa
+                # o conteudo do seletor sem quebrar.
                 _paragrafos_textos: list[str] = []
-                for _d in _alvo.find_all("div"):
-                    _t = _d.get_text(" ", strip=True)
-                    if _t and len(_t) > 10:
-                        _paragrafos_textos.append(_t)
+                if _tipo_quebra_div:
+                    for _d in _alvo.find_all("div"):
+                        _t = _d.get_text(" ", strip=True)
+                        if _t and len(_t) > 10:
+                            _paragrafos_textos.append(_t)
+                else:
+                    # Pega <p>s direto, ou se nao tiver, divide o texto em paragrafos
+                    _ps = _alvo.find_all("p")
+                    if _ps:
+                        for _p in _ps:
+                            _t = _p.get_text(" ", strip=True)
+                            if _t and len(_t) > 10:
+                                _paragrafos_textos.append(_t)
+                    else:
+                        _texto_full = _alvo.get_text(separator="\n", strip=True)
+                        for _linha in _texto_full.split("\n"):
+                            _linha = _linha.strip()
+                            if _linha and len(_linha) > 30:
+                                _paragrafos_textos.append(_linha)
                 if _paragrafos_textos:
                     # Cria <p>s separados em vez de manter <p><div>s</div></p>
                     _container = _novo.new_tag("article")
@@ -1547,7 +1573,8 @@ def extrair_materia_v90(
                 soup = _novo
                 html = str(soup)
                 _isolou = True
-                logger.info("%s V200_43 ISOLOU corpo (div.imateria) em campos.rj.gov.br", PREFIX)
+                logger.info("%s V200_43/V200_50 ISOLOU corpo (%s) em %s",
+                            PREFIX, _seletor_corpo, _dom_lower)
         if _isolou:
             pass  # ja isolou, pula pre-limpeza padrao
         _seletores_remover: list[str] = []
