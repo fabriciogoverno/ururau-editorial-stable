@@ -1496,18 +1496,37 @@ def extrair_materia_v90(
         _dom_lower = (dominio or "").lower()
         _seletores_remover: list[str] = []
         if "campos.rj.gov.br" in _dom_lower:
-            # Listagem lateral "Mais noticias" + tabs + lista no rodape da materia
+            # V200_42: estrutura REAL inspecionada no HTML
+            # - ul.ul-noticias-detail: lista lateral com <a.link-noticia-list-detail>
+            # - div.box-mais-noticias: bloco "Mais noticias" com tabs
+            # - #mais-noticias / #mais-lidas: tab panes
+            # - a.item-mais-lida: cards de "mais lidas"
+            # - p.data-mais-lida, span.data-text, span.data-date: textos dos cards
             _seletores_remover = [
-                "div.box-mais-noticias",
+                # Lista lateral de notícias
                 "ul.ul-noticias-detail",
-                "ul.nav-tabs.mais-noticias-tabs",
-                "div.mais-noticias",
-                "div.nav.nav-tabs",
-                "div.tab-content",  # tabs internas com listas de mais noticias
+                "a.link-noticia-list-detail",
+                # Bloco "Mais notícias" no rodapé
+                "div.box-mais-noticias",
+                "#mais-noticias",
+                "#mais-lidas",
+                "div.tab-pane",            # qualquer painel de tab
+                "ul.nav-tabs",             # navegação por tabs
+                "ul.mais-noticias-tabs",
+                # Cards individuais (defensivo)
+                "a.item-mais-lida",
+                "p.data-mais-lida",
+                "span.info-data",
+                # Botões sociais
                 "div.box-fluid-midia-social",
                 "div.box-icons-media",
                 "div.bg-fluid-midia-social",
                 "div.addthis_toolbox",
+                # Header / navegação geral
+                "nav.navbar",
+                "header",
+                "footer",
+                "div.container-fluid > nav",
             ]
         if _seletores_remover:
             _removidos = 0
