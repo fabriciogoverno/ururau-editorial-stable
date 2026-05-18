@@ -22,11 +22,33 @@ LIXO = [
     "newsletter", "cookies", "todos os direitos reservados",
 ]
 
-FRASES_PROIBIDAS = [
+# V200_63 (Fase 4): FRASES_PROIBIDAS agora consulta a matriz central
+# (sistema/config/regras_editoriais.json via regras_editoriais.py).
+# A lista hardcoded vira fallback minimo caso a matriz nao carregue.
+_FRASES_PROIBIDAS_FALLBACK = [
     "fique atento", "confira todos os detalhes", "acende o alerta",
     "cabe ressaltar", "vale lembrar", "nesse contexto",
     "é importante destacar", "e importante destacar",
 ]
+
+def _carregar_frases_proibidas() -> list[str]:
+    """Carrega da matriz central + une com fallback (dedup)."""
+    base = list(_FRASES_PROIBIDAS_FALLBACK)
+    try:
+        from ururau.editorial.regras_editoriais import obter_termos_ia_proibidos
+        termos = obter_termos_ia_proibidos() or []
+        # merge dedupado preservando ordem
+        seen = {t.lower() for t in base}
+        for t in termos:
+            kt = str(t or "").strip()
+            if kt and kt.lower() not in seen:
+                base.append(kt)
+                seen.add(kt.lower())
+    except Exception:
+        pass
+    return base
+
+FRASES_PROIBIDAS = _carregar_frases_proibidas()
 
 STOP_SLUG = {"do", "da", "de", "dos", "das", "em", "no", "na", "nos", "nas", "a", "o", "e", "para", "com", "por"}
 
