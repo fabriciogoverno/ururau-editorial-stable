@@ -847,10 +847,12 @@ def coletar_rss(fontes_config: list[dict], incluir_oficiais: bool = True) -> lis
                         motivos_filtro[motivo_janela] = motivos_filtro.get(motivo_janela, 0) + 1
                     except NameError:
                         pass
-                    # v123: se uma fonte não tiver nada dentro da janela,
-                    # guardamos o item mais recente dela para entrar como exceção operacional.
+                    # v123: exceção operacional DESATIVADA por padrão em V200_54.
+                    # Antes deixava entrar 1 matéria fora da janela quando a fonte
+                    # nao tinha nada dentro - resultava em pautas de dias/anos atras.
+                    # Para reativar (NAO recomendado): URURAU_RSS_COLETAR_1_FORA_JANELA=1
                     try:
-                        permitir_excecao_v123 = os.getenv("URURAU_RSS_COLETAR_1_FORA_JANELA", "1").strip().lower() not in {"0", "false", "nao", "não", "off"}
+                        permitir_excecao_v123 = os.getenv("URURAU_RSS_COLETAR_1_FORA_JANELA", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}
                         if permitir_excecao_v123 and fallback_fora_janela_v123 is None and dt is not None:
                             fallback_fora_janela_v123 = (entry, titulo, link, resumo, campos_data, data_pub, idade_horas, motivo_janela)
                     except Exception:
@@ -1090,10 +1092,12 @@ def coletar_google_news(
                         motivos_filtro[motivo_janela] = motivos_filtro.get(motivo_janela, 0) + 1
                     except NameError:
                         pass
-                    # v123: se uma fonte não tiver nada dentro da janela,
-                    # guardamos o item mais recente dela para entrar como exceção operacional.
+                    # v123: exceção operacional DESATIVADA por padrão em V200_54.
+                    # Antes deixava entrar 1 matéria fora da janela quando a fonte
+                    # nao tinha nada dentro - resultava em pautas de dias/anos atras.
+                    # Para reativar (NAO recomendado): URURAU_RSS_COLETAR_1_FORA_JANELA=1
                     try:
-                        permitir_excecao_v123 = os.getenv("URURAU_RSS_COLETAR_1_FORA_JANELA", "1").strip().lower() not in {"0", "false", "nao", "não", "off"}
+                        permitir_excecao_v123 = os.getenv("URURAU_RSS_COLETAR_1_FORA_JANELA", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}
                         if permitir_excecao_v123 and fallback_fora_janela_v123 is None and dt is not None:
                             fallback_fora_janela_v123 = (entry, titulo, link, resumo, campos_data, data_pub, idade_horas, motivo_janela)
                     except Exception:

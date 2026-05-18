@@ -11,6 +11,7 @@ v41+ — sistema de bloqueio permanente por link:
 """
 from __future__ import annotations
 import json
+import os
 import sqlite3
 import threading
 import time
@@ -455,6 +456,68 @@ class Database:
     # ── Pautas ────────────────────────────────────────────────────────────────
 
     def salvar_pauta(self, pauta: dict) -> str:
+        # V200_54: barreira DURA de 8h - rejeita pauta com data > 8h OU sem data.
+        # Cobre qualquer caminho de coleta (RSS, Google News, scraping, jina, etc.).
+        # Configuravel via URURAU_JANELA_DURA_HORAS (default 8). Desativa com 0.
+        try:
+            _hmax = int(os.environ.get("URURAU_JANELA_DURA_HORAS", "8"))
+            if _hmax > 0:
+                _data_pub = (
+                    pauta.get("data_pub_fonte")
+                    or pauta.get("data_fonte")
+                    or pauta.get("published_iso")
+                    or pauta.get("published")
+                    or pauta.get("pub_date")
+                    or pauta.get("data_publicacao")
+                    or ""
+                )
+                _dt_pub = None
+                if _data_pub:
+                    _s = str(_data_pub).strip()
+                    # ISO
+                    try:
+                        _dt_pub = datetime.fromisoformat(_s.replace("T", " ")[:19])
+                    except Exception:
+                        pass
+                    # dd/mm/aaaa HH:MM
+                    if _dt_pub is None:
+                        try:
+                            _dt_pub = datetime.strptime(_s[:16], "%d/%m/%Y %H:%M")
+                        except Exception:
+                            pass
+                    # RFC822
+                    if _dt_pub is None:
+                        try:
+                            from email.utils import parsedate_to_datetime
+                            _dt_pub = parsedate_to_datetime(_s).replace(tzinfo=None)
+                        except Exception:
+                            pass
+                # Se foi marcada como sem_data assumida, REJEITA tambem
+                _sem_data_assumida = bool(
+                    pauta.get("_sem_data_publicacao_assumida_v2004")
+                    or pauta.get("data_pub_metodo_v99") == "sem_data_assumida_captura_v2004"
+                )
+                if _sem_data_assumida:
+                    print(f"[DB][V200_54] REJEITADO sem data: {(pauta.get('titulo_origem') or '')[:80]}")
+                    return ""
+                if _dt_pub is None and _data_pub:
+                    # Tem string de data mas nao parseou - rejeita por seguranca
+                    print(f"[DB][V200_54] REJEITADO data nao parseavel: {_data_pub[:30]} | {(pauta.get('titulo_origem') or '')[:60]}")
+                    return ""
+                if _dt_pub is not None:
+                    _agora_dt = datetime.now()
+                    _idade_h = (_agora_dt - _dt_pub).total_seconds() / 3600.0
+                    if _idade_h > _hmax:
+                        print(f"[DB][V200_54] REJEITADO {_idade_h:.1f}h>{_hmax}h: {(pauta.get('titulo_origem') or '')[:80]}")
+                        return ""
+                # Sem data nenhuma -> rejeita (nao da pra validar)
+                if _dt_pub is None and not _data_pub:
+                    print(f"[DB][V200_54] REJEITADO sem data_pub_fonte: {(pauta.get('titulo_origem') or '')[:80]}")
+                    return ""
+        except Exception as _e_janela:
+            # Se filtro de janela quebrar, NAO bloqueia a pauta (modo defensivo)
+            print(f"[DB][V200_54] filtro janela falhou (deixou passar): {_e_janela}")
+
         uid = pauta.get("_uid") or self._uid_para_pauta(
             pauta.get("link_origem", ""), pauta.get("titulo_origem", "")
         )
