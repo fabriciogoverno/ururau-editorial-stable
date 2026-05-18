@@ -174,6 +174,15 @@ def handler_redigir(db, uid: str, body: dict):
                 core._job_fim(uid, "redigir", "erro", "etapa_redacao nao retornou materia")
                 return
             materia = wf.etapa_pacote_editorial(uid_eff, materia)
+            # V200_60: validador pos-GPT centralizado (OPT-IN via env
+            # URURAU_USAR_VALIDADOR_V200=1). Roda 10 etapas do spec sec.48
+            # e acumula motivos em materia.auditoria_erros. Nao bloqueia
+            # se env desativado (default).
+            try:
+                if hasattr(wf, "etapa_validar_pos_gpt_v200"):
+                    wf.etapa_validar_pos_gpt_v200(uid_eff, pauta, materia)
+            except Exception as _e_val:
+                core._log("[V200_60] validador pos-gpt erro nao critico: " + str(_e_val))
             wf.etapa_verificacao_risco(uid_eff, pauta, materia)
             wf.etapa_persistir_materia(uid_eff, pauta, materia)
             modo_ia = getattr(materia, "modo_geracao", "") or "sem_telemetria_ia"

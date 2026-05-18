@@ -671,6 +671,10 @@ class WorkflowPublicacao:
                     aplicar_metricas_seo_google,
                 )
                 md_dict = materia.to_dict() if hasattr(materia, "to_dict") else dict(materia)
+                md_dict["_veiculo_origem_para_remover"] = (
+                    pauta.get("fonte_nome") or pauta.get("nome_fonte") or pauta.get("fonte") or ""
+                )
+                md_dict["link_da_fonte"] = md_dict.get("link_da_fonte") or pauta.get("link_origem") or ""
                 fonte_text = (pauta.get("cleaned_source_text")
                               or pauta.get("texto_fonte_v134")
                               or pauta.get("texto_fonte") or "")
@@ -807,6 +811,10 @@ class WorkflowPublicacao:
             )
             md["cleaned_source_text"] = str(fonte or "")
             md["raw_source_text"] = pauta.get("raw_source_text") or str(fonte or "")
+            md["_veiculo_origem_para_remover"] = (
+                pauta.get("fonte_nome") or pauta.get("nome_fonte") or md.get("nome_da_fonte") or md.get("fonte") or ""
+            )
+            md["link_da_fonte"] = md.get("link_da_fonte") or pauta.get("link_origem") or ""
 
             mapa = md.get("mapa_evidencias") or {}
             canal = md.get("canal") or pauta.get("canal_forcado") or pauta.get("canal") or "Brasil e Mundo"
@@ -1012,6 +1020,78 @@ class WorkflowPublicacao:
             self._log(uid, "quality_gate_v103", f"FAIL-CLOSED: {e}", sucesso=False)
             pauta["_forcar_rascunho_v82"] = True
             pauta.setdefault("_motivos_rascunho_v82", []).append(f"quality_gate_v103 falhou: {e}")
+            return True
+
+    def etapa_validar_pos_gpt_v200(self, uid: str, pauta: dict, materia: Materia) -> bool:
+        """V200_55-fase3 (V200_60): aplica validador pos-GPT centralizado.
+
+        Roda apos etapa_pacote_editorial. Adiciona motivos_bloqueio e alertas
+        em materia.auditoria_erros. Se BLOQUEADO, seta auditoria_bloqueada=True.
+
+        OPT-IN via env URURAU_USAR_VALIDADOR_V200=1 (default desligado para
+        nao quebrar fluxo atual). Quando habilitado, atua como gate extra
+        ANTES da auditoria_factual_v81 e risco.
+
+        Returns True se passou ou se gate desativado, False se BLOQUEADO.
+        """
+        import os as _os_v200_60
+        ativo = _os_v200_60.getenv("URURAU_USAR_VALIDADOR_V200", "0").strip().lower() in {"1", "true", "sim", "yes", "s", "on"}
+        if not ativo:
+            return True
+        try:
+            from ururau.editorial.validador_pos_gpt_v200 import validar_pos_gpt
+            # Tenta extrair texto_fonte da pauta (passado adiante se precisar)
+            texto_fonte = ""
+            try:
+                texto_fonte = str(pauta.get("cleaned_source_text") or pauta.get("texto_fonte") or "")
+            except Exception:
+                texto_fonte = ""
+            r = validar_pos_gpt(materia, texto_fonte)
+            status = r.get("status", "APROVADO")
+            motivos = r.get("motivos_bloqueio", []) or []
+            alertas = r.get("alertas", []) or []
+            score = r.get("score_final", 100)
+            etapas = r.get("etapas_executadas", []) or []
+            etapa_bloq = r.get("etapa_que_bloqueou", "")
+            # Loga
+            self._log(uid, "validador_pos_gpt_v200",
+                      f"status={status} score={score} etapas={len(etapas)} bloqueio_em={etapa_bloq!r}",
+                      sucesso=(status != "BLOQUEADO"))
+            # Acumula em materia.auditoria_erros
+            try:
+                existentes = list(getattr(materia, "auditoria_erros", []) or [])
+                for m in motivos:
+                    existentes.append(f"validador_v200: {m}")
+                for a in alertas:
+                    existentes.append(f"alerta_v200: {a}")
+                materia.auditoria_erros = existentes
+            except Exception:
+                pass
+            # Setar flags conforme status
+            if status == "BLOQUEADO":
+                try:
+                    materia.auditoria_bloqueada = True
+                    materia.revisao_humana_necessaria = True
+                    materia.status_publicacao_sugerido = "bloquear"
+                except Exception:
+                    pass
+                pauta["_forcar_rascunho_v82"] = True
+                pauta.setdefault("_motivos_rascunho_v82", []).extend(motivos[:5])
+                return False
+            elif status == "RASCUNHO":
+                try:
+                    materia.revisao_humana_necessaria = True
+                    materia.status_publicacao_sugerido = "salvar_rascunho"
+                except Exception:
+                    pass
+                pauta["_forcar_rascunho_v82"] = True
+                pauta.setdefault("_motivos_rascunho_v82", []).extend(motivos[:5])
+                return True  # nao bloqueia totalmente
+            return True
+        except Exception as e:
+            self._log(uid, "validador_pos_gpt_v200",
+                      f"FAIL-CLOSED: {e}", sucesso=False)
+            # Defensivo: erro no validador NAO derruba o fluxo
             return True
 
     def etapa_verificacao_risco(self, uid: str, pauta: dict, materia: Materia) -> bool:
@@ -1471,4 +1551,3 @@ except Exception as _e_v4729_fonte_validada:
         print(f"[V47.29][FONTE_VALIDADA][AVISO] patch nao aplicado: {_e_v4729_fonte_validada}")
     except Exception:
         pass
-
