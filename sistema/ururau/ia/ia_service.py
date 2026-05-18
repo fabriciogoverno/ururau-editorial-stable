@@ -142,20 +142,63 @@ def _build_prompt_sistema(regras_extras: list[str] | None = None,
                           pauta: dict | None = None,
                           fonte_texto: str = "",
                           editoria: str | None = None) -> str:
-    """Constroi prompt-sistema consolidado.
+    """V200_55 (Fase 2): unifica o prompt mestre numa unica fonte de verdade.
 
-    Se a linha editorial centralizada estiver disponivel
-    (ururau.editorial.linha_editorial_ururau.build_prompt_redigir), usa-a;
-    senao cai no prompt minimo legado (compativel com a branch anterior).
+    Ordem de prioridade:
+      1. linha_editorial_ururau.build_prompt_redigir(pauta, fonte, editoria)
+         - caminho canonico, usa SYSTEM_PROMPT_EDITORIAL_URURAU completo
+      2. editorial_policy.get_editorial_system_prompt()
+         - reexporta o SYSTEM_PROMPT_EDITORIAL_URURAU do agente canonico
+         - acopla matriz JSON via montar_bloco_prompt_editorial()
+      3. Prompt legado minimo (compatibilidade)
+
+    Loga qual versao foi usada para rastreabilidade.
     """
+    # ESCADA 1: linha editorial ururau (caminho preferido)
     try:
         from ururau.editorial.linha_editorial_ururau import build_prompt_redigir
         base = build_prompt_redigir(pauta or {}, fonte_texto or "", editoria)
-        if regras_extras:
-            base += "\n\nRegras adicionais:\n- " + "\n- ".join(regras_extras)
-        return base
-    except Exception:
-        pass
+        if base and len(base) > 500:  # sanidade: deve ser substancial
+            if regras_extras:
+                base += "\n\nRegras adicionais:\n- " + "\n- ".join(regras_extras)
+            try:
+                print(f"[IA][V200_55] prompt_sistema=linha_editorial_ururau ({len(base)} chars)")
+            except Exception:
+                pass
+            return base
+    except Exception as _e_lin:
+        try:
+            print(f"[IA][V200_55] linha_editorial_ururau indisponivel: {_e_lin}")
+        except Exception:
+            pass
+
+    # ESCADA 2: editorial_policy + matriz JSON acoplada
+    try:
+        from ururau.editorial.editorial_policy import get_editorial_system_prompt
+        sys_prompt = get_editorial_system_prompt() or ""
+        if sys_prompt and len(sys_prompt) > 500:
+            # Anexa o bloco da matriz central com limites e termos proibidos
+            try:
+                from ururau.editorial.regras_editoriais import montar_bloco_prompt_editorial
+                bloco_matriz = montar_bloco_prompt_editorial()
+                if bloco_matriz:
+                    sys_prompt = sys_prompt.rstrip() + "\n\n" + bloco_matriz
+            except Exception:
+                pass
+            if regras_extras:
+                sys_prompt += "\n\nRegras adicionais:\n- " + "\n- ".join(regras_extras)
+            try:
+                print(f"[IA][V200_55] prompt_sistema=editorial_policy ({len(sys_prompt)} chars)")
+            except Exception:
+                pass
+            return sys_prompt
+    except Exception as _e_ep:
+        try:
+            print(f"[IA][V200_55] editorial_policy indisponivel: {_e_ep}")
+        except Exception:
+            pass
+
+    # ESCADA 3: fallback legado minimo (compat com versoes antigas)
     base = (
         "Voce e o redator-chefe do portal jornalistico Ururau. "
         "Receba o texto integral da fonte e produza materia em portugues do Brasil. "
@@ -174,13 +217,22 @@ def _build_prompt_sistema(regras_extras: list[str] | None = None,
         "  retranca 1-3 palavras. tags separadas por virgula sem hashtag.\n"
         "- corpo_materia: minimo 4 paragrafos quando ha informacao suficiente; "
         "  cada paragrafo ate 650 caracteres; sem travessao no corpo.\n"
+        "- Para fonte longa, use corpo proporcional: 5+ paragrafos acima de 1.400 chars, "
+        "6+ acima de 2.600 chars e 7+ acima de 4.200 chars, sem encher com frases vazias.\n"
         "- Abertura direta com o fato principal. Hierarquia jornalistica. "
         "  Sem tom de release, sem linguagem infantil.\n"
         "- Reorganizar os fatos, nao parafrasear linha a linha.\n"
+        "- Nao cite no corpo o veiculo de origem que apurou/publicou a materia. "
+        "Use o campo fonte/link para credito e atribua no texto a autoridade, documento, empresa, defesa ou orgao citado na fonte.\n"
+        "- Nao repetir formula fixa entre materias. A estrutura deve nascer dos fatos concretos da fonte.\n"
         "- Termos proibidos serao bloqueados em pos-processamento; evite-os.\n"
     )
     if regras_extras:
         base += "\nRegras adicionais:\n- " + "\n- ".join(regras_extras)
+    try:
+        print(f"[IA][V200_55] prompt_sistema=fallback_legado ({len(base)} chars) - matriz central indisponivel")
+    except Exception:
+        pass
     return base
 
 
@@ -318,7 +370,12 @@ def executar_ia_redigir(pauta: dict, texto_fonte: str,
                 aplicar_metricas_seo_google,
             )
             pp = aplicar_metricas_seo_google(
-                res["conteudo"], fonte_texto=texto_fonte or "",
+                {
+                    **res["conteudo"],
+                    "_veiculo_origem_para_remover": (pauta or {}).get("fonte_nome") or "",
+                    "link_da_fonte": (pauta or {}).get("link_origem") or "",
+                },
+                fonte_texto=texto_fonte or "",
                 palavra_chave="",
             )
             res["conteudo"] = pp["pacote"]
