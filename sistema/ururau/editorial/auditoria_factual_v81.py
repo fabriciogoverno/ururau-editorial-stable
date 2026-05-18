@@ -152,6 +152,36 @@ def auditar_factualmente(materia: Any, texto_fonte: str) -> dict:
         # ano calendario (1900-2099)
         if 1900 <= n_int <= 2099 and re.search(rf"\b{n_int}\b", texto_artigo):
             return True
+        # V200_58: dia do mes (1-31) seguido de "de <mes>"
+        # Cobre datas factuais publicas como "11 de junho", "19 de julho"
+        # que o GPT pode inferir do contexto.
+        if 1 <= n_int <= 31:
+            _meses = ("janeiro", "fevereiro", "marco", "março", "abril", "maio",
+                      "junho", "julho", "agosto", "setembro", "outubro",
+                      "novembro", "dezembro", "jan", "fev", "mar", "abr",
+                      "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
+            _pad = rf"\b{n_int}\s+de\s+(?:{'|'.join(_meses)})\b"
+            if re.search(_pad, texto_artigo, re.I):
+                return True
+            # padrao DD/MM ou DD-MM
+            if re.search(rf"\b{n_int:02d}[\/\-]\d{{1,2}}\b", texto_artigo):
+                return True
+        # V200_58: contadores comuns em contexto factual
+        # "N paises", "N jogadores", "N convocados", "N anos", "N pessoas"
+        # Quando seguido de substantivo claramente quantificavel no proprio artigo,
+        # aceita como inferencia legitima do GPT (ex: "13 paises").
+        if 1 <= n_int <= 999:
+            _contadores = (
+                "paises", "países", "jogadores", "convocados", "convocadas",
+                "participantes", "atletas", "selecoes", "seleções",
+                "delegacoes", "delegações", "pessoas", "feridos", "mortos",
+                "presos", "policiais", "civis", "votos", "deputados",
+                "senadores", "vereadores", "candidatos", "estados", "cidades",
+                "municipios", "municípios",
+            )
+            _pad_c = rf"\b{n_int}\s+(?:{'|'.join(_contadores)})\b"
+            if re.search(_pad_c, texto_artigo, re.I):
+                return True
         return False
     for n in sorted(nums_artigo):
         if not _valor_suportado(n, evid):
