@@ -417,13 +417,14 @@ def run_autopub_copydesk(
             "mensagem": "Corpo da materia ausente",
         })
 
-    # Cobertura baixa
-    if coverage and coverage.get("coverage_score", 1.0) < 0.90:
+    # Cobertura baixa - V200_64: limite vem da matriz central
+    _cov_mon_min = _carregar_limites_da_matriz_v200_64()["coverage_monitor_min"]
+    if coverage and coverage.get("coverage_score", 1.0) < _cov_mon_min:
         residuais.append({
             "categoria": "EDITORIAL_BLOCKER",
             "codigo": "low_source_coverage_monitor",
             "mensagem": (f"Coverage baixa para publicacao direta: "
-                          f"{coverage['coverage_score']:.2f} < 0.90"),
+                          f"{coverage['coverage_score']:.2f} < {_cov_mon_min}"),
         })
 
     # Travessao no corpo
@@ -483,17 +484,44 @@ def safe_can_publish(article: dict, modo: str = "panel") -> tuple[bool, str]:
             return True, ""
 
 
+def _carregar_limites_da_matriz_v200_64() -> dict:
+    """V200_64 (Fase 5): le os limites de publicacao da matriz central
+    (sistema/config/regras_editoriais.json). Fallback aos defaults do spec.
+    """
+    fallback = {
+        "score_qualidade_monitor_min": 92,
+        "score_qualidade_panel_min": 90,
+        "coverage_monitor_min": 0.90,
+        "coverage_panel_min": 0.85,
+        "score_risco_max": 10,
+    }
+    try:
+        from ururau.editorial.regras_editoriais import obter_matriz_editorial
+        m = obter_matriz_editorial() or {}
+        lc = dict(m.get("limites_campos") or {})
+        return {
+            "score_qualidade_monitor_min": int(lc.get("score_qualidade_monitor_min", fallback["score_qualidade_monitor_min"])),
+            "score_qualidade_panel_min":   int(lc.get("score_qualidade_panel_min",   fallback["score_qualidade_panel_min"])),
+            "coverage_monitor_min":        float(lc.get("coverage_monitor_min",      fallback["coverage_monitor_min"])),
+            "coverage_panel_min":          float(lc.get("coverage_panel_min",        fallback["coverage_panel_min"])),
+            "score_risco_max":             int(lc.get("score_risco_max",             fallback["score_risco_max"])),
+        }
+    except Exception:
+        return fallback
+
+
 def monitor_autopub_check(
     article: dict,
     essential_facts: Optional[dict] = None,
-    score_qualidade_min: int = 92,
-    coverage_min: float = 0.90,
-    score_risco_max: int = 10,
+    score_qualidade_min: Optional[int] = None,
+    coverage_min: Optional[float] = None,
+    score_risco_max: Optional[int] = None,
 ) -> tuple[bool, list[str]]:
     """
     Gate completo para publicacao DIRETA do monitor 24h.
 
-    Mais rigoroso que o gate do painel:
+    V200_64 (Fase 5): se nao passar parametros, le da matriz central
+    (regras_editoriais.json). Defaults se matriz falhar:
       - score_qualidade >= 92
       - coverage_score  >= 0.90
       - score_risco     <= 10
@@ -505,14 +533,23 @@ def monitor_autopub_check(
 
     Retorna (pode_publicar: bool, motivos_bloqueio: list[str]).
     """
+    _lim_v200_64 = _carregar_limites_da_matriz_v200_64()
+    if score_qualidade_min is None:
+        score_qualidade_min = _lim_v200_64["score_qualidade_monitor_min"]
+    if coverage_min is None:
+        coverage_min = _lim_v200_64["coverage_monitor_min"]
+    if score_risco_max is None:
+        score_risco_max = _lim_v200_64["score_risco_max"]
     motivos: list[str] = []
 
     # v78c: auditoria editorial final antes de qualquer autopublicação.
+    # V200_64: usa score_qualidade_panel_min da matriz como piso interno
+    _audit_min = _lim_v200_64["score_qualidade_panel_min"]
     try:
         from ururau.editorial.auditoria_v78c import auditar_materia_10
         audit_v78c = auditar_materia_10(article, texto_fonte=article.get("cleaned_source_text") or article.get("raw_source_text") or "", modo="monitor")
-        if audit_v78c.get("score_qualidade", 0) < 90:
-            motivos.append(f"auditoria_v78c score {audit_v78c.get('score_qualidade')}/100 < 90")
+        if audit_v78c.get("score_qualidade", 0) < _audit_min:
+            motivos.append(f"auditoria_v78c score {audit_v78c.get('score_qualidade')}/100 < {_audit_min}")
         for b in (audit_v78c.get("bloqueadores") or [])[:3]:
             motivos.append(f"auditoria_v78c: {b.get('mensagem', b.get('codigo', 'bloqueador'))}")
     except Exception as exc:
