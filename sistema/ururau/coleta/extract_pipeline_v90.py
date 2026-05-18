@@ -1488,14 +1488,46 @@ def extrair_materia_v90(
             tentativas,
         )
 
-    # --- ETAPA 3b: V200_41 - Pre-limpeza HTML por dominio (boilerplate especifico) ---
-    # Sites com sidebar de "mais noticias" no mesmo container poluem o texto da
-    # materia. Pre-removemos esses blocos ANTES da extracao por adapter/trafilatura.
-    # Tambem reescreve o html para que os adapters que recebem html cru se beneficiem.
+    # --- ETAPA 3b: V200_43 - Isolamento por dominio (estrategia mais robusta) ---
+    # Para sites onde sabemos exatamente ONDE esta o corpo da materia, em vez
+    # de remover boilerplate, ISOLAMOS apenas o container do corpo. Sobra so a
+    # materia, nada mais. Robusto contra mudancas no resto do layout.
     try:
         _dom_lower = (dominio or "").lower()
-        _seletores_remover: list[str] = []
+        _isolou = False
         if "campos.rj.gov.br" in _dom_lower:
+            # campos.rj.gov.br: corpo esta em div.imateria
+            _alvo = soup.select_one("div.imateria") or soup.select_one(".imateria")
+            if _alvo:
+                # Captura tambem o titulo (h1) e a imagem destacada antes de isolar
+                _titulo_el = soup.select_one("h1") or soup.select_one("h2")
+                _img_el = None
+                for _candidato in (
+                    "div.box-detail-noticia img",
+                    "div.box-detail-noticia .carousel img",
+                    "article img",
+                    "main img",
+                ):
+                    _img_el = soup.select_one(_candidato)
+                    if _img_el:
+                        break
+                # Constroi novo soup minimalista
+                from bs4 import BeautifulSoup as _BS
+                _novo = _BS("<html><head></head><body></body></html>", "html.parser")
+                _body = _novo.body
+                if _titulo_el:
+                    _body.append(_titulo_el.extract())
+                if _img_el:
+                    _body.append(_img_el.extract())
+                _body.append(_alvo.extract())
+                soup = _novo
+                html = str(soup)
+                _isolou = True
+                logger.info("%s V200_43 ISOLOU corpo (div.imateria) em campos.rj.gov.br", PREFIX)
+        if _isolou:
+            pass  # ja isolou, pula pre-limpeza padrao
+        _seletores_remover: list[str] = []
+        if not _isolou and "campos.rj.gov.br" in _dom_lower:
             # V200_42: estrutura REAL inspecionada no HTML
             # - ul.ul-noticias-detail: lista lateral com <a.link-noticia-list-detail>
             # - div.box-mais-noticias: bloco "Mais noticias" com tabs
