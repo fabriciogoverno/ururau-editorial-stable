@@ -651,7 +651,7 @@
     ]
   },
   {
-    "url": "https://news.google.com/rss/search?q=site%3Acampos.rj.gov.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
+    "url": "https://news.google.com/rss/search?q=%28site%3Awww.campos.rj.gov.br%2Fultimas-noticias+OR+site%3Awww.campos.rj.gov.br%2Fnoticia%29+when%3A48h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
     "nome": "Prefeitura Campos dos Goytacazes",
     "canal_forcado": "Cidades",
     "ativo": true,
@@ -660,9 +660,9 @@
     "ordem": 64,
     "_origem": "oficiais_prioritarias",
     "links": [
-      "https://news.google.com/rss/search?q=site%3Acampos.rj.gov.br+when:24h&hl=pt-BR&gl=BR&ceid=BR:pt-419",
-      "https://www.campos.rj.gov.br/"
-    ]
+      "https://www.campos.rj.gov.br/ultimas-noticias.php"
+    ],
+    "_obs": "RSS oficial /noticias/rss nao existe (404). Usa Google News restrito a www.campos.rj.gov.br/ultimas-noticias e /noticia para evitar suap.campos.rj.gov.br e outros subdominios."
   },
   {
     "url": "https://www.cmcg.rj.gov.br/noticias/rss",
